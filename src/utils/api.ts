@@ -1,37 +1,55 @@
 export const apiClient = {
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
-  
+
+  getAuthToken() {
+    if (typeof window === 'undefined') return null;
+    return localStorage.getItem('access_token');
+  },
+
+  async request(endpoint: string, options: RequestInit = {}) {
+    const token = this.getAuthToken();
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    if (options.headers) {
+      Object.assign(headers, options.headers as Record<string, string>);
+    }
+
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${this.baseURL}${endpoint}`, {
+      ...options,
+      headers,
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.detail || 'Request failed');
+    }
+    return data;
+  },
+
   async get(endpoint: string) {
-    const response = await fetch(`${this.baseURL}${endpoint}`, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    });
-    return response.json();
+    return this.request(endpoint, { method: 'GET' });
   },
 
-  async post(endpoint: string, data: any) {
-    const response = await fetch(`${this.baseURL}${endpoint}`, {
+  async post(endpoint: string, data: unknown) {
+    return this.request(endpoint, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
-    return response.json();
   },
 
-  async put(endpoint: string, data: any) {
-    const response = await fetch(`${this.baseURL}${endpoint}`, {
+  async put(endpoint: string, data: unknown) {
+    return this.request(endpoint, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
-    return response.json();
   },
 
   async delete(endpoint: string) {
-    const response = await fetch(`${this.baseURL}${endpoint}`, {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-    });
-    return response.json();
+    return this.request(endpoint, { method: 'DELETE' });
   },
 };

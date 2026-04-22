@@ -10,6 +10,18 @@ export default function Home() {
         </p>
         <div className="space-x-4">
           <a
+            href="/login"
+            className="inline-block px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+          >
+            Login
+          </a>
+          <a
+            href="/register"
+            className="inline-block px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+          >
+            Register User
+          </a>
+          <a
             href="/docs"
             className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
