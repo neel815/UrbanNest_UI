@@ -24,7 +24,11 @@ export default function LoginPage() {
       });
       localStorage.setItem('access_token', response.access_token);
       localStorage.setItem('current_role', response.role);
-      router.push('/register');
+      if (response.role === 'system_admin') {
+        router.push('/system-admin/dashboard');
+      } else {
+        router.push('/register');
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Login failed';
       setError(message);

@@ -4,12 +4,12 @@ export const API_ENDPOINTS = {
     login: '/api/auth/login',
     register: '/api/auth/register',
     logout: '/api/auth/logout',
+    resetPassword: '/api/auth/reset-password',
   },
-  users: {
-    list: '/api/users',
-    detail: (id: string) => `/api/users/${id}`,
-    create: '/api/users',
-    update: (id: string) => `/api/users/${id}`,
-    delete: (id: string) => `/api/users/${id}`,
+  systemAdmin: {
+    dashboardStats: '/api/system-admin/dashboard/stats',
+    settingsMe: '/api/system-admin/settings/me',
+    admins: '/api/system-admin/admins',
+    inviteAdmin: '/api/system-admin/admins/invite',
   },
 };
