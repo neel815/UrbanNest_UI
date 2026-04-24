@@ -24,7 +24,6 @@ export default function LoginPage() {
         password,
       });
       localStorage.setItem('access_token', response.access_token);
-      localStorage.setItem('current_role', response.role);
       router.push('/dashboard');
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Login failed';

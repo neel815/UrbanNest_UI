@@ -3,9 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "kill:start": "powershell -NoProfile -Command \"$p='C:\\\\Users\\\\neel8\\\\Desktop\\\\UrbanNest\\\\frontend'; Get-CimInstance Win32_Process | Where-Object { $_.Name -eq 'node.exe' -and $_.CommandLine -like ('*'+$p+'*') -and $_.CommandLine -like '*next\\\\dist\\\\server\\\\lib\\\\start-server.js*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }\"",
+    "kill:dev": "powershell -NoProfile -Command \"$p='C:\\\\Users\\\\neel8\\\\Desktop\\\\UrbanNest\\\\frontend'; Get-CimInstance Win32_Process | Where-Object { $_.Name -eq 'node.exe' -and $_.CommandLine -like ('*'+$p+'*') -and $_.CommandLine -like '*next\\\\dist\\\\bin\\\\next* dev*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }\"",
+    "dev": "npm run kill:start && node -e \"require('fs').rmSync('.next',{recursive:true,force:true})\" && next dev -p 3000",
+    "dev:clean": "npm run kill:start && node -e \"require('fs').rmSync('.next',{recursive:true,force:true})\" && next dev -p 3000",
     "build": "next build",
-    "start": "next start",
+    "start": "npm run kill:dev && next start",
+    "start:clean": "node -e \"require('fs').rmSync('.next',{recursive:true,force:true})\" && next build && next start",
     "lint": "next lint",
     "test": "jest",
     "test:watch": "jest --watch"

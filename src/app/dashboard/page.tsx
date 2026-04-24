@@ -3,21 +3,39 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { apiClient } from '@/utils/api';
+import { API_ENDPOINTS } from '@/utils/constants';
 
 export default function DashboardPage() {
   const router = useRouter();
   const [role, setRole] = useState<string | null>(null);
+  const [name, setName] = useState<string | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem('access_token');
-    const currentRole = localStorage.getItem('current_role');
-
     if (!token) {
       router.replace('/login');
       return;
     }
 
-    setRole(currentRole);
+    apiClient
+      .get(API_ENDPOINTS.auth.me)
+      .then((me: { role: string; full_name: string }) => {
+        if (me.role === 'system_admin') {
+          router.replace('/system-admin/dashboard');
+          return;
+        }
+        if (me.role === 'admin') {
+          router.replace('/admin/dashboard');
+          return;
+        }
+        setRole(me.role);
+        setName(me.full_name);
+      })
+      .catch(() => {
+        localStorage.removeItem('access_token');
+        router.replace('/login');
+      });
   }, [router]);
 
   return (
@@ -27,7 +45,7 @@ export default function DashboardPage() {
           <p className="text-sm font-medium uppercase tracking-[0.3em] text-blue-600">Dashboard</p>
           <h1 className="mt-3 text-3xl font-bold text-gray-900">Welcome to UrbanNest</h1>
           <p className="mt-3 text-gray-600">
-            You are signed in{role ? ` as ${role.replace('_', ' ')}` : ''}. This is your landing page after login or signup.
+            {name ? `Hi ${name}. ` : ''}You are signed in{role ? ` as ${role.replace('_', ' ')}` : ''}. This is your landing page after login or signup.
           </p>
 
           <div className="mt-8 flex flex-wrap gap-3">

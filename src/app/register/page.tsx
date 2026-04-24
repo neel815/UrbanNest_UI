@@ -33,7 +33,6 @@ export default function RegisterPage() {
         true,
       );
       localStorage.setItem('access_token', response.access_token);
-      localStorage.setItem('current_role', response.role);
       setMessage(`User created successfully with role: ${response.role}`);
       router.push('/dashboard');
       setFullName('');
