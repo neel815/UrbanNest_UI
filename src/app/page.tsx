@@ -1,42 +1,5 @@
-'use client';
+import { redirect } from 'next/navigation';
 
 export default function Home() {
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to UrbanNest</h1>
-        <p className="text-xl text-gray-600 mb-8">
-          Next.js + FastAPI Full-Stack Application
-        </p>
-        <div className="space-x-4">
-          <a
-            href="/login"
-            className="inline-block px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-          >
-            Login
-          </a>
-          <a
-            href="/register"
-            className="inline-block px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-          >
-            Register User
-          </a>
-          <a
-            href="/docs"
-            className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            API Documentation
-          </a>
-          <a
-            href="http://localhost:8000/docs"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700"
-          >
-            FastAPI Docs
-          </a>
-        </div>
-      </div>
-    </main>
-  );
+  redirect('/login');
 }

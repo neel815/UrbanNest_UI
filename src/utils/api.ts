@@ -6,7 +6,7 @@ export const apiClient = {
     return localStorage.getItem('access_token');
   },
 
-  async request(endpoint: string, options: RequestInit = {}) {
+  async request(endpoint: string, options: RequestInit = {}, skipAuth = false) {
     const token = this.getAuthToken();
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -15,7 +15,7 @@ export const apiClient = {
       Object.assign(headers, options.headers as Record<string, string>);
     }
 
-    if (token) {
+    if (!skipAuth && token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
@@ -31,25 +31,25 @@ export const apiClient = {
     return data;
   },
 
-  async get(endpoint: string) {
-    return this.request(endpoint, { method: 'GET' });
+  async get(endpoint: string, skipAuth = false) {
+    return this.request(endpoint, { method: 'GET' }, skipAuth);
   },
 
-  async post(endpoint: string, data: unknown) {
+  async post(endpoint: string, data: unknown, skipAuth = false) {
     return this.request(endpoint, {
       method: 'POST',
       body: JSON.stringify(data),
-    });
+    }, skipAuth);
   },
 
-  async put(endpoint: string, data: unknown) {
+  async put(endpoint: string, data: unknown, skipAuth = false) {
     return this.request(endpoint, {
       method: 'PUT',
       body: JSON.stringify(data),
-    });
+    }, skipAuth);
   },
 
-  async delete(endpoint: string) {
-    return this.request(endpoint, { method: 'DELETE' });
+  async delete(endpoint: string, skipAuth = false) {
+    return this.request(endpoint, { method: 'DELETE' }, skipAuth);
   },
 };

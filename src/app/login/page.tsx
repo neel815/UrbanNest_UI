@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { API_ENDPOINTS } from '@/utils/constants';
 import { apiClient } from '@/utils/api';
@@ -24,11 +25,7 @@ export default function LoginPage() {
       });
       localStorage.setItem('access_token', response.access_token);
       localStorage.setItem('current_role', response.role);
-      if (response.role === 'system_admin') {
-        router.push('/system-admin/dashboard');
-      } else {
-        router.push('/register');
-      }
+      router.push('/dashboard');
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Login failed';
       setError(message);
@@ -83,6 +80,13 @@ export default function LoginPage() {
             {loading ? 'Signing in...' : 'Sign in'}
           </button>
         </form>
+
+        <p className="mt-6 text-sm text-gray-600">
+          Don&apos;t have an account?{' '}
+          <Link href="/register" className="font-medium text-blue-600 hover:text-blue-700">
+            Create here
+          </Link>
+        </p>
       </div>
     </main>
   );

@@ -1,24 +1,19 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { API_ENDPOINTS } from '@/utils/constants';
 import { apiClient } from '@/utils/api';
 
-type RoleValue = 'admin' | 'resident' | 'security' | 'system_admin';
-
 export default function RegisterPage() {
+  const router = useRouter();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
-  const [creatorRole, setCreatorRole] = useState<RoleValue | null>(null);
-
-  useEffect(() => {
-    setCreatorRole(localStorage.getItem('current_role') as RoleValue | null);
-  }, []);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -27,13 +22,20 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      const response = await apiClient.post(API_ENDPOINTS.auth.register, {
-        full_name: fullName,
-        email,
-        password,
-        role: 'resident',
-      });
+      const response = await apiClient.post(
+        API_ENDPOINTS.auth.register,
+        {
+          full_name: fullName,
+          email,
+          password,
+          role: 'resident',
+        },
+        true,
+      );
+      localStorage.setItem('access_token', response.access_token);
+      localStorage.setItem('current_role', response.role);
       setMessage(`User created successfully with role: ${response.role}`);
+      router.push('/dashboard');
       setFullName('');
       setEmail('');
       setPassword('');
@@ -49,15 +51,13 @@ export default function RegisterPage() {
     <main className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
       <div className="w-full max-w-lg bg-white rounded-xl shadow-md p-8">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Register User</h1>
-        <p className="text-sm text-gray-600 mb-6">
-          Register users based on your role permissions.
+        <p className="text-sm text-gray-600 mb-2">Create a resident account.</p>
+        <p className="mb-6 text-sm text-gray-600">
+          Already have an account?{' '}
+          <Link href="/login" className="font-medium text-blue-600 hover:text-blue-700">
+            Sign in
+          </Link>
         </p>
-
-        {!creatorRole && (
-          <p className="mb-4 rounded-lg bg-yellow-50 border border-yellow-200 px-3 py-2 text-sm text-yellow-800">
-            Login required. Please sign in first so the API receives your bearer token.
-          </p>
-        )}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">
@@ -107,8 +107,8 @@ export default function RegisterPage() {
 
           <button
             type="submit"
-            disabled={loading || !creatorRole}
-            className="w-full rounded-lg bg-green-600 text-white py-2.5 font-medium hover:bg-green-700 disabled:opacity-60"
+            disabled={loading}
+            className="w-full rounded-lg bg-blue-600 text-white py-2.5 font-medium hover:bg-blue-700 disabled:opacity-60"
           >
             {loading ? 'Creating user...' : 'Create user'}
           </button>
