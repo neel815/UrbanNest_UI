@@ -13,6 +13,14 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const getRolePath = (role?: string) => {
+    if (role === 'system_admin') return '/system-admin/dashboard';
+    if (role === 'admin') return '/admin/dashboard';
+    if (role === 'resident') return '/resident/dashboard';
+    if (role === 'security') return '/security/dashboard';
+    return '/dashboard';
+  };
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError('');
@@ -24,7 +32,7 @@ export default function LoginPage() {
         password,
       });
       localStorage.setItem('access_token', response.access_token);
-      router.push('/dashboard');
+      router.replace(getRolePath(response.role));
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Login failed';
       setError(message);

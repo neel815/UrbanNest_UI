@@ -11,6 +11,9 @@ export default function AdminSecurityPage() {
       roleTitle="Security"
       roleDescription="Manage security staff accounts with full CRUD actions from admin login."
       endpoint={securityEndpoint}
+      createMode="invite"
+      inviteEndpoint={API_ENDPOINTS.admin.inviteSecurity}
+      showCreateImageUpload={false}
     />
   );
 }

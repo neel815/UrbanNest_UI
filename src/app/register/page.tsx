@@ -15,6 +15,14 @@ export default function RegisterPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const getRolePath = (role?: string) => {
+    if (role === 'system_admin') return '/system-admin/dashboard';
+    if (role === 'admin') return '/admin/dashboard';
+    if (role === 'resident') return '/resident/dashboard';
+    if (role === 'security') return '/security/dashboard';
+    return '/dashboard';
+  };
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setMessage('');
@@ -34,7 +42,7 @@ export default function RegisterPage() {
       );
       localStorage.setItem('access_token', response.access_token);
       setMessage(`User created successfully with role: ${response.role}`);
-      router.push('/dashboard');
+      router.replace(getRolePath(response.role));
       setFullName('');
       setEmail('');
       setPassword('');
