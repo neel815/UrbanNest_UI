@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { apiClient } from '@/utils/api';
 import { API_ENDPOINTS } from '@/utils/constants';
+import ImageUploadField from '../../../components/ImageUploadField';
 
 export default function SettingsPage() {
   const [appName, setAppName] = useState('');
@@ -126,14 +127,11 @@ export default function SettingsPage() {
                 />
               </div>
               <div className="sm:col-span-2">
-                <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">
-                  Profile image URL
-                </label>
-                <input
-                  className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none focus:ring-2 focus:ring-slate-900/10"
+                <ImageUploadField
+                  label="Profile image"
                   value={profileImageUrl}
-                  onChange={(e) => setProfileImageUrl(e.target.value)}
-                  placeholder="https://..."
+                  onChange={setProfileImageUrl}
+                  disabled={loading}
                 />
               </div>
 

@@ -121,12 +121,6 @@ export default function SystemAdminLayout({ children }: { children: React.ReactN
             </nav>
 
             <div className="flex items-center gap-2">
-              <Link
-                href="/dashboard"
-                className="hidden rounded-full px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-white hover:shadow-sm hover:ring-1 hover:ring-slate-200 sm:inline-flex"
-              >
-                Back to app
-              </Link>
               <button
                 type="button"
                 onClick={onLogout}
