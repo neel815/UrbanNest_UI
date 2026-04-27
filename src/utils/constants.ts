@@ -14,4 +14,9 @@ export const API_ENDPOINTS = {
     admins: '/api/system-admin/admins',
     inviteAdmin: '/api/system-admin/admins/invite',
   },
+  admin: {
+    dashboardStats: '/api/admin/dashboard/stats',
+    residents: '/api/admin/residents',
+    security: '/api/admin/security',
+  },
 };

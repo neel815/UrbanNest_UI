@@ -1,22 +1,53 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+
+import { apiClient } from '@/utils/api';
+import { API_ENDPOINTS } from '@/utils/constants';
+
+type AdminStats = {
+  total_residents: number;
+  total_security: number;
+  total_managed_users: number;
+  residents_joined_last_30_days: number;
+  security_joined_last_30_days: number;
+};
+
 export default function AdminDashboardPage() {
+  const [stats, setStats] = useState<AdminStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    apiClient
+      .get(API_ENDPOINTS.admin.dashboardStats)
+      .then((data: AdminStats) => setStats(data))
+      .catch((err: Error) => setError(err.message))
+      .finally(() => setLoading(false));
+  }, []);
+
   const cards = [
     {
       title: 'Residents',
       subtitle: 'Directory & approvals',
+      value: stats?.total_residents ?? 0,
+      footnote: `${stats?.residents_joined_last_30_days ?? 0} joined in 30 days`,
       accent: 'from-amber-500 to-orange-500',
       icon: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M12 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z',
     },
     {
       title: 'Security',
       subtitle: 'Guards & shifts',
+      value: stats?.total_security ?? 0,
+      footnote: `${stats?.security_joined_last_30_days ?? 0} joined in 30 days`,
       accent: 'from-teal-500 to-emerald-500',
       icon: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z',
     },
     {
-      title: 'Announcements',
-      subtitle: 'Broadcast updates',
+      title: 'Managed Users',
+      subtitle: 'Residents + security',
+      value: stats?.total_managed_users ?? 0,
+      footnote: 'Live from backend',
       accent: 'from-slate-700 to-slate-900',
       icon: 'M4 11V9a2 2 0 0 1 2-2h3l5-3v16l-5-3H6a2 2 0 0 1-2-2v-2',
     },
@@ -35,9 +66,15 @@ export default function AdminDashboardPage() {
             </div>
           </div>
           <p className="max-w-2xl text-slate-600">
-            A clean starting point for the Admin portal. Hook these cards up to real data when backend endpoints are ready.
+            Live overview of residents and security users managed by admins.
           </p>
         </div>
+
+        {error && (
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
+            {error}
+          </div>
+        )}
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {cards.map((card) => (
@@ -64,9 +101,12 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
 
-              <p className="mt-6 text-sm text-slate-600">
-                Coming soon.
-              </p>
+              <div className="mt-5">
+                <p className="text-4xl font-semibold tracking-tight text-slate-900">
+                  {loading ? <span className="inline-block h-10 w-16 animate-pulse rounded bg-slate-200" /> : card.value}
+                </p>
+                <p className="mt-1 text-sm text-slate-600">{card.footnote}</p>
+              </div>
               <div className="pointer-events-none absolute -right-16 -top-16 h-32 w-32 rounded-full bg-slate-900/5 blur-2xl transition group-hover:bg-slate-900/10" />
             </div>
           ))}
@@ -97,10 +137,10 @@ export default function AdminDashboardPage() {
           <div className="rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-900 to-slate-800 p-6 text-white shadow-sm">
             <p className="text-sm font-semibold text-white/90">Note</p>
             <p className="mt-2 text-lg font-semibold leading-snug">
-              This portal is UI-first.
+              Dashboard is now data-driven.
             </p>
             <p className="mt-2 text-sm text-white/70">
-              The backend currently exposes System Admin endpoints. When Admin endpoints are added, we can wire these screens to live data.
+              Counts refresh from the Admin stats API and reflect current resident and security records.
             </p>
           </div>
         </div>
