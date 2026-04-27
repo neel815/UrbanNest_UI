@@ -20,4 +20,13 @@ export const API_ENDPOINTS = {
     inviteResident: '/api/admin/residents/invite',
     security: '/api/admin/security',
   },
+  resident: {
+    dashboardStats: '/api/resident/dashboard-stats',
+    announcements: '/api/resident/announcements',
+    maintenance: '/api/resident/maintenance',
+    visitors: '/api/resident/visitors',
+    payments: '/api/resident/payments',
+    events: '/api/resident/events',
+    forumPosts: '/api/resident/forum-posts',
+  },
 };

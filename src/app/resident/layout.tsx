@@ -58,6 +58,56 @@ export default function ResidentLayout({ children }: { children: React.ReactNode
             >
               Dashboard
             </Link>
+            <Link
+              href="/resident/announcements"
+              className={
+                pathname === '/resident/announcements'
+                  ? 'rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white'
+                  : 'rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-700 ring-1 ring-slate-200'
+              }
+            >
+              Announcements
+            </Link>
+            <Link
+              href="/resident/maintenance"
+              className={
+                pathname === '/resident/maintenance'
+                  ? 'rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white'
+                  : 'rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-700 ring-1 ring-slate-200'
+              }
+            >
+              Maintenance
+            </Link>
+            <Link
+              href="/resident/visitors"
+              className={
+                pathname === '/resident/visitors'
+                  ? 'rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white'
+                  : 'rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-700 ring-1 ring-slate-200'
+              }
+            >
+              Visitors
+            </Link>
+            <Link
+              href="/resident/payments"
+              className={
+                pathname === '/resident/payments'
+                  ? 'rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white'
+                  : 'rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-700 ring-1 ring-slate-200'
+              }
+            >
+              Payments
+            </Link>
+            <Link
+              href="/resident/community"
+              className={
+                pathname === '/resident/community'
+                  ? 'rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white'
+                  : 'rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-700 ring-1 ring-slate-200'
+              }
+            >
+              Community
+            </Link>
             <button
               type="button"
               onClick={onLogout}
