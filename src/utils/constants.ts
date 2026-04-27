@@ -17,6 +17,7 @@ export const API_ENDPOINTS = {
   admin: {
     dashboardStats: '/api/admin/dashboard/stats',
     residents: '/api/admin/residents',
+    inviteResident: '/api/admin/residents/invite',
     security: '/api/admin/security',
   },
 };

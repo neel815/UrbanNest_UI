@@ -43,7 +43,7 @@ function ResetPasswordContent() {
     <main className="min-h-screen bg-gray-50 p-6 flex items-center justify-center">
       <div className="w-full max-w-md bg-white border rounded-xl p-8">
         <h1 className="text-2xl font-bold mb-2">Set Password</h1>
-        <p className="text-sm text-gray-600 mb-6">Use the invite link from System Admin.</p>
+        <p className="text-sm text-gray-600 mb-6">Use the invite link.</p>
         <form onSubmit={onSubmit} className="space-y-4">
           <input type="password" className="w-full border rounded-lg px-3 py-2" placeholder="New password" minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} required />
           <input type="password" className="w-full border rounded-lg px-3 py-2" placeholder="Confirm password" minLength={8} value={confirm} onChange={(e) => setConfirm(e.target.value)} required />

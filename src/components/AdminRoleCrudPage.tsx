@@ -18,9 +18,19 @@ type AdminRoleCrudPageProps = {
   roleTitle: string;
   roleDescription: string;
   endpoint: string;
+  createMode?: 'direct' | 'invite';
+  inviteEndpoint?: string;
+  showCreateImageUpload?: boolean;
 };
 
-export default function AdminRoleCrudPage({ roleTitle, roleDescription, endpoint }: AdminRoleCrudPageProps) {
+export default function AdminRoleCrudPage({
+  roleTitle,
+  roleDescription,
+  endpoint,
+  createMode = 'direct',
+  inviteEndpoint,
+  showCreateImageUpload = true,
+}: AdminRoleCrudPageProps) {
   const [users, setUsers] = useState<ManagedUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -30,6 +40,7 @@ export default function AdminRoleCrudPage({ roleTitle, roleDescription, endpoint
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [profileImageUrl, setProfileImageUrl] = useState('');
+  const [resetLink, setResetLink] = useState('');
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editFullName, setEditFullName] = useState('');
@@ -59,14 +70,28 @@ export default function AdminRoleCrudPage({ roleTitle, roleDescription, endpoint
     event.preventDefault();
     setError('');
     setMessage('');
+    setResetLink('');
     try {
-      await apiClient.post(endpoint, {
-        full_name: fullName,
-        email,
-        password,
-        profile_image_url: profileImageUrl || null,
-      });
-      setMessage(`${roleTitle.slice(0, -1)} created successfully.`);
+      if (createMode === 'invite') {
+        if (!inviteEndpoint) {
+          throw new Error('Invite endpoint is not configured');
+        }
+        const data = await apiClient.post(inviteEndpoint, {
+          full_name: fullName,
+          email,
+          profile_image_url: profileImageUrl || null,
+        });
+        setMessage(data.message || `${roleTitle.slice(0, -1)} invited successfully.`);
+        setResetLink(data.reset_link || '');
+      } else {
+        await apiClient.post(endpoint, {
+          full_name: fullName,
+          email,
+          password,
+          profile_image_url: profileImageUrl || null,
+        });
+        setMessage(`${roleTitle.slice(0, -1)} created successfully.`);
+      }
       resetCreateForm();
       await loadUsers();
     } catch (err) {
@@ -148,7 +173,9 @@ export default function AdminRoleCrudPage({ roleTitle, roleDescription, endpoint
         )}
 
         <div className="rounded-2xl border border-slate-200 bg-white/70 p-6 shadow-sm backdrop-blur">
-          <p className="text-sm font-semibold text-slate-900">Add {roleTitle.slice(0, -1)}</p>
+          <p className="text-sm font-semibold text-slate-900">
+            {createMode === 'invite' ? `Invite ${roleTitle.slice(0, -1)}` : `Add ${roleTitle.slice(0, -1)}`}
+          </p>
           <form onSubmit={onCreate} className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Full name</label>
@@ -171,28 +198,39 @@ export default function AdminRoleCrudPage({ roleTitle, roleDescription, endpoint
               />
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Password</label>
-              <input
-                type="password"
-                minLength={8}
-                className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none focus:ring-2 focus:ring-slate-900/10"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                required
-              />
-            </div>
+            {createMode === 'direct' && (
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Password</label>
+                <input
+                  type="password"
+                  minLength={8}
+                  className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none focus:ring-2 focus:ring-slate-900/10"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  required
+                />
+              </div>
+            )}
 
-            <div className="sm:col-span-2">
-              <ImageUploadField label="Profile image" value={profileImageUrl} onChange={setProfileImageUrl} />
-            </div>
+            {showCreateImageUpload && (
+              <div className="sm:col-span-2">
+                <ImageUploadField label="Profile image" value={profileImageUrl} onChange={setProfileImageUrl} />
+              </div>
+            )}
 
             <div className="sm:col-span-2">
               <button className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-800">
-                Add {roleTitle.slice(0, -1)}
+                {createMode === 'invite' ? `Invite ${roleTitle.slice(0, -1)}` : `Add ${roleTitle.slice(0, -1)}`}
               </button>
             </div>
           </form>
+
+          {resetLink && (
+            <div className="mt-4 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
+              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Activation link</p>
+              <p className="mt-2 break-all font-medium text-slate-900">{resetLink}</p>
+            </div>
+          )}
         </div>
 
         <div className="rounded-2xl border border-slate-200 bg-white/70 shadow-sm backdrop-blur">

@@ -29,6 +29,10 @@ export default function DashboardPage() {
           router.replace('/admin/dashboard');
           return;
         }
+        if (me.role === 'resident') {
+          router.replace('/resident/dashboard');
+          return;
+        }
         setRole(me.role);
         setName(me.full_name);
       })

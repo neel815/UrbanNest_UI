@@ -9,8 +9,11 @@ export default function AdminResidentsPage() {
   return (
     <AdminRoleCrudPage
       roleTitle="Residents"
-      roleDescription="Create, update, and remove resident accounts from the admin portal."
+      roleDescription="Invite residents with activation links, then manage resident accounts from the admin portal."
       endpoint={residentsEndpoint}
+      createMode="invite"
+      inviteEndpoint={API_ENDPOINTS.admin.inviteResident}
+      showCreateImageUpload={false}
     />
   );
 }
