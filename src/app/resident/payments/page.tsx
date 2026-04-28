@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
-import { apiClient } from '@/utils/api';
+import { apiClient, getApiErrorMessage } from '@/utils/api';
 import { API_ENDPOINTS } from '@/utils/constants';
 
 interface Payment {
@@ -22,11 +22,18 @@ export default function PaymentsPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    apiClient
-      .get(API_ENDPOINTS.resident.payments)
-      .then(setPayments)
-      .catch((err: Error) => setError(err.message))
-      .finally(() => setLoading(false));
+    const loadPayments = async () => {
+      try {
+        const data = await apiClient.get(API_ENDPOINTS.resident.payments);
+        setPayments(data);
+      } catch (err) {
+        setError(getApiErrorMessage(err));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPayments();
   }, []);
 
   const getStatusColor = (status: string) => {
@@ -58,14 +65,18 @@ export default function PaymentsPage() {
   };
 
   const markAsPaid = (id: number) => {
-    apiClient
-      .post(`${API_ENDPOINTS.resident.payments}/${id}/pay`, {})
-      .then((updatedPayment: Payment) => {
+    const payRequest = async () => {
+      try {
+        const updatedPayment = await apiClient.post(`${API_ENDPOINTS.resident.payments}/${id}/pay`, {});
         setPayments(payments.map(payment => 
           payment.id === id ? updatedPayment : payment
         ));
-      })
-      .catch((err: Error) => setError(err.message));
+      } catch (err) {
+        setError(getApiErrorMessage(err));
+      }
+    };
+
+    payRequest();
   };
 
   const calculateTotals = () => {

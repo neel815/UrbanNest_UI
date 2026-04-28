@@ -1,7 +1,7 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
-import { apiClient } from '@/utils/api';
+import { apiClient, getApiErrorMessage } from '@/utils/api';
 import { API_ENDPOINTS } from '@/utils/constants';
 
 type AdminItem = {
@@ -27,9 +27,17 @@ export default function AdminListPage() {
   };
 
   useEffect(() => {
-    loadAdmins()
-      .catch((err: Error) => setError(err.message))
-      .finally(() => setLoading(false));
+    const initialize = async () => {
+      try {
+        await loadAdmins();
+      } catch (err) {
+        setError(getApiErrorMessage(err));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initialize();
   }, []);
 
   const onAddAdmin = async (event: FormEvent<HTMLFormElement>) => {

@@ -3,14 +3,14 @@
 import { FormEvent, useEffect, useState } from 'react';
 
 import ImageUploadField from './ImageUploadField';
-import { apiClient } from '@/utils/api';
+import { apiClient, getApiErrorMessage } from '@/utils/api';
 
 type ManagedUser = {
   id: string;
   full_name: string;
   email: string;
   role: string;
-  profile_image_url?: string | null;
+  profile_image?: string | null;
   created_at: string;
 };
 
@@ -39,14 +39,14 @@ export default function AdminRoleCrudPage({
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [profileImageUrl, setProfileImageUrl] = useState('');
+  const [profileImage, setProfileImage] = useState('');
   const [resetLink, setResetLink] = useState('');
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editFullName, setEditFullName] = useState('');
   const [editEmail, setEditEmail] = useState('');
   const [editPassword, setEditPassword] = useState('');
-  const [editProfileImageUrl, setEditProfileImageUrl] = useState('');
+  const [editProfileImage, setEditProfileImage] = useState('');
 
   const loadUsers = async () => {
     const data = await apiClient.get(endpoint);
@@ -54,16 +54,24 @@ export default function AdminRoleCrudPage({
   };
 
   useEffect(() => {
-    loadUsers()
-      .catch((err: Error) => setError(err.message))
-      .finally(() => setLoading(false));
+    const initialize = async () => {
+      try {
+        await loadUsers();
+      } catch (err) {
+        setError(getApiErrorMessage(err));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initialize();
   }, [endpoint]);
 
   const resetCreateForm = () => {
     setFullName('');
     setEmail('');
     setPassword('');
-    setProfileImageUrl('');
+    setProfileImage('');
   };
 
   const onCreate = async (event: FormEvent<HTMLFormElement>) => {
@@ -79,7 +87,7 @@ export default function AdminRoleCrudPage({
         const data = await apiClient.post(inviteEndpoint, {
           full_name: fullName,
           email,
-          profile_image_url: profileImageUrl || null,
+          profile_image: profileImage || null,
         });
         setMessage(data.message || `${roleTitle.slice(0, -1)} invited successfully.`);
         setResetLink(data.reset_link || '');
@@ -88,7 +96,7 @@ export default function AdminRoleCrudPage({
           full_name: fullName,
           email,
           password,
-          profile_image_url: profileImageUrl || null,
+          profile_image: profileImage || null,
         });
         setMessage(`${roleTitle.slice(0, -1)} created successfully.`);
       }
@@ -104,7 +112,7 @@ export default function AdminRoleCrudPage({
     setEditFullName(user.full_name);
     setEditEmail(user.email);
     setEditPassword('');
-    setEditProfileImageUrl(user.profile_image_url || '');
+    setEditProfileImage(user.profile_image || '');
   };
 
   const cancelEdit = () => {
@@ -112,7 +120,7 @@ export default function AdminRoleCrudPage({
     setEditFullName('');
     setEditEmail('');
     setEditPassword('');
-    setEditProfileImageUrl('');
+    setEditProfileImage('');
   };
 
   const onUpdate = async (event: FormEvent<HTMLFormElement>) => {
@@ -125,7 +133,7 @@ export default function AdminRoleCrudPage({
         full_name: editFullName,
         email: editEmail,
         password: editPassword || null,
-        profile_image_url: editProfileImageUrl || null,
+        profile_image: editProfileImage || null,
       });
       setMessage(`${roleTitle.slice(0, -1)} updated successfully.`);
       cancelEdit();
@@ -214,7 +222,7 @@ export default function AdminRoleCrudPage({
 
             {showCreateImageUpload && (
               <div className="sm:col-span-2">
-                <ImageUploadField label="Profile image" value={profileImageUrl} onChange={setProfileImageUrl} />
+                <ImageUploadField label="Profile image" value={profileImage} onChange={setProfileImage} />
               </div>
             )}
 
@@ -323,7 +331,7 @@ export default function AdminRoleCrudPage({
               </div>
 
               <div className="sm:col-span-2">
-                <ImageUploadField label="Profile image" value={editProfileImageUrl} onChange={setEditProfileImageUrl} />
+                <ImageUploadField label="Profile image" value={editProfileImage} onChange={setEditProfileImage} />
               </div>
 
               <div className="sm:col-span-2 flex gap-2">

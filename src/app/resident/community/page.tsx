@@ -86,14 +86,18 @@ export default function CommunityPage() {
   };
 
   const toggleEventRegistration = (eventId: number) => {
-    apiClient
-      .post(`${API_ENDPOINTS.resident.events}/${eventId}/register`, {})
-      .then((updatedEvent: Event) => {
+    const submitRegistration = async () => {
+      try {
+        const updatedEvent = await apiClient.post(`${API_ENDPOINTS.resident.events}/${eventId}/register`, {});
         setEvents(events.map(event => 
           event.id === eventId ? updatedEvent : event
         ));
-      })
-      .catch((err: Error) => setError(err.message));
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to update registration');
+      }
+    };
+
+    submitRegistration();
   };
 
   return (

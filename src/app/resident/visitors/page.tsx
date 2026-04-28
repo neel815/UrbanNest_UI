@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
-import { apiClient } from '@/utils/api';
+import { apiClient, getApiErrorMessage } from '@/utils/api';
 import { API_ENDPOINTS } from '@/utils/constants';
 
 interface Visitor {
@@ -32,11 +32,18 @@ export default function VisitorsPage() {
   });
 
   useEffect(() => {
-    apiClient
-      .get(API_ENDPOINTS.resident.visitors)
-      .then(setVisitors)
-      .catch((err: Error) => setError(err.message))
-      .finally(() => setLoading(false));
+    const loadVisitors = async () => {
+      try {
+        const data = await apiClient.get(API_ENDPOINTS.resident.visitors);
+        setVisitors(data);
+      } catch (err) {
+        setError(getApiErrorMessage(err));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadVisitors();
   }, []);
 
   const getStatusColor = (status: string) => {
@@ -65,9 +72,9 @@ export default function VisitorsPage() {
       vehicleNumber: formData.vehicleNumber || undefined
     };
 
-    apiClient
-      .post(API_ENDPOINTS.resident.visitors, newVisitor)
-      .then((data: Visitor) => {
+    const submitVisitor = async () => {
+      try {
+        const data = await apiClient.post(API_ENDPOINTS.resident.visitors, newVisitor);
         setVisitors([data, ...visitors]);
         setFormData({
           name: '',
@@ -78,25 +85,33 @@ export default function VisitorsPage() {
           vehicleNumber: ''
         });
         setShowForm(false);
-      })
-      .catch((err: Error) => setError(err.message));
+      } catch (err) {
+        setError(getApiErrorMessage(err));
+      }
+    };
+
+    submitVisitor();
   };
 
   const updateVisitorStatus = (id: number, newStatus: 'checked_in' | 'checked_out') => {
-    apiClient
-      .request(`${API_ENDPOINTS.resident.visitors}/${id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status: newStatus })
-      })
-      .then((updatedVisitor: Visitor) => {
+    const submitStatus = async () => {
+      try {
+        const updatedVisitor = await apiClient.request(`${API_ENDPOINTS.resident.visitors}/${id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ status: newStatus })
+        });
         setVisitors(visitors.map(visitor => 
           visitor.id === id ? updatedVisitor : visitor
         ));
-      })
-      .catch((err: Error) => setError(err.message));
+      } catch (err) {
+        setError(getApiErrorMessage(err));
+      }
+    };
+
+    submitStatus();
   };
 
   return (

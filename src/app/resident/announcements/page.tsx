@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
-import { apiClient } from '@/utils/api';
+import { apiClient, getApiErrorMessage } from '@/utils/api';
 import { API_ENDPOINTS } from '@/utils/constants';
 
 interface Announcement {
@@ -20,11 +20,18 @@ export default function AnnouncementsPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    apiClient
-      .get(API_ENDPOINTS.resident.announcements)
-      .then(setAnnouncements)
-      .catch((err: Error) => setError(err.message))
-      .finally(() => setLoading(false));
+    const loadAnnouncements = async () => {
+      try {
+        const data = await apiClient.get(API_ENDPOINTS.resident.announcements);
+        setAnnouncements(data);
+      } catch (err) {
+        setError(getApiErrorMessage(err));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadAnnouncements();
   }, []);
 
   const getPriorityColor = (priority: string) => {

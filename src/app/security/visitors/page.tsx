@@ -36,11 +36,18 @@ export default function SecurityVisitorsPage() {
   });
 
   useEffect(() => {
-    apiClient
-      .get('/api/security/visitors')
-      .then(setVisitors)
-      .catch((err: Error) => setError(err.message))
-      .finally(() => setLoading(false));
+    const loadVisitors = async () => {
+      try {
+        const data = await apiClient.get('/api/security/visitors');
+        setVisitors(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load visitors');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadVisitors();
   }, []);
 
   const getStatusColor = (status: string) => {
@@ -72,9 +79,9 @@ export default function SecurityVisitorsPage() {
       notes: formData.notes || undefined
     };
 
-    apiClient
-      .post('/api/security/visitors', newVisitor)
-      .then((data: Visitor) => {
+    const submitVisitor = async () => {
+      try {
+        const data = await apiClient.post('/api/security/visitors', newVisitor);
         setVisitors([data, ...visitors]);
         setFormData({
           name: '',
@@ -86,25 +93,33 @@ export default function SecurityVisitorsPage() {
           notes: ''
         });
         setShowForm(false);
-      })
-      .catch((err: Error) => setError(err.message));
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to register visitor');
+      }
+    };
+
+    submitVisitor();
   };
 
   const updateVisitorStatus = (id: number, newStatus: 'checked_in' | 'checked_out' | 'rejected') => {
-    apiClient
-      .request(`/api/security/visitors/${id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status: newStatus })
-      })
-      .then((updatedVisitor: Visitor) => {
+    const submitStatus = async () => {
+      try {
+        const updatedVisitor = await apiClient.request(`/api/security/visitors/${id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ status: newStatus })
+        });
         setVisitors(visitors.map(visitor => 
           visitor.id === id ? updatedVisitor : visitor
         ));
-      })
-      .catch((err: Error) => setError(err.message));
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to update visitor');
+      }
+    };
+
+    submitStatus();
   };
 
   return (

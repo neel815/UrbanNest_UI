@@ -2,10 +2,10 @@
 
 import { Space_Grotesk } from 'next/font/google';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
-import { apiClient } from '@/utils/api';
-import { API_ENDPOINTS } from '@/utils/constants';
+import { usePathname } from 'next/navigation';
+import { useMemo } from 'react';
+
+import { useAuthGuard } from '@/hooks/useAuthGuard';
 
 const spaceGrotesk = Space_Grotesk({ subsets: ['latin'], weight: ['400', '500', '600', '700'] });
 
@@ -18,9 +18,8 @@ function NavIcon({ d }: { d: string }) {
 }
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
   const pathname = usePathname();
-  const [checking, setChecking] = useState(true);
+  const { checking, error, logout } = useAuthGuard('admin');
 
   const nav = useMemo(
     () => [
@@ -47,33 +46,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     ],
     [],
   );
-
-  useEffect(() => {
-    const token = localStorage.getItem('access_token');
-    if (!token) {
-      router.replace('/login');
-      return;
-    }
-
-    apiClient
-      .get(API_ENDPOINTS.auth.me)
-      .then((me: { role: string }) => {
-        if (me.role !== 'admin') {
-          router.replace('/dashboard');
-          return;
-        }
-        setChecking(false);
-      })
-      .catch(() => {
-        localStorage.removeItem('access_token');
-        router.replace('/login');
-      });
-  }, [router]);
-
-  const onLogout = () => {
-    localStorage.removeItem('access_token');
-    router.replace('/login');
-  };
 
   return (
     <div className={spaceGrotesk.className}>
@@ -128,7 +100,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={onLogout}
+                onClick={logout}
                 className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50"
               >
                 Sign out
@@ -160,7 +132,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </header>
 
         <div className="mx-auto max-w-6xl px-6 py-8">
-          {checking ? (
+          {error ? (
+            <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
+              {error}
+            </div>
+          ) : checking ? (
             <div className="rounded-2xl border border-slate-200 bg-white/70 p-6 shadow-sm backdrop-blur">
               <div className="h-5 w-44 animate-pulse rounded bg-slate-200" />
               <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">

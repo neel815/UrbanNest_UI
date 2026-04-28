@@ -10,15 +10,16 @@ export default function DashboardPage() {
   const [resolving, setResolving] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('access_token');
-    if (!token) {
-      router.replace('/login');
-      return;
-    }
+    const resolveDashboard = async () => {
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        router.replace('/login');
+        setResolving(false);
+        return;
+      }
 
-    apiClient
-      .get(API_ENDPOINTS.auth.me)
-      .then((me: { role: string; full_name: string }) => {
+      try {
+        const me: { role: string; full_name: string } = await apiClient.get(API_ENDPOINTS.auth.me);
         if (me.role === 'system_admin') {
           router.replace('/system-admin/dashboard');
           return;
@@ -36,14 +37,15 @@ export default function DashboardPage() {
           return;
         }
         router.replace('/login');
-      })
-      .catch(() => {
+      } catch {
         localStorage.removeItem('access_token');
         router.replace('/login');
-      })
-      .finally(() => {
+      } finally {
         setResolving(false);
-      });
+      }
+    };
+
+    resolveDashboard();
   }, [router]);
 
   return (

@@ -94,41 +94,53 @@ export default function SecurityPatrolPage() {
   };
 
   const startPatrolRound = (routeId: number) => {
-    apiClient
-      .post('/api/security/patrol-rounds', { routeId })
-      .then((newRound: PatrolRound) => {
+    const submitPatrol = async () => {
+      try {
+        const newRound = await apiClient.post('/api/security/patrol-rounds', { routeId });
         setPatrolRounds([newRound, ...patrolRounds]);
         setShowStartForm(false);
         setSelectedRoute(null);
-      })
-      .catch((err: Error) => setError(err.message));
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to start patrol');
+      }
+    };
+
+    submitPatrol();
   };
 
   const completePatrolRound = (roundId: number) => {
-    apiClient
-      .request(`/api/security/patrol-rounds/${roundId}/complete`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      })
-      .then((updatedRound: PatrolRound) => {
+    const finishPatrol = async () => {
+      try {
+        const updatedRound = await apiClient.request(`/api/security/patrol-rounds/${roundId}/complete`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
         setPatrolRounds(patrolRounds.map(round => 
           round.id === roundId ? updatedRound : round
         ));
-      })
-      .catch((err: Error) => setError(err.message));
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to complete patrol');
+      }
+    };
+
+    finishPatrol();
   };
 
   const checkCheckpoint = (roundId: number, checkpointId: number, notes?: string) => {
-    apiClient
-      .post(`/api/security/patrol-rounds/${roundId}/checkpoints/${checkpointId}`, { notes })
-      .then((updatedRound: PatrolRound) => {
+    const submitCheckpoint = async () => {
+      try {
+        const updatedRound = await apiClient.post(`/api/security/patrol-rounds/${roundId}/checkpoints/${checkpointId}`, { notes });
         setPatrolRounds(patrolRounds.map(round => 
           round.id === roundId ? updatedRound : round
         ));
-      })
-      .catch((err: Error) => setError(err.message));
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to update checkpoint');
+      }
+    };
+
+    submitCheckpoint();
   };
 
   return (

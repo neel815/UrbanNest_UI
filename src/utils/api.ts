@@ -80,3 +80,17 @@ export const apiClient = {
     return this.request(endpoint, { method: 'DELETE' }, skipAuth);
   },
 };
+
+export function getApiErrorMessage(error: unknown) {
+  if (error instanceof Error) {
+    if (error.message.includes('Authentication required')) {
+      return 'Authentication required. Please log in again.';
+    }
+    if (error.message.includes('Network error')) {
+      return 'Network error. Unable to connect to the server.';
+    }
+    return error.message;
+  }
+
+  return 'Something went wrong. Please try again.';
+}

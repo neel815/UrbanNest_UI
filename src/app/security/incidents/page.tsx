@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
-import { apiClient } from '@/utils/api';
+import { apiClient, getApiErrorMessage } from '@/utils/api';
 
 interface Incident {
   id: number;
@@ -35,11 +35,18 @@ export default function SecurityIncidentsPage() {
   });
 
   useEffect(() => {
-    apiClient
-      .get('/api/security/incidents')
-      .then(setIncidents)
-      .catch((err: Error) => setError(err.message))
-      .finally(() => setLoading(false));
+    const loadIncidents = async () => {
+      try {
+        const data = await apiClient.get('/api/security/incidents');
+        setIncidents(data);
+      } catch (err) {
+        setError(getApiErrorMessage(err));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadIncidents();
   }, []);
 
   const getTypeColor = (type: string) => {
@@ -101,9 +108,9 @@ export default function SecurityIncidentsPage() {
       attachments: formData.attachments.map(file => file.name)
     };
 
-    apiClient
-      .post('/api/security/incidents', newIncident)
-      .then((data: Incident) => {
+    const submitIncident = async () => {
+      try {
+        const data = await apiClient.post('/api/security/incidents', newIncident);
         setIncidents([data, ...incidents]);
         setFormData({
           title: '',
@@ -114,25 +121,33 @@ export default function SecurityIncidentsPage() {
           attachments: []
         });
         setShowForm(false);
-      })
-      .catch((err: Error) => setError(err.message));
+      } catch (err) {
+        setError(getApiErrorMessage(err));
+      }
+    };
+
+    submitIncident();
   };
 
   const updateIncidentStatus = (id: number, newStatus: 'investigating' | 'resolved' | 'closed', resolution?: string) => {
-    apiClient
-      .request(`/api/security/incidents/${id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status: newStatus, resolution })
-      })
-      .then((updatedIncident: Incident) => {
+    const submitUpdate = async () => {
+      try {
+        const updatedIncident = await apiClient.request(`/api/security/incidents/${id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ status: newStatus, resolution })
+        });
         setIncidents(incidents.map(incident => 
           incident.id === id ? updatedIncident : incident
         ));
-      })
-      .catch((err: Error) => setError(err.message));
+      } catch (err) {
+        setError(getApiErrorMessage(err));
+      }
+    };
+
+    submitUpdate();
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -1,7 +1,7 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
-import { apiClient } from '@/utils/api';
+import { apiClient, getApiErrorMessage } from '@/utils/api';
 import { API_ENDPOINTS } from '@/utils/constants';
 import ImageUploadField from '../../../components/ImageUploadField';
 
@@ -9,22 +9,27 @@ export default function SettingsPage() {
   const [appName, setAppName] = useState('');
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
-  const [profileImageUrl, setProfileImageUrl] = useState('');
+  const [profileImage, setProfileImage] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    apiClient
-      .get(API_ENDPOINTS.systemAdmin.settingsMe)
-      .then((data) => {
+    const loadSettings = async () => {
+      try {
+        const data = await apiClient.get(API_ENDPOINTS.systemAdmin.settingsMe);
         setAppName(data.app_name || '');
         setFullName(data.full_name || '');
         setEmail(data.email || '');
-        setProfileImageUrl(data.profile_image_url || '');
-      })
-      .catch((err: Error) => setError(err.message))
-      .finally(() => setLoading(false));
+        setProfileImage(data.profile_image || '');
+      } catch (err) {
+        setError(getApiErrorMessage(err));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadSettings();
   }, []);
 
   const onSave = async (event: FormEvent<HTMLFormElement>) => {
@@ -35,7 +40,7 @@ export default function SettingsPage() {
       await apiClient.put(API_ENDPOINTS.systemAdmin.settingsMe, {
         app_name: appName,
         full_name: fullName,
-        profile_image_url: profileImageUrl || null,
+        profile_image: profileImage || null,
       });
       setMessage('Settings updated');
     } catch (err) {
@@ -129,8 +134,8 @@ export default function SettingsPage() {
               <div className="sm:col-span-2">
                 <ImageUploadField
                   label="Profile image"
-                  value={profileImageUrl}
-                  onChange={setProfileImageUrl}
+                  value={profileImage}
+                  onChange={setProfileImage}
                   disabled={loading}
                 />
               </div>
@@ -155,9 +160,9 @@ export default function SettingsPage() {
 
             <div className="mt-6 flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
               <div className="grid h-14 w-14 place-items-center overflow-hidden rounded-2xl bg-slate-900 text-white">
-                {profileImageUrl ? (
+                {profileImage ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={profileImageUrl} alt="preview" className="h-full w-full object-cover" />
+                  <img src={profileImage} alt="preview" className="h-full w-full object-cover" />
                 ) : (
                   <span className="text-sm font-semibold">
                     {(fullName || 'System Admin')

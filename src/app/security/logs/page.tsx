@@ -102,12 +102,16 @@ export default function SecurityLogsPage() {
   };
 
   const generateReport = (type: 'daily' | 'weekly' | 'monthly') => {
-    apiClient
-      .post('/api/security/reports', { type })
-      .then((newReport: SecurityReport) => {
+    const submitReport = async () => {
+      try {
+        const newReport = await apiClient.post('/api/security/reports', { type });
         setReports([newReport, ...reports]);
-      })
-      .catch((err: Error) => setError(err.message));
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to generate report');
+      }
+    };
+
+    submitReport();
   };
 
   const downloadReport = (reportId: number) => {

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
-import { apiClient } from '@/utils/api';
+import { apiClient, getApiErrorMessage } from '@/utils/api';
 
 interface AccessPoint {
   id: number;
@@ -42,8 +42,8 @@ export default function SecurityAccessControlPage() {
         ]);
         setAccessPoints(pointsData);
         setAccessLogs(logsData);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err) {
+        setError(getApiErrorMessage(err));
       } finally {
         setLoading(false);
       }
@@ -96,19 +96,23 @@ export default function SecurityAccessControlPage() {
   };
 
   const toggleAccessPoint = (id: number) => {
-    apiClient
-      .request(`/api/security/access-points/${id}/toggle`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      })
-      .then((updatedPoint: AccessPoint) => {
+    const submitToggle = async () => {
+      try {
+        const updatedPoint = await apiClient.request(`/api/security/access-points/${id}/toggle`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
         setAccessPoints(accessPoints.map(point => 
           point.id === id ? updatedPoint : point
         ));
-      })
-      .catch((err: Error) => setError(err.message));
+      } catch (err) {
+        setError(getApiErrorMessage(err));
+      }
+    };
+
+    submitToggle();
   };
 
   return (

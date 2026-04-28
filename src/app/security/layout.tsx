@@ -1,43 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 
-import { apiClient } from '@/utils/api';
-import { API_ENDPOINTS } from '@/utils/constants';
+import { useAuthGuard } from '@/hooks/useAuthGuard';
 
 export default function SecurityLayout({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
   const pathname = usePathname();
-  const [checking, setChecking] = useState(true);
-
-  useEffect(() => {
-    const token = localStorage.getItem('access_token');
-    if (!token) {
-      router.replace('/login');
-      return;
-    }
-
-    apiClient
-      .get(API_ENDPOINTS.auth.me)
-      .then((me: { role: string }) => {
-        if (me.role !== 'security') {
-          router.replace('/dashboard');
-          return;
-        }
-        setChecking(false);
-      })
-      .catch(() => {
-        localStorage.removeItem('access_token');
-        router.replace('/login');
-      });
-  }, [router]);
-
-  const onLogout = () => {
-    localStorage.removeItem('access_token');
-    router.replace('/login');
-  };
+  const { checking, error, logout } = useAuthGuard('security');
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -110,7 +80,7 @@ export default function SecurityLayout({ children }: { children: React.ReactNode
             </Link>
             <button
               type="button"
-              onClick={onLogout}
+              onClick={logout}
               className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-900 ring-1 ring-slate-200"
             >
               Sign out
@@ -120,7 +90,11 @@ export default function SecurityLayout({ children }: { children: React.ReactNode
       </header>
 
       <div className="mx-auto max-w-5xl px-6 py-8">
-        {checking ? (
+        {error ? (
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
+            {error}
+          </div>
+        ) : checking ? (
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="h-5 w-52 animate-pulse rounded bg-slate-200" />
           </div>

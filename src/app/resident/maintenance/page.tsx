@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
-import { apiClient } from '@/utils/api';
+import { apiClient, getApiErrorMessage } from '@/utils/api';
 import { API_ENDPOINTS } from '@/utils/constants';
 
 interface MaintenanceRequest {
@@ -29,11 +29,18 @@ export default function MaintenancePage() {
   });
 
   useEffect(() => {
-    apiClient
-      .get(API_ENDPOINTS.resident.maintenance)
-      .then(setRequests)
-      .catch((err: Error) => setError(err.message))
-      .finally(() => setLoading(false));
+    const loadRequests = async () => {
+      try {
+        const data = await apiClient.get(API_ENDPOINTS.resident.maintenance);
+        setRequests(data);
+      } catch (err) {
+        setError(getApiErrorMessage(err));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadRequests();
   }, []);
 
   const getStatusColor = (status: string) => {
@@ -75,14 +82,18 @@ export default function MaintenancePage() {
       status: 'pending'
     };
 
-    apiClient
-      .post(API_ENDPOINTS.resident.maintenance, newRequest)
-      .then((data: MaintenanceRequest) => {
+    const submitRequest = async () => {
+      try {
+        const data = await apiClient.post(API_ENDPOINTS.resident.maintenance, newRequest);
         setRequests([data, ...requests]);
         setFormData({ title: '', description: '', category: 'plumbing', priority: 'medium' });
         setShowForm(false);
-      })
-      .catch((err: Error) => setError(err.message));
+      } catch (err) {
+        setError(getApiErrorMessage(err));
+      }
+    };
+
+    submitRequest();
   };
 
   return (

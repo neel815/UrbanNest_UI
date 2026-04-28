@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
-import { apiClient } from '@/utils/api';
+import { apiClient, getApiErrorMessage } from '@/utils/api';
 import { API_ENDPOINTS } from '@/utils/constants';
 
 type AdminStats = {
@@ -19,11 +19,18 @@ export default function AdminDashboardPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    apiClient
-      .get(API_ENDPOINTS.admin.dashboardStats)
-      .then((data: AdminStats) => setStats(data))
-      .catch((err: Error) => setError(err.message))
-      .finally(() => setLoading(false));
+    const loadStats = async () => {
+      try {
+        const data = await apiClient.get(API_ENDPOINTS.admin.dashboardStats);
+        setStats(data);
+      } catch (err) {
+        setError(getApiErrorMessage(err));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadStats();
   }, []);
 
   const cards = [

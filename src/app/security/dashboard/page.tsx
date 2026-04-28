@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
-import { apiClient } from '@/utils/api';
+import { apiClient, getApiErrorMessage } from '@/utils/api';
 
 interface DashboardStats {
   activeVisitors: number;
@@ -19,11 +19,18 @@ export default function SecurityDashboardPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    apiClient
-      .get('/api/security/dashboard-stats')
-      .then(setStats)
-      .catch((err: Error) => setError(err.message))
-      .finally(() => setLoading(false));
+    const loadStats = async () => {
+      try {
+        const data = await apiClient.get('/api/security/dashboard-stats');
+        setStats(data);
+      } catch (err) {
+        setError(getApiErrorMessage(err));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadStats();
   }, []);
 
   const cards = [
