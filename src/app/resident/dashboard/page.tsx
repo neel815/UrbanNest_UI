@@ -19,20 +19,45 @@ export default function ResidentDashboardPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    apiClient
-      .get(API_ENDPOINTS.auth.me)
-      .then((me: { full_name: string }) => setName(me.full_name || 'Resident'))
-      .catch(() => {
-        // Layout auth guard handles redirects.
-      });
+    const fetchUserData = async () => {
+      try {
+        const me = await apiClient.get(API_ENDPOINTS.auth.me);
+        setName(me.full_name || 'Resident');
+      } catch (err: any) {
+        console.error('Failed to fetch user data:', err);
+        if (err.message.includes('Authentication required')) {
+          setError('Please log in to access your dashboard.');
+        } else if (err.message.includes('Network error')) {
+          setError('Unable to connect to the server. Please check your internet connection.');
+        } else {
+          setError(err.message);
+        }
+      }
+    };
+
+    fetchUserData();
   }, []);
 
   useEffect(() => {
-    apiClient
-      .get(API_ENDPOINTS.resident.dashboardStats)
-      .then(setStats)
-      .catch((err: Error) => setError(err.message))
-      .finally(() => setLoading(false));
+    const fetchDashboardStats = async () => {
+      try {
+        const dashboardStats = await apiClient.get(API_ENDPOINTS.resident.dashboardStats);
+        setStats(dashboardStats);
+      } catch (err: any) {
+        console.error('Failed to fetch dashboard stats:', err);
+        if (err.message.includes('Authentication required')) {
+          setError('Please log in to access your dashboard.');
+        } else if (err.message.includes('Network error')) {
+          setError('Unable to connect to the server. Please check your internet connection.');
+        } else {
+          setError(err.message);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardStats();
   }, []);
 
   const cards = [

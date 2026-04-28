@@ -19,16 +19,43 @@ export const apiClient = {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const response = await fetch(`${this.baseURL}${endpoint}`, {
-      ...options,
-      headers,
-    });
+    try {
+      const response = await fetch(`${this.baseURL}${endpoint}`, {
+        ...options,
+        headers,
+      });
 
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.detail || 'Request failed');
+      // Handle non-JSON responses
+      let data;
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        data = await response.text();
+      }
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          // Clear invalid token
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('access_token');
+          }
+          throw new Error('Authentication required. Please log in again.');
+        } else if (response.status === 404) {
+          throw new Error('Endpoint not found. Please check the API configuration.');
+        } else if (response.status >= 500) {
+          throw new Error('Server error. Please try again later.');
+        } else {
+          throw new Error(data?.detail || data || `Request failed with status ${response.status}`);
+        }
+      }
+      return data;
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error. Unable to connect to the server.');
+      }
+      throw error;
     }
-    return data;
   },
 
   async get(endpoint: string, skipAuth = false) {

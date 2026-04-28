@@ -58,6 +58,56 @@ export default function SecurityLayout({ children }: { children: React.ReactNode
             >
               Dashboard
             </Link>
+            <Link
+              href="/security/visitors"
+              className={
+                pathname === '/security/visitors'
+                  ? 'rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white'
+                  : 'rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-700 ring-1 ring-slate-200'
+              }
+            >
+              Visitors
+            </Link>
+            <Link
+              href="/security/access-control"
+              className={
+                pathname === '/security/access-control'
+                  ? 'rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white'
+                  : 'rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-700 ring-1 ring-slate-200'
+              }
+            >
+              Access Control
+            </Link>
+            <Link
+              href="/security/patrol"
+              className={
+                pathname === '/security/patrol'
+                  ? 'rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white'
+                  : 'rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-700 ring-1 ring-slate-200'
+              }
+            >
+              Patrol
+            </Link>
+            <Link
+              href="/security/incidents"
+              className={
+                pathname === '/security/incidents'
+                  ? 'rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white'
+                  : 'rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-700 ring-1 ring-slate-200'
+              }
+            >
+              Incidents
+            </Link>
+            <Link
+              href="/security/logs"
+              className={
+                pathname === '/security/logs'
+                  ? 'rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white'
+                  : 'rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-700 ring-1 ring-slate-200'
+              }
+            >
+              Logs
+            </Link>
             <button
               type="button"
               onClick={onLogout}

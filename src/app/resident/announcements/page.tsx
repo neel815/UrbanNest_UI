@@ -6,7 +6,7 @@ import { apiClient } from '@/utils/api';
 import { API_ENDPOINTS } from '@/utils/constants';
 
 interface Announcement {
-  id: number;
+  id: string;
   title: string;
   content: string;
   date: string;
