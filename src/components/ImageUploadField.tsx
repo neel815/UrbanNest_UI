@@ -97,7 +97,7 @@ export default function ImageUploadField({
         className={
           dragActive
             ? 'mt-2 rounded-xl border-2 border-blue-600 bg-blue-50 p-4'
-            : 'mt-2 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4'
+            : 'mt-2 rounded-xl border border-dashed border-[#D8D0BC] bg-[#F6F2E8] p-4'
         }
       >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -109,7 +109,7 @@ export default function ImageUploadField({
             type="button"
             onClick={() => inputRef.current?.click()}
             disabled={disabled}
-            className="inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+            className="inline-flex items-center justify-center rounded-lg bg-[#0F5B35] px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
           >
             Choose image
           </button>

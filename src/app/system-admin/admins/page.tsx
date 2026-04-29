@@ -291,7 +291,7 @@ export default function AdminListPage() {
 
       <section className="rounded-[32px] border border-[#E6E0CF] bg-[#FBF8EF] shadow-[0_20px_60px_rgba(23,51,38,0.06)]">
         <div className="flex flex-col gap-4 border-b border-[#E6E0CF] px-4 py-4 lg:flex-row lg:items-center lg:justify-between lg:px-5">
-          <div className="flex min-w-0 flex-1 items-center gap-3 rounded-full border border-[#E6E0CF] bg-white px-4 py-3 shadow-[0_8px_24px_rgba(23,51,38,0.04)]">
+          <div className="flex min-w-0 flex-1 items-center gap-3 rounded-full border border-[#E6E0CF] bg-[#F8F4E7]/90 px-4 py-3 shadow-[0_8px_24px_rgba(23,51,38,0.04)]">
             <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0 text-[#7A7F70]" fill="none" aria-hidden="true">
               <path
                 d="m21 21-4.35-4.35M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z"
@@ -311,7 +311,7 @@ export default function AdminListPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <div className="inline-flex rounded-full border border-[#E6E0CF] bg-white p-1 shadow-[0_8px_24px_rgba(23,51,38,0.04)]">
+            <div className="inline-flex rounded-full border border-[#E6E0CF] bg-[#F8F4E7]/90 p-1 shadow-[0_8px_24px_rgba(23,51,38,0.04)]">
               {(['all', 'active', 'pending', 'suspended'] as const).map((option) => {
                 const label = option === 'all' ? 'All' : option[0].toUpperCase() + option.slice(1);
                 const active = statusFilter === option;
@@ -335,7 +335,7 @@ export default function AdminListPage() {
 
             <button
               type="button"
-              className="inline-flex items-center gap-2 rounded-full border border-[#E6E0CF] bg-white px-4 py-3 text-sm font-medium text-[#596154] shadow-[0_8px_24px_rgba(23,51,38,0.04)] transition hover:bg-[#F3EFE3]"
+              className="inline-flex items-center gap-2 rounded-full border border-[#E6E0CF] bg-[#F8F4E7]/90 px-4 py-3 text-sm font-medium text-[#596154] shadow-[0_8px_24px_rgba(23,51,38,0.04)] transition hover:bg-[#F3EFE3]"
             >
               <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" aria-hidden="true">
                 <path

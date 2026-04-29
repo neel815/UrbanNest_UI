@@ -153,9 +153,9 @@ export default function DashboardPage() {
     <main className="space-y-8">
       <section className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
         <div className="max-w-3xl space-y-3">
-          <p className="text-xs font-bold uppercase tracking-[0.42em] text-[#76806F]">Control Center</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.42em] text-[#76806F]">Control Center</p>
           <h1 className={`${cormorant.className} text-5xl leading-[0.9] font-semibold tracking-tight text-[#173326] lg:text-[4.5rem]`}>
-            Good afternoon, {displayName}.
+            Hello, {displayName}.
           </h1>
           <p className="max-w-2xl text-[16px] leading-7 text-[#637062]">
             A calm, complete view of every society, guard, and resident running on UrbanNest.

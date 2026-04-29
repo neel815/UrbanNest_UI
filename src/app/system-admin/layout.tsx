@@ -115,7 +115,7 @@ function SystemAdminSidebar({ logout }: { logout: () => void }) {
             <Avatar initials={initials} />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold text-[#173326]">{user?.full_name || 'Priya Shah'}</p>
-              <p className="truncate text-xs text-[#7A7F70]">{user?.email || 'priya@urbannest.io'}</p>
+              <p className="truncate text-xs text-[#7A7F70]">{user?.email || 'systemadmin@urbannest.com'}</p>
             </div>
             <button
               type="button"

@@ -144,8 +144,8 @@ export default function BuildingsPage() {
         <div className="flex flex-col gap-2">
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Societies</p>
           <div className="flex flex-wrap items-end justify-between gap-3">
-            <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Buildings</h1>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 ring-1 ring-slate-200">
+            <h1 className="text-4xl font-serif tracking-tight text-slate-900 lg:text-6xl">Buildings</h1>
+            <div className="inline-flex items-center gap-2 rounded-full bg-[#FBF8EF] px-3 py-1.5 text-sm font-semibold text-slate-700 ring-1 ring-slate-200">
               <span className="h-2 w-2 rounded-full bg-emerald-500" />
               Building registry
             </div>
