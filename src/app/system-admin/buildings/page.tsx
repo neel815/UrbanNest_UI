@@ -249,7 +249,7 @@ export default function BuildingsPage() {
                   Keep the registry accurate so admin assignment and dashboard stats remain in sync.
                 </p>
               </div>
-              <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#0F244A] text-white shadow-sm">
+              <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#E4EDE6] text-[#0F5B35]">
                 <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
                   <path
                     d="M4 20V7.8c0-.54.29-1.03.75-1.3l7-4c.45-.26 1.05-.26 1.5 0l6 4c.46.27.75.76.75 1.3V20M7 20V12h10v8M10 12V8h4v4"
@@ -327,7 +327,7 @@ export default function BuildingsPage() {
             </form>
           </div>
 
-          <div className="rounded-[28px] border border-[#103968] bg-gradient-to-br from-[#0F244A] via-[#102547] to-[#0A1632] p-6 text-white shadow-[0_12px_34px_rgba(10,22,50,0.28)]">
+          <div className="rounded-[28px] border border-[#1A5A36] bg-[linear-gradient(145deg,#0F5B35,#0A3B24)] text-[#F7F4E8] p-6 shadow-[0_10px_30px_rgba(15,91,53,0.18)]">
             <p className="text-sm font-semibold text-white/90">System rule</p>
             <p className="mt-2 text-lg font-semibold leading-snug">Buildings control admin assignment.</p>
             <p className="mt-2 text-sm text-white/70">
