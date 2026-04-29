@@ -42,7 +42,7 @@ export const apiClient = {
           }
           throw new Error('Authentication required. Please log in again.');
         } else if (response.status === 404) {
-          throw new Error('Endpoint not found. Please check the API configuration.');
+          throw new Error(data?.detail || data || 'Endpoint not found. Please check the API configuration.');
         } else if (response.status >= 500) {
           throw new Error('Server error. Please try again later.');
         } else {
@@ -101,3 +101,10 @@ export function getApiErrorMessage(error: unknown) {
 
   return 'Something went wrong. Please try again.';
 }
+
+export const adminUnitApi = {
+  list: '/api/admin/units',
+  create: '/api/admin/units',
+  update: (id: string) => `/api/admin/units/${id}`,
+  delete: (id: string) => `/api/admin/units/${id}`,
+};

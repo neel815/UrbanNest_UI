@@ -12,6 +12,7 @@ export function useAuthGuard(role: AllowedRole) {
   const router = useRouter();
   const [checking, setChecking] = useState(true);
   const [error, setError] = useState('');
+  const [user, setUser] = useState<any | null>(null);
 
   useEffect(() => {
     const runGuard = async () => {
@@ -23,7 +24,8 @@ export function useAuthGuard(role: AllowedRole) {
       }
 
       try {
-        const me: { role: string } = await apiClient.get(API_ENDPOINTS.auth.me);
+        const me: any = await apiClient.get(API_ENDPOINTS.auth.me);
+        setUser(me);
         if (me.role !== role) {
           router.replace('/dashboard');
           return;
@@ -50,5 +52,5 @@ export function useAuthGuard(role: AllowedRole) {
     router.replace('/login');
   };
 
-  return { checking, error, logout };
+  return { checking, error, logout, user };
 }

@@ -14,6 +14,15 @@ type ManagedUser = {
   created_at: string;
 };
 
+type ManagedUnit = {
+  id: string;
+  unit_number: string;
+  floor: number | null;
+  type: string;
+  status: string;
+  resident_name?: string | null;
+};
+
 type AdminRoleCrudPageProps = {
   roleTitle: string;
   roleDescription: string;
@@ -21,6 +30,8 @@ type AdminRoleCrudPageProps = {
   createMode?: 'direct' | 'invite';
   inviteEndpoint?: string;
   showCreateImageUpload?: boolean;
+  showUnitSelect?: boolean;
+  unitsEndpoint?: string;
 };
 
 export default function AdminRoleCrudPage({
@@ -30,6 +41,8 @@ export default function AdminRoleCrudPage({
   createMode = 'direct',
   inviteEndpoint,
   showCreateImageUpload = true,
+  showUnitSelect = false,
+  unitsEndpoint,
 }: AdminRoleCrudPageProps) {
   const [users, setUsers] = useState<ManagedUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,13 +53,21 @@ export default function AdminRoleCrudPage({
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [profileImage, setProfileImage] = useState('');
+  const [unitId, setUnitId] = useState('');
   const [resetLink, setResetLink] = useState('');
+  const [units, setUnits] = useState<ManagedUnit[]>([]);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editFullName, setEditFullName] = useState('');
   const [editEmail, setEditEmail] = useState('');
   const [editPassword, setEditPassword] = useState('');
   const [editProfileImage, setEditProfileImage] = useState('');
+
+  const loadUnits = async () => {
+    if (!showUnitSelect || !unitsEndpoint) return;
+    const data = await apiClient.get(unitsEndpoint);
+    setUnits(data);
+  };
 
   const loadUsers = async () => {
     const data = await apiClient.get(endpoint);
@@ -56,7 +77,7 @@ export default function AdminRoleCrudPage({
   useEffect(() => {
     const initialize = async () => {
       try {
-        await loadUsers();
+        await Promise.all([loadUsers(), loadUnits()]);
       } catch (err) {
         setError(getApiErrorMessage(err));
       } finally {
@@ -72,6 +93,7 @@ export default function AdminRoleCrudPage({
     setEmail('');
     setPassword('');
     setProfileImage('');
+    setUnitId('');
   };
 
   const onCreate = async (event: FormEvent<HTMLFormElement>) => {
@@ -84,19 +106,27 @@ export default function AdminRoleCrudPage({
         if (!inviteEndpoint) {
           throw new Error('Invite endpoint is not configured');
         }
+        if (showUnitSelect && !unitId) {
+          throw new Error('Please select a unit');
+        }
         const data = await apiClient.post(inviteEndpoint, {
           full_name: fullName,
           email,
           profile_image: profileImage || null,
+          unit_id: showUnitSelect ? unitId : null,
         });
         setMessage(data.message || `${roleTitle.slice(0, -1)} invited successfully.`);
         setResetLink(data.reset_link || '');
       } else {
+        if (showUnitSelect && !unitId) {
+          throw new Error('Please select a unit');
+        }
         await apiClient.post(endpoint, {
           full_name: fullName,
           email,
           password,
           profile_image: profileImage || null,
+          unit_id: showUnitSelect ? unitId : null,
         });
         setMessage(`${roleTitle.slice(0, -1)} created successfully.`);
       }
@@ -223,6 +253,32 @@ export default function AdminRoleCrudPage({
             {showCreateImageUpload && (
               <div className="sm:col-span-2">
                 <ImageUploadField label="Profile image" value={profileImage} onChange={setProfileImage} />
+              </div>
+            )}
+
+            {showUnitSelect && (
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">
+                  Plot / House Number
+                </label>
+                <select
+                  className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none focus:ring-2 focus:ring-slate-900/10"
+                  value={unitId}
+                  onChange={(event) => setUnitId(event.target.value)}
+                  required
+                >
+                  <option value="">Select a vacant plot / house</option>
+                  {units
+                    .filter((unit) => unit.status === 'available')
+                    .map((unit) => (
+                      <option key={unit.id} value={unit.id}>
+                        {unit.unit_number} {unit.floor !== null ? `- Floor ${unit.floor}` : ''}
+                      </option>
+                    ))}
+                </select>
+                <p className="mt-2 text-xs text-slate-500">
+                  This selects an existing vacant plot/house that is already created under your building.
+                </p>
               </div>
             )}
 

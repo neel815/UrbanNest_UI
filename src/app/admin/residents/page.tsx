@@ -14,6 +14,8 @@ export default function AdminResidentsPage() {
       createMode="invite"
       inviteEndpoint={API_ENDPOINTS.admin.inviteResident}
       showCreateImageUpload={false}
+      showUnitSelect
+      unitsEndpoint={API_ENDPOINTS.admin.units}
     />
   );
 }
