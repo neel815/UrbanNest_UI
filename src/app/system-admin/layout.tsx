@@ -96,7 +96,7 @@ function SystemAdminSidebar({ logout }: { logout: () => void }) {
                   'flex items-center gap-4 rounded-2xl px-4 py-4 text-[15px] font-semibold transition',
                   active
                     ? 'bg-[#0F5B35] text-[#F7F4E8] shadow-[0_12px_28px_rgba(15,91,53,0.18)]'
-                    : 'text-[#596154] hover:bg-white hover:text-[#173326] hover:shadow-[0_8px_20px_rgba(23,51,38,0.06)]',
+                    : 'text-[#596154] hover:bg-[#FBF8EF] hover:text-[#173326] hover:shadow-[0_8px_20px_rgba(23,51,38,0.06)]',
                 ].join(' ')}
               >
                 <span>

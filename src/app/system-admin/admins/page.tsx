@@ -163,8 +163,6 @@ export default function AdminListPage() {
     });
   }, [admins, searchTerm, statusFilter]);
 
-  const totalLabel = loading ? 'Loading...' : `${filteredAdmins.length} of ${admins.length}`;
-
   const renderInviteForm = () => (
     <form onSubmit={onAddAdmin} className="grid gap-4">
       <div className="grid gap-4 md:grid-cols-2">
