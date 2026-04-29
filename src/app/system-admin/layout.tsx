@@ -120,7 +120,7 @@ function SystemAdminSidebar({ logout }: { logout: () => void }) {
             <button
               type="button"
               onClick={logout}
-              className="grid h-9 w-9 place-items-center rounded-full border border-[#E6E0CF] bg-white text-[#0F5B35] shadow-sm"
+              className="grid h-9 w-9 place-items-center rounded-full border border-[#E6E0CF] bg-[#FBF8EF] text-[#0F5B35] shadow-sm"
               aria-label="Sign out"
             >
               <SignOutIcon />
