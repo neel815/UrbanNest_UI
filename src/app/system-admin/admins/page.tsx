@@ -1,39 +1,99 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { apiClient, getApiErrorMessage } from '@/utils/api';
 import { API_ENDPOINTS } from '@/utils/constants';
+
+type BuildingItem = {
+  id: string;
+  name: string;
+  address: string;
+};
 
 type AdminItem = {
   id: string;
   full_name: string;
   email: string;
+  role: string;
   created_at: string;
   must_reset_password: boolean;
+  building_id?: string | null;
+  building_name?: string | null;
+  profile_image?: string | null;
 };
+
+type StatusFilter = 'all' | 'active' | 'pending' | 'suspended';
+
+function getInitials(fullName: string) {
+  return (
+    fullName
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase())
+      .join('') || 'A'
+  );
+}
+
+function formatJoinedAt(value: string) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function getStatusMeta(admin: AdminItem) {
+  if (admin.must_reset_password) {
+    return {
+      key: 'pending' as const,
+      label: 'Pending',
+      className: 'border-amber-200 bg-amber-50 text-amber-800',
+      dotClassName: 'bg-amber-500',
+    };
+  }
+
+  return {
+    key: 'active' as const,
+    label: 'Active',
+    className: 'border-emerald-200 bg-emerald-50 text-emerald-800',
+    dotClassName: 'bg-emerald-500',
+  };
+}
 
 export default function AdminListPage() {
   const [admins, setAdmins] = useState<AdminItem[]>([]);
+  const [buildings, setBuildings] = useState<BuildingItem[]>([]);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
+  const [buildingId, setBuildingId] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [resetLink, setResetLink] = useState('');
   const [loading, setLoading] = useState(true);
+  const [buildingLoading, setBuildingLoading] = useState(true);
+  const [inviting, setInviting] = useState(false);
+  const [deletingId, setDeletingId] = useState('');
 
   const loadAdmins = async () => {
     const data = await apiClient.get(API_ENDPOINTS.systemAdmin.admins);
     setAdmins(data);
   };
 
+  const loadBuildings = async () => {
+    const data = await apiClient.get(API_ENDPOINTS.systemAdmin.buildings);
+    setBuildings(data);
+  };
+
   useEffect(() => {
     const initialize = async () => {
       try {
-        await loadAdmins();
+        await Promise.all([loadAdmins(), loadBuildings()]);
       } catch (err) {
         setError(getApiErrorMessage(err));
       } finally {
         setLoading(false);
+        setBuildingLoading(false);
       }
     };
 
@@ -45,140 +105,261 @@ export default function AdminListPage() {
     setMessage('');
     setError('');
     setResetLink('');
+    setInviting(true);
     try {
       const data = await apiClient.post(API_ENDPOINTS.systemAdmin.inviteAdmin, {
         full_name: fullName,
         email,
+        building_id: buildingId,
       });
       setMessage(data.message);
       setResetLink(data.reset_link);
       setFullName('');
       setEmail('');
+      setBuildingId('');
+      setIsInviteOpen(false);
       await loadAdmins();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Add admin failed');
+    } finally {
+      setInviting(false);
     }
   };
 
+  const onDeleteAdmin = async (admin: AdminItem) => {
+    const confirmed = typeof window !== 'undefined' && window.confirm(`Delete ${admin.full_name}? This cannot be undone.`);
+    if (!confirmed) return;
+
+    setError('');
+    setMessage('');
+    setDeletingId(admin.id);
+
+    try {
+      const data = await apiClient.delete(API_ENDPOINTS.systemAdmin.deleteAdmin(admin.id));
+      setMessage(data.message || `${admin.full_name} deleted`);
+      await loadAdmins();
+    } catch (err) {
+      setError(getApiErrorMessage(err));
+    } finally {
+      setDeletingId('');
+    }
+  };
+
+  const selectedBuilding = buildings.find((building) => building.id === buildingId);
+
+  const filteredAdmins = useMemo(() => {
+    const query = searchTerm.trim().toLowerCase();
+
+    return admins.filter((admin) => {
+      const status = getStatusMeta(admin).key;
+      const matchesSearch =
+        !query ||
+        admin.full_name.toLowerCase().includes(query) ||
+        admin.email.toLowerCase().includes(query) ||
+        (admin.building_name || '').toLowerCase().includes(query);
+      const matchesStatus = statusFilter === 'all' || statusFilter === status || (statusFilter === 'suspended' && false);
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [admins, searchTerm, statusFilter]);
+
+  const totalLabel = loading ? 'Loading...' : `${filteredAdmins.length} of ${admins.length}`;
+
+  const renderInviteForm = () => (
+    <form onSubmit={onAddAdmin} className="grid gap-4">
+      <div className="grid gap-4 md:grid-cols-2">
+        <div>
+          <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.25em] text-[#7A7F70]">
+            Full name
+          </label>
+          <input
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            className="w-full rounded-2xl border border-[#E6E0CF] bg-[#FBF8EF] px-4 py-3 text-sm text-[#173326] outline-none transition placeholder:text-[#9AA092] focus:border-[#0F5B35] focus:bg-white focus:ring-4 focus:ring-[#0F5B35]/10"
+            placeholder="Jane Doe"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.25em] text-[#7A7F70]">
+            Email
+          </label>
+          <input
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full rounded-2xl border border-[#E6E0CF] bg-[#FBF8EF] px-4 py-3 text-sm text-[#173326] outline-none transition placeholder:text-[#9AA092] focus:border-[#0F5B35] focus:bg-white focus:ring-4 focus:ring-[#0F5B35]/10"
+            placeholder="admin@urbannest.io"
+            type="email"
+            required
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.25em] text-[#7A7F70]">
+          Society
+        </label>
+        <select
+          value={buildingId}
+          onChange={(e) => setBuildingId(e.target.value)}
+          className="w-full rounded-2xl border border-[#E6E0CF] bg-[#FBF8EF] px-4 py-3 text-sm text-[#173326] outline-none transition focus:border-[#0F5B35] focus:bg-white focus:ring-4 focus:ring-[#0F5B35]/10"
+          required
+          disabled={buildingLoading || buildings.length === 0}
+        >
+          <option value="">Select a society</option>
+          {buildings.map((building) => (
+            <option key={building.id} value={building.id}>
+              {building.name} - {building.address}
+            </option>
+          ))}
+        </select>
+        {selectedBuilding && (
+          <p className="mt-2 text-xs text-[#7A7F70]">Assigning admin access to {selectedBuilding.name}.</p>
+        )}
+        {buildings.length === 0 && !buildingLoading && (
+          <p className="mt-2 text-xs text-amber-700">Add a building first before inviting admins.</p>
+        )}
+      </div>
+
+      <div className="flex items-center justify-end gap-3 pt-2">
+        <button
+          type="button"
+          onClick={() => setIsInviteOpen(false)}
+          className="rounded-full border border-[#E6E0CF] px-4 py-2.5 text-sm font-semibold text-[#596154] transition hover:bg-white"
+        >
+          Cancel
+        </button>
+        <button
+          className="inline-flex items-center justify-center gap-2 rounded-full bg-[#0F5B35] px-5 py-2.5 text-sm font-semibold text-[#F7F4E8] shadow-[0_12px_28px_rgba(15,91,53,0.18)] transition hover:-translate-y-0.5 hover:bg-[#0B4B2C] disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
+          disabled={buildingLoading || buildings.length === 0 || inviting}
+        >
+          {inviting ? 'Inviting...' : 'Invite admin'}
+        </button>
+      </div>
+    </form>
+  );
+
   return (
-    <main>
-      <div className="flex flex-col gap-6">
-        <div className="flex flex-col gap-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">People</p>
-          <div className="flex flex-wrap items-end justify-between gap-3">
-            <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Admins</h1>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 ring-1 ring-slate-200">
-              <span className="h-2 w-2 rounded-full bg-slate-900" />
-              System access
-            </div>
-          </div>
-          <p className="max-w-2xl text-slate-600">
-            Invite admins to help manage residents and security. New admins receive a password setup link.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-          <div className="rounded-2xl border border-slate-200 bg-white/70 p-6 shadow-sm backdrop-blur lg:col-span-2">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-sm font-semibold text-slate-900">Invite admin</p>
-                <p className="mt-1 text-sm text-slate-600">Create an admin user and generate a password setup link.</p>
-              </div>
-              <div className="grid h-10 w-10 place-items-center rounded-xl bg-slate-900 text-white shadow-sm">
-                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
-                  <path
-                    d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M16 3.13a4 4 0 0 1 0 7.75M20 21v-2a4 4 0 0 0-3-3.87M12 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-            </div>
-
-            <form onSubmit={onAddAdmin} className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-3">
-              <div className="md:col-span-1">
-                <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">
-                  Full name
-                </label>
-                <input
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none focus:ring-2 focus:ring-slate-900/10"
-                  placeholder="Jane Doe"
-                  required
-                />
-              </div>
-              <div className="md:col-span-1">
-                <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">
-                  Email
-                </label>
-                <input
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none focus:ring-2 focus:ring-slate-900/10"
-                  placeholder="admin@urbannest.com"
-                  type="email"
-                  required
-                />
-              </div>
-              <div className="md:col-span-1">
-                <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">
-                  Action
-                </label>
-                <button
-                  className="mt-2 inline-flex w-full items-center justify-center rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-800"
-                >
-                  Invite admin
-                </button>
-              </div>
-            </form>
-
-            {message && (
-              <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-                {message}
-              </div>
-            )}
-            {resetLink && (
-              <div className="mt-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
-                <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Password setup link</p>
-                <p className="mt-2 break-all font-medium text-slate-900">{resetLink}</p>
-              </div>
-            )}
-            {error && (
-              <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
-                {error}
-              </div>
-            )}
-          </div>
-
-          <div className="rounded-2xl border border-slate-200 bg-gradient-to-br from-indigo-700 to-slate-900 p-6 text-white shadow-sm">
-            <p className="text-sm font-semibold text-white/90">Guideline</p>
-            <p className="mt-2 text-lg font-semibold leading-snug">Use unique admin emails.</p>
-            <p className="mt-2 text-sm text-white/75">
-              Invite admins with email addresses they control. If they lose access, they can’t complete password setup.
+    <main className="space-y-6 lg:space-y-8">
+      <section className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+        <div className="max-w-3xl space-y-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.4em] text-[#7A7F70]">Control Center</p>
+          <div>
+            <h1 className="font-serif text-4xl leading-none tracking-[-0.04em] text-[#173326] lg:text-6xl">Admins</h1>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-[#596154] lg:text-base">
+              Invite new society owners, manage permissions, and keep the platform tidy.
             </p>
-            <div className="mt-6 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-white/85 ring-1 ring-white/15">
-              Setup links expire in 24 hours
-            </div>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white/70 shadow-sm backdrop-blur">
-          <div className="flex items-center justify-between gap-3 border-b border-slate-200/80 px-6 py-4">
-            <div>
-              <p className="text-sm font-semibold text-slate-900">Admin directory</p>
-              <p className="mt-1 text-sm text-slate-600">All admins created in the system.</p>
+        <button
+          type="button"
+          onClick={() => {
+            setMessage('');
+            setError('');
+            setResetLink('');
+            setIsInviteOpen(true);
+          }}
+          className="inline-flex items-center gap-2 self-start rounded-full bg-[#0F5B35] px-5 py-3 text-sm font-semibold text-[#F7F4E8] shadow-[0_12px_28px_rgba(15,91,53,0.18)] transition hover:-translate-y-0.5 hover:bg-[#0B4B2C]"
+        >
+          <span className="text-lg leading-none">+</span>
+          Invite admin
+        </button>
+      </section>
+
+      {(message || error || resetLink) && (
+        <section className="space-y-3">
+          {message && (
+            <div className="rounded-3xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+              {message}
             </div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 ring-1 ring-slate-200">
-              {loading ? 'Loading...' : `${admins.length} total`}
+          )}
+          {resetLink && (
+            <div className="rounded-3xl border border-[#E6E0CF] bg-[#FBF8EF] px-4 py-3 text-sm text-[#173326] shadow-[0_8px_24px_rgba(23,51,38,0.04)]">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-[#7A7F70]">Password setup link</p>
+              <p className="mt-2 break-all font-medium">{resetLink}</p>
             </div>
+          )}
+          {error && (
+            <div className="rounded-3xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
+              {error}
+            </div>
+          )}
+        </section>
+      )}
+
+      <section className="rounded-[32px] border border-[#E6E0CF] bg-[#FBF8EF] shadow-[0_20px_60px_rgba(23,51,38,0.06)]">
+        <div className="flex flex-col gap-4 border-b border-[#E6E0CF] px-4 py-4 lg:flex-row lg:items-center lg:justify-between lg:px-5">
+          <div className="flex min-w-0 flex-1 items-center gap-3 rounded-full border border-[#E6E0CF] bg-white px-4 py-3 shadow-[0_8px_24px_rgba(23,51,38,0.04)]">
+            <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0 text-[#7A7F70]" fill="none" aria-hidden="true">
+              <path
+                d="m21 21-4.35-4.35M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <input
+              className="min-w-0 flex-1 bg-transparent text-sm text-[#173326] outline-none placeholder:text-[#9AA092]"
+              placeholder="Search by name, email or society"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              aria-label="Search admins"
+            />
           </div>
 
-          {admins.length === 0 && !loading ? (
-            <div className="px-6 py-10 text-center">
-              <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-slate-900 text-white shadow-sm">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="inline-flex rounded-full border border-[#E6E0CF] bg-white p-1 shadow-[0_8px_24px_rgba(23,51,38,0.04)]">
+              {(['all', 'active', 'pending', 'suspended'] as const).map((option) => {
+                const label = option === 'all' ? 'All' : option[0].toUpperCase() + option.slice(1);
+                const active = statusFilter === option;
+                return (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => setStatusFilter(option)}
+                    className={[
+                      'rounded-full px-3.5 py-2 text-sm font-medium transition',
+                      active
+                        ? 'bg-[#0F5B35] text-[#F7F4E8] shadow-[0_8px_18px_rgba(15,91,53,0.18)]'
+                        : 'text-[#596154] hover:bg-[#F3EFE3]',
+                    ].join(' ')}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+
+            <button
+              type="button"
+              className="inline-flex items-center gap-2 rounded-full border border-[#E6E0CF] bg-white px-4 py-3 text-sm font-medium text-[#596154] shadow-[0_8px_24px_rgba(23,51,38,0.04)] transition hover:bg-[#F3EFE3]"
+            >
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" aria-hidden="true">
+                <path
+                  d="M3 5h18M6 12h12M10 19h4"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+              </svg>
+              More filters
+            </button>
+          </div>
+        </div>
+
+        <div className="overflow-hidden rounded-b-[32px]">
+          {loading ? (
+            <div className="space-y-3 px-4 py-5 lg:px-6">
+              <div className="h-12 animate-pulse rounded-2xl bg-[#E9E2CF]" />
+              <div className="h-12 animate-pulse rounded-2xl bg-[#E9E2CF]" />
+              <div className="h-12 animate-pulse rounded-2xl bg-[#E9E2CF]" />
+            </div>
+          ) : filteredAdmins.length === 0 ? (
+            <div className="px-6 py-14 text-center">
+              <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[#0F5B35] text-[#F7F4E8] shadow-[0_12px_28px_rgba(15,91,53,0.18)]">
                 <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" aria-hidden="true">
                   <path
                     d="M12 12a4 4 0 1 0-8 0 4 4 0 0 0 8 0ZM20 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"
@@ -189,60 +370,134 @@ export default function AdminListPage() {
                   />
                 </svg>
               </div>
-              <p className="mt-4 text-sm font-semibold text-slate-900">No admins yet</p>
-              <p className="mt-1 text-sm text-slate-600">Use the invite form to create your first admin.</p>
+              <p className="mt-4 text-sm font-semibold text-[#173326]">No admins match this filter</p>
+              <p className="mt-1 text-sm text-[#596154]">Try a different search term or status chip.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full text-sm">
-                <thead className="bg-slate-50">
-                  <tr className="text-left text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">
-                    <th className="px-6 py-4">Name</th>
-                    <th className="px-6 py-4">Email</th>
-                    <th className="px-6 py-4">Joined</th>
-                    <th className="px-6 py-4">Status</th>
+              <table className="min-w-full text-left text-sm">
+                <thead className="bg-[#F4F0E4]">
+                  <tr className="text-xs font-semibold uppercase tracking-[0.14em] text-[#6C756C]">
+                    <th className="px-7 py-4">Admin</th>
+                    <th className="px-5 py-4">Society</th>
+                    <th className="px-5 py-4">Status</th>
+                    <th className="px-5 py-4">Joined</th>
+                    <th className="px-7 py-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200/70">
-                  {admins.map((a) => (
-                    <tr key={a.id} className="bg-white/50 hover:bg-white">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="grid h-9 w-9 place-items-center rounded-xl bg-slate-900 text-xs font-semibold text-white">
-                            {(a.full_name || 'A')
-                              .split(' ')
-                              .filter(Boolean)
-                              .slice(0, 2)
-                              .map((s) => s[0]?.toUpperCase())
-                              .join('')}
+                <tbody className="divide-y divide-[#E6E0CF]">
+                  {filteredAdmins.map((admin) => {
+                    const status = getStatusMeta(admin);
+                    return (
+                      <tr key={admin.id} className="bg-[#FBF8EF] transition hover:bg-[#F7F3E8]">
+                        <td className="px-7 py-5">
+                          <div className="flex items-center gap-4">
+                            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#00522D] text-sm font-semibold text-[#F7F4E8]">
+                              {getInitials(admin.full_name)}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="truncate text-[16px] font-semibold leading-tight text-[#122B20]">{admin.full_name}</p>
+                              <p className="truncate text-[13px] text-[#53605A]">{admin.email}</p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-semibold text-slate-900">{a.full_name}</p>
-                            <p className="text-xs text-slate-500">Admin</p>
+                        </td>
+
+                        <td className="px-5 py-5">
+                          <div className="inline-flex items-center gap-2 text-[16px] text-[#1F3128]">
+                            <svg viewBox="0 0 24 24" className="h-4 w-4 text-[#6D756F]" fill="none" aria-hidden="true">
+                              <path
+                                d="M4 20V6.8c0-.42.22-.81.58-1.02l6.8-3.9a1.25 1.25 0 0 1 1.24 0l6.8 3.9c.36.21.58.6.58 1.02V20M7 20V12h10v8M10 8.5h4"
+                                stroke="currentColor"
+                                strokeWidth="1.8"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                            <span className="truncate max-w-[220px]">{admin.building_name || 'Unassigned'}</span>
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 font-medium text-slate-700">{a.email}</td>
-                      <td className="px-6 py-4 text-slate-700">{new Date(a.created_at).toLocaleString()}</td>
-                      <td className="px-6 py-4">
-                        {a.must_reset_password ? (
-                          <span className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-900">
-                            Pending setup
+                        </td>
+
+
+                        <td className="px-5 py-5">
+                          <span className={[
+                            'inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[13px] font-semibold leading-none',
+                            status.className,
+                          ].join(' ')}>
+                            <span className={['h-2 w-2 rounded-full', status.dotClassName].join(' ')} />
+                            {status.label}
                           </span>
-                        ) : (
-                          <span className="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-900">
-                            Active
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+
+                        <td className="px-5 py-5 text-[16px] text-[#4A5752]">{formatJoinedAt(admin.created_at)}</td>
+
+                        <td className="px-7 py-5">
+                          <div className="flex items-center justify-end gap-6 text-[15px] font-semibold">
+                            <button
+                              type="button"
+                              onClick={() => setMessage(`Suspend is not available yet for ${admin.full_name}.`)}
+                              className="text-[#495853] transition hover:text-[#20332A]"
+                            >
+                              Suspend
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => onDeleteAdmin(admin)}
+                              disabled={deletingId === admin.id}
+                              className="text-[#CC4343] transition hover:text-[#A63434] disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                              {deletingId === admin.id ? 'Deleting...' : 'Delete'}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setMessage(`${admin.full_name} is assigned to ${admin.building_name || 'an unassigned society'}.`)}
+                              className="text-[#66716A] transition hover:text-[#1D3027]"
+                              aria-label={`More actions for ${admin.full_name}`}
+                            >
+                              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden="true">
+                                <circle cx="12" cy="5" r="1.8" />
+                                <circle cx="12" cy="12" r="1.8" />
+                                <circle cx="12" cy="19" r="1.8" />
+                              </svg>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
           )}
         </div>
-      </div>
+      </section>
+
+      {isInviteOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#173326]/50 px-4 py-6 backdrop-blur-sm">
+          <div className="w-full max-w-xl rounded-[32px] border border-[#E6E0CF] bg-[#FBF8EF] p-6 shadow-[0_30px_80px_rgba(23,51,38,0.2)]">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[#7A7F70]">Invite admin</p>
+                <h2 className="mt-2 font-serif text-3xl tracking-[-0.03em] text-[#173326]">Create access</h2>
+                <p className="mt-2 text-sm text-[#596154]">
+                  New admins will receive a password setup link tied to the selected society.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsInviteOpen(false)}
+                className="grid h-10 w-10 place-items-center rounded-full border border-[#E6E0CF] bg-white text-[#596154] transition hover:text-[#173326]"
+                aria-label="Close invite form"
+              >
+                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
+                  <path d="M6 6l12 12M18 6 6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="mt-6">{renderInviteForm()}</div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

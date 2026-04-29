@@ -76,6 +76,13 @@ export const apiClient = {
     }, skipAuth);
   },
 
+  async patch(endpoint: string, data: unknown, skipAuth = false) {
+    return this.request(endpoint, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }, skipAuth);
+  },
+
   async delete(endpoint: string, skipAuth = false) {
     return this.request(endpoint, { method: 'DELETE' }, skipAuth);
   },

@@ -10,9 +10,13 @@ export const API_ENDPOINTS = {
   },
   systemAdmin: {
     dashboardStats: '/api/system-admin/dashboard/stats',
+    dashboardActivity: '/api/system-admin/dashboard/activity',
+    topSocieties: '/api/system-admin/dashboard/top-societies',
+    buildings: '/api/system-admin/buildings',
     settingsMe: '/api/system-admin/settings/me',
     admins: '/api/system-admin/admins',
     inviteAdmin: '/api/system-admin/admins/invite',
+      deleteAdmin: (adminId: string) => `/api/system-admin/admins/${adminId}`,
   },
   admin: {
     dashboardStats: '/api/admin/dashboard/stats',
