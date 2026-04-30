@@ -199,7 +199,7 @@ export default function AdminResidentsPage() {
           </div>
         )}
 
-        <div className="rounded-2xl border border-slate-200 bg-white/70 p-6 shadow-sm backdrop-blur">
+        <div className="rounded-2xl border border-[#E4DDCB] bg-[#FBF8EF] p-6 shadow-sm backdrop-blur">
           <p className="text-sm font-semibold text-slate-900">
             {createMode === 'invite' ? `Invite ${roleTitle.slice(0, -1)}` : `Add ${roleTitle.slice(0, -1)}`}
           </p>
@@ -207,10 +207,11 @@ export default function AdminResidentsPage() {
             <div>
               <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Full name</label>
               <input
-                className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none focus:ring-2 focus:ring-slate-900/10"
+                className="mt-2 w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-slate-900/10"
                 value={fullName}
                 onChange={(event) => setFullName(event.target.value)}
                 required
+                placeholder='Enter Name'
               />
             </div>
 
@@ -218,10 +219,11 @@ export default function AdminResidentsPage() {
               <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Email</label>
               <input
                 type="email"
-                className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none focus:ring-2 focus:ring-slate-900/10"
+                className="mt-2 w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-slate-900/10"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 required
+                placeholder='Enter Email'
               />
             </div>
 
@@ -231,7 +233,7 @@ export default function AdminResidentsPage() {
                 <input
                   type="password"
                   minLength={8}
-                  className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none focus:ring-2 focus:ring-slate-900/10"
+                  className="mt-2 w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-slate-900/10"
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                   required
@@ -251,7 +253,7 @@ export default function AdminResidentsPage() {
                   Plot / House Number
                 </label>
                 <select
-                  className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none focus:ring-2 focus:ring-slate-900/10"
+                  className="mt-2 w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-slate-500 shadow-sm outline-none focus:ring-2 focus:ring-slate-900/10"
                   value={unitId}
                   onChange={(event) => setUnitId(event.target.value)}
                   required
@@ -272,7 +274,7 @@ export default function AdminResidentsPage() {
             )}
 
             <div className="sm:col-span-2">
-              <button className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-800">
+              <button className="inline-flex items-center justify-center rounded-xl bg-[#0F5B35] px-5 py-2.5 text-sm font-semibold text-[#F7F4E8] shadow-sm transition hover:-translate-y-0.5 over:bg-[#0B4B2C]">
                 {createMode === 'invite' ? `Invite ${roleTitle.slice(0, -1)}` : `Add ${roleTitle.slice(0, -1)}`}
               </button>
             </div>
@@ -286,7 +288,7 @@ export default function AdminResidentsPage() {
           )}
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white/70 shadow-sm backdrop-blur">
+        <div className="rounded-2xl border border-[#E4DDCB] bg-[#FBF8EF]  shadow-sm backdrop-blur">
           <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
             <p className="text-sm font-semibold text-slate-900">{roleTitle} Directory</p>
             <p className="text-sm text-slate-600">{loading ? 'Loading...' : `${users.length} total`}</p>
@@ -297,7 +299,7 @@ export default function AdminResidentsPage() {
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm">
-                <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                <thead className="bg-[#FBF8EF]  text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
                   <tr>
                     <th className="px-6 py-3 text-left">Name</th>
                     <th className="px-6 py-3 text-left">Email</th>
@@ -307,7 +309,7 @@ export default function AdminResidentsPage() {
                 </thead>
                 <tbody className="divide-y divide-slate-200/70">
                   {users.map((user) => (
-                    <tr key={user.id} className="bg-white/50">
+                    <tr key={user.id} className="bg-[#FBF8EF] ">
                       <td className="px-6 py-4 font-semibold text-slate-900">{user.full_name}</td>
                       <td className="px-6 py-4 text-slate-700">{user.email}</td>
                       <td className="px-6 py-4 text-slate-700">{new Date(user.created_at).toLocaleString()}</td>

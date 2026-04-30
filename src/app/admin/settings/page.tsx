@@ -68,7 +68,7 @@ export default function AdminSettingsPage() {
         )}
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-          <div className="rounded-2xl border border-slate-200 bg-white/70 p-6 shadow-sm backdrop-blur lg:col-span-2">
+          <div className="rounded-2xl border border-[#E4DDCB] bg-[#FBF8EF]  p-6 shadow-sm backdrop-blur lg:col-span-2">
             <p className="text-sm font-semibold text-slate-900">Account</p>
             <p className="mt-1 text-sm text-slate-600">Personal details for your admin account.</p>
 
@@ -78,7 +78,7 @@ export default function AdminSettingsPage() {
                   Your name
                 </label>
                 <input
-                  className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none focus:ring-2 focus:ring-slate-900/10"
+                  className="mt-2 w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none focus:ring-2 focus:ring-slate-900/10"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="Admin User"
@@ -91,7 +91,7 @@ export default function AdminSettingsPage() {
                   Email (read-only)
                 </label>
                 <input
-                  className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700 shadow-sm"
+                  className="mt-2 w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-slate-700 shadow-sm"
                   value={email}
                   disabled
                 />
@@ -111,7 +111,7 @@ export default function AdminSettingsPage() {
                   {loading ? 'Loading current settings...' : 'Review your changes, then save.'}
                 </div>
                 <button
-                  className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-800 disabled:opacity-60"
+                  className="inline-flex items-center justify-center rounded-xl bg-[#0F5B35] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#0B4B2C] disabled:opacity-60"
                   disabled={loading}
                 >
                   Save changes
@@ -120,7 +120,7 @@ export default function AdminSettingsPage() {
             </form>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-gradient-to-br from-amber-500 to-orange-600 p-6 text-white shadow-sm">
+          <div className="rounded-2xl border border-[#1A5A36] bg-[linear-gradient(145deg,#0F5B35,#0A3B24)] text-[#F7F4E8] p-6 shadow-[0_10px_30px_rgba(15,91,53,0.18)]">
             <p className="text-sm font-semibold text-white/90">Tip</p>
             <p className="mt-2 text-lg font-semibold leading-snug">Use clear profile photos.</p>
             <p className="mt-2 text-sm text-white/80">

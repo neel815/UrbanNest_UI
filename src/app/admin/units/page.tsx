@@ -72,7 +72,7 @@ function UnitModal({
               </p>
             )}
           </div>
-          <button type="button" onClick={onClose} className="rounded-full border border-[#D9D1BC] bg-white px-3 py-1.5 text-sm font-semibold text-[#173326]">
+          <button type="button" onClick={onClose} className="rounded-full border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-1.5 text-sm font-semibold text-[#173326]">
             Close
           </button>
         </div>
@@ -81,7 +81,7 @@ function UnitModal({
           <div>
             <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-[#7D8577]">Unit / Plot / House Number</label>
             <input
-              className="mt-2 w-full rounded-xl border border-[#D8D0BC] bg-white px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:border-[#0F5B35] focus:ring-2 focus:ring-[#0F5B35]/10"
+              className="mt-2 w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:border-[#0F5B35] focus:ring-2 focus:ring-[#0F5B35]/10"
               value={form.unit_number}
               onChange={(event) => setForm((current) => ({ ...current, unit_number: event.target.value }))}
               required
@@ -93,7 +93,7 @@ function UnitModal({
               <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-[#7D8577]">Floor Number</label>
               <input
                 type="number"
-                className="mt-2 w-full rounded-xl border border-[#D8D0BC] bg-white px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:border-[#0F5B35] focus:ring-2 focus:ring-[#0F5B35]/10"
+                className="mt-2 w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:border-[#0F5B35] focus:ring-2 focus:ring-[#0F5B35]/10"
                 value={form.floor}
                 onChange={(event) => setForm((current) => ({ ...current, floor: event.target.value }))}
                 required
@@ -116,7 +116,7 @@ function UnitModal({
           <div>
             <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-[#7D8577]">Status</label>
             <select
-              className="mt-2 w-full rounded-xl border border-[#D8D0BC] bg-white px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:border-[#0F5B35] focus:ring-2 focus:ring-[#0F5B35]/10"
+              className="mt-2 w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:border-[#0F5B35] focus:ring-2 focus:ring-[#0F5B35]/10"
               value={form.status}
               onChange={(event) => setForm((current) => ({ ...current, status: event.target.value }))}
             >
@@ -132,7 +132,7 @@ function UnitModal({
             <button className="rounded-full bg-[#0F5B35] px-5 py-3 text-sm font-semibold text-[#F7F4E8] shadow-[0_12px_28px_rgba(15,91,53,0.18)]">
               {submitLabel}
             </button>
-            <button type="button" onClick={onClose} className="rounded-full border border-[#D9D1BC] bg-white px-5 py-3 text-sm font-semibold text-[#173326]">
+            <button type="button" onClick={onClose} className="rounded-full border border-[#D8D0BC] bg-[#F6F2E8] px-5 py-3 text-sm font-semibold text-[#173326]">
               Cancel
             </button>
           </div>
