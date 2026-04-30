@@ -11,6 +11,7 @@ type BuildingItem = {
   name: string;
   address: string;
   description: string | null;
+  building_type: 'apartment_tower' | 'row_house_tenement' | 'bungalow' | 'villa';
   status: 'active' | 'inactive';
   created_at: string;
   updated_at: string;
@@ -20,6 +21,7 @@ type BuildingFormState = {
   name: string;
   address: string;
   description: string;
+  building_type: 'apartment_tower' | 'row_house_tenement' | 'bungalow' | 'villa';
   status: 'active' | 'inactive';
 };
 
@@ -27,8 +29,16 @@ const initialForm: BuildingFormState = {
   name: '',
   address: '',
   description: '',
+  building_type: 'apartment_tower',
   status: 'active',
 };
+
+const buildingTypes = [
+  { value: 'apartment_tower', label: 'Apartment Tower' },
+  { value: 'row_house_tenement', label: 'Row House Tenement' },
+  { value: 'bungalow', label: 'Bungalow' },
+  { value: 'villa', label: 'Villa' },
+];
 
 const cormorant = Cormorant_Garamond({
   subsets: ['latin'],
@@ -88,6 +98,7 @@ export default function BuildingsPage() {
         name: form.name,
         address: form.address,
         description: form.description || null,
+        building_type: form.building_type,
         status: form.status,
       };
 
@@ -114,6 +125,7 @@ export default function BuildingsPage() {
       name: building.name,
       address: building.address,
       description: building.description || '',
+      building_type: building.building_type,
       status: building.status,
     });
     setMessage('');
@@ -275,6 +287,22 @@ export default function BuildingsPage() {
               </div>
 
               <div>
+                <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-[#7D8577]">Building type</label>
+                <select
+                  value={form.building_type}
+                  onChange={(event) => setForm((current) => ({ ...current, building_type: event.target.value as any }))}
+                  className="mt-2 w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:border-[#0F5B35] focus:ring-2 focus:ring-[#0F5B35]/10"
+                  required
+                >
+                  {buildingTypes.map((type) => (
+                    <option key={type.value} value={type.value}>
+                      {type.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
                 <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-[#7D8577]">Status</label>
                 <select
                   value={form.status}
@@ -356,6 +384,7 @@ export default function BuildingsPage() {
                   <tr className="text-left text-xs font-semibold uppercase tracking-[0.25em] text-[#7D8577]">
                     <th className="px-6 py-4">Building</th>
                     <th className="px-6 py-4">Address</th>
+                    <th className="px-6 py-4">Type</th>
                     <th className="px-6 py-4">Status</th>
                     <th className="px-6 py-4">Updated</th>
                     <th className="px-6 py-4">Actions</th>
@@ -371,6 +400,11 @@ export default function BuildingsPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 text-[#173326]">{building.address}</td>
+                      <td className="px-6 py-4">
+                        <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 capitalize">
+                          {building.building_type.replace(/_/g, ' ')}
+                        </span>
+                      </td>
                       <td className="px-6 py-4">
                         <span
                           className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${

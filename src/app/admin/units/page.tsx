@@ -9,7 +9,7 @@ type UnitRow = {
   building_id: string;
   unit_number: string;
   floor: number | null;
-  type: string;
+  plot_number: string | null;
   status: string;
   resident_name: string | null;
 };
@@ -17,26 +17,25 @@ type UnitRow = {
 type UnitFormState = {
   unit_number: string;
   floor: string;
-  type: string;
+  plot_number: string;
   status: string;
 };
 
 const emptyForm: UnitFormState = {
   unit_number: '',
   floor: '',
-  type: 'studio',
-  status: 'available',
+  plot_number: '',
+  status: 'vacant',
 };
 
-const unitTypes = ['studio', '1BHK', '2BHK', '3BHK', 'penthouse'];
 const unitStatuses = [
-  { value: 'available', label: 'Vacant' },
+  { value: 'vacant', label: 'Vacant' },
   { value: 'occupied', label: 'Occupied' },
   { value: 'maintenance', label: 'Maintenance' },
 ];
 
 function formatStatus(status: string) {
-  if (status === 'available') return 'Vacant';
+  if (status === 'vacant') return 'Vacant';
   if (status === 'occupied') return 'Occupied';
   return 'Maintenance';
 }
@@ -48,6 +47,7 @@ function UnitModal({
   onSubmit,
   onClose,
   submitLabel,
+  buildingType,
 }: {
   title: string;
   form: UnitFormState;
@@ -55,7 +55,10 @@ function UnitModal({
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
   onClose: () => void;
   submitLabel: string;
+  buildingType: string | null;
 }) {
+  const isApartmentTower = buildingType === 'apartment_tower';
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 px-4 py-6">
       <div className="w-full max-w-2xl rounded-[28px] border border-[#E6E0CF] bg-[#FBF8EF] p-6 shadow-[0_24px_80px_rgba(23,51,38,0.22)]">
@@ -63,6 +66,11 @@ function UnitModal({
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#7D8577]">Units</p>
             <h2 className="mt-2 text-2xl font-semibold text-[#173326]">{title}</h2>
+            {buildingType && (
+              <p className="mt-1 text-xs text-[#7D8577]">
+                Building Type: <span className="font-semibold capitalize">{buildingType.replace(/_/g, ' ')}</span>
+              </p>
+            )}
           </div>
           <button type="button" onClick={onClose} className="rounded-full border border-[#D9D1BC] bg-white px-3 py-1.5 text-sm font-semibold text-[#173326]">
             Close
@@ -71,7 +79,7 @@ function UnitModal({
 
         <form onSubmit={onSubmit} className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-[#7D8577]">Unit number</label>
+            <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-[#7D8577]">Unit / Plot / House Number</label>
             <input
               className="mt-2 w-full rounded-xl border border-[#D8D0BC] bg-white px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:border-[#0F5B35] focus:ring-2 focus:ring-[#0F5B35]/10"
               value={form.unit_number}
@@ -80,31 +88,30 @@ function UnitModal({
             />
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-[#7D8577]">Floor</label>
-            <input
-              type="number"
-              className="mt-2 w-full rounded-xl border border-[#D8D0BC] bg-white px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:border-[#0F5B35] focus:ring-2 focus:ring-[#0F5B35]/10"
-              value={form.floor}
-              onChange={(event) => setForm((current) => ({ ...current, floor: event.target.value }))}
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-[#7D8577]">Type</label>
-            <select
-              className="mt-2 w-full rounded-xl border border-[#D8D0BC] bg-white px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:border-[#0F5B35] focus:ring-2 focus:ring-[#0F5B35]/10"
-              value={form.type}
-              onChange={(event) => setForm((current) => ({ ...current, type: event.target.value }))}
-              required
-            >
-              {unitTypes.map((type) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
-              ))}
-            </select>
-          </div>
+          {isApartmentTower ? (
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-[#7D8577]">Floor Number</label>
+              <input
+                type="number"
+                className="mt-2 w-full rounded-xl border border-[#D8D0BC] bg-white px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:border-[#0F5B35] focus:ring-2 focus:ring-[#0F5B35]/10"
+                value={form.floor}
+                onChange={(event) => setForm((current) => ({ ...current, floor: event.target.value }))}
+                required
+              />
+            </div>
+          ) : (
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-[#7D8577]">Plot Number</label>
+              <input
+                type="text"
+                className="mt-2 w-full rounded-xl border border-[#D8D0BC] bg-white px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:border-[#0F5B35] focus:ring-2 focus:ring-[#0F5B35]/10"
+                value={form.plot_number}
+                onChange={(event) => setForm((current) => ({ ...current, plot_number: event.target.value }))}
+                placeholder="e.g., A1, B2"
+                required
+              />
+            </div>
+          )}
 
           <div>
             <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-[#7D8577]">Status</label>
@@ -143,15 +150,26 @@ export default function AdminUnitsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingUnit, setEditingUnit] = useState<UnitRow | null>(null);
   const [form, setForm] = useState<UnitFormState>(emptyForm);
+  const [buildingType, setBuildingType] = useState<string | null>(null);
 
   const loadUnits = async () => {
     const data = await apiClient.get(adminUnitApi.list);
     setUnits(data);
   };
 
+  const loadBuildingInfo = async () => {
+    try {
+      const data = await apiClient.get('/api/admin/building-info');
+      setBuildingType(data.building_type);
+    } catch (err) {
+      console.error('Failed to load building info:', err);
+    }
+  };
+
   useEffect(() => {
     const initialize = async () => {
       try {
+        await loadBuildingInfo();
         await loadUnits();
       } catch (err) {
         setError(getApiErrorMessage(err));
@@ -177,7 +195,7 @@ export default function AdminUnitsPage() {
     setForm({
       unit_number: unit.unit_number,
       floor: unit.floor === null ? '' : String(unit.floor),
-      type: unit.type,
+      plot_number: unit.plot_number === null ? '' : unit.plot_number,
       status: unit.status,
     });
   };
@@ -193,10 +211,12 @@ export default function AdminUnitsPage() {
     setError('');
     setMessage('');
     try {
+      const isApartmentTower = buildingType === 'apartment_tower';
       await apiClient.post(adminUnitApi.create, {
         unit_number: form.unit_number,
-        floor: form.floor ? Number(form.floor) : null,
-        type: form.type,
+        floor: isApartmentTower ? (form.floor ? Number(form.floor) : null) : null,
+        plot_number: !isApartmentTower ? (form.plot_number || null) : null,
+        status: form.status,
       });
       setMessage('Unit created successfully.');
       closeModal();
@@ -212,10 +232,11 @@ export default function AdminUnitsPage() {
     setError('');
     setMessage('');
     try {
+      const isApartmentTower = buildingType === 'apartment_tower';
       await apiClient.patch(adminUnitApi.update(editingUnit.id), {
         unit_number: form.unit_number,
-        floor: form.floor ? Number(form.floor) : null,
-        type: form.type,
+        floor: isApartmentTower ? (form.floor ? Number(form.floor) : null) : null,
+        plot_number: !isApartmentTower ? (form.plot_number || null) : null,
         status: form.status,
       });
       setMessage('Unit updated successfully.');
@@ -240,7 +261,7 @@ export default function AdminUnitsPage() {
     }
   };
 
-  const vacantCount = useMemo(() => units.filter((unit) => unit.status === 'available').length, [units]);
+  const vacantCount = useMemo(() => units.filter((unit) => unit.status === 'vacant').length, [units]);
 
   return (
     <main className="space-y-8">
@@ -296,7 +317,7 @@ export default function AdminUnitsPage() {
                 <tr>
                   <th className="px-6 py-3 text-left">Unit Number</th>
                   <th className="px-6 py-3 text-left">Floor</th>
-                  <th className="px-6 py-3 text-left">Type</th>
+                  <th className="px-6 py-3 text-left">Plot Number</th>
                   <th className="px-6 py-3 text-left">Status</th>
                   <th className="px-6 py-3 text-left">Resident Name</th>
                   <th className="px-6 py-3 text-left">Actions</th>
@@ -307,7 +328,7 @@ export default function AdminUnitsPage() {
                   <tr key={unit.id}>
                     <td className="px-6 py-4 font-semibold text-[#173326]">{unit.unit_number}</td>
                     <td className="px-6 py-4 text-[#6A7264]">{unit.floor ?? '—'}</td>
-                    <td className="px-6 py-4 text-[#6A7264]">{unit.type}</td>
+                    <td className="px-6 py-4 text-[#6A7264]">{unit.plot_number ?? '—'}</td>
                     <td className="px-6 py-4 text-[#6A7264]">{formatStatus(unit.status)}</td>
                     <td className="px-6 py-4 text-[#6A7264]">{unit.resident_name ?? '—'}</td>
                     <td className="px-6 py-4">
@@ -337,11 +358,27 @@ export default function AdminUnitsPage() {
       </section>
 
       {showCreateModal && (
-        <UnitModal title="Add Unit" form={form} setForm={setForm} onSubmit={submitCreate} onClose={closeModal} submitLabel="Create Unit" />
+        <UnitModal
+          title="Add Unit"
+          form={form}
+          setForm={setForm}
+          onSubmit={submitCreate}
+          onClose={closeModal}
+          submitLabel="Create Unit"
+          buildingType={buildingType}
+        />
       )}
 
       {editingUnit && (
-        <UnitModal title={`Edit Unit ${editingUnit.unit_number}`} form={form} setForm={setForm} onSubmit={submitEdit} onClose={closeModal} submitLabel="Save Changes" />
+        <UnitModal
+          title={`Edit Unit ${editingUnit.unit_number}`}
+          form={form}
+          setForm={setForm}
+          onSubmit={submitEdit}
+          onClose={closeModal}
+          submitLabel="Save Changes"
+          buildingType={buildingType}
+        />
       )}
     </main>
   );

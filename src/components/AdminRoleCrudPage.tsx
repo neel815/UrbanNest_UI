@@ -18,7 +18,7 @@ type ManagedUnit = {
   id: string;
   unit_number: string;
   floor: number | null;
-  type: string;
+  plot_number: string | null;
   status: string;
   resident_name?: string | null;
 };
@@ -269,10 +269,10 @@ export default function AdminRoleCrudPage({
                 >
                   <option value="">Select a vacant plot / house</option>
                   {units
-                    .filter((unit) => unit.status === 'available')
+                    .filter((unit) => unit.status === 'vacant')
                     .map((unit) => (
                       <option key={unit.id} value={unit.id}>
-                        {unit.unit_number} {unit.floor !== null ? `- Floor ${unit.floor}` : ''}
+                        {unit.unit_number} {unit.floor !== null ? `- Floor ${unit.floor}` : unit.plot_number !== null ? `- Plot ${unit.plot_number}` : ''}
                       </option>
                     ))}
                 </select>
