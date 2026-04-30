@@ -208,7 +208,7 @@ export default function AdminDashboardPage() {
                   <p className={`mt-3 text-sm ${card.active ? 'text-[#DDE9DF]' : 'text-[#647061]'}`}>{card.subtitle}</p>
                 </div>
 
-                <div className={`grid h-12 w-12 place-items-center rounded-full ${card.active ? 'bg-white/8 text-[#F7F4E8]' : 'bg-[#E4EDE6] text-[#0F5B35]'}`}>
+                <div className={`grid h-12 w-12 place-items-center rounded-full ${card.active ? 'bg-white/10 text-white' : 'bg-[#E4EDE6] text-[#0F5B35]'}`}>
                   <StatIcon name={card.icon} />
                 </div>
               </div>
