@@ -268,14 +268,14 @@ export default function AdminUnitsPage() {
       <section className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.42em] text-[#76806F]">Building Control</p>
-          <h1 className="mt-3 text-5xl leading-[0.95] font-semibold tracking-tight text-[#173326]">Units</h1>
+          <h1 className="mt-3 text-4xl font-serif tracking-tight text-slate-900 lg:text-6xl">Units</h1>
           <p className="mt-3 max-w-2xl text-[16px] leading-7 text-[#637062]">Manage building units, occupancy, and resident assignment from the admin portal.</p>
         </div>
 
         <button
           type="button"
           onClick={openCreateModal}
-          className="rounded-full bg-[#0F5B35] px-5 py-3 text-sm font-semibold text-[#F7F4E8] shadow-[0_12px_28px_rgba(15,91,53,0.18)]"
+          className="rounded-full bg-[#0F5B35] px-5 py-3 text-sm font-semibold text-[#F7F4E8] shadow-[0_12px_28px_rgba(15,91,53,0.18)] transition hover:-translate-y-0.5 hover:bg-[#0B4B2C]"
         >
           + Add Unit
         </button>

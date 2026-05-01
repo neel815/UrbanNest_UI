@@ -184,7 +184,7 @@ export default function AdminSecurityPage() {
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-2">
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Management</p>
-          <h1 className="text-3xl font-semibold tracking-tight text-slate-900">{roleTitle}</h1>
+          <h1 className="text-4xl font-serif tracking-tight text-slate-900 lg:text-6xl">{roleTitle}</h1>
           <p className="max-w-2xl text-slate-600">{roleDescription}</p>
         </div>
 
@@ -299,7 +299,7 @@ export default function AdminSecurityPage() {
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm">
-                <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                <thead className="bg-[#F6F1E5] text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
                   <tr>
                     <th className="px-6 py-3 text-left">Name</th>
                     <th className="px-6 py-3 text-left">Email</th>
@@ -309,7 +309,7 @@ export default function AdminSecurityPage() {
                 </thead>
                 <tbody className="divide-y divide-slate-200/70">
                   {users.map((user) => (
-                    <tr key={user.id} className="bg-white/50">
+                    <tr key={user.id} className="bg-[#FBF8EF]">
                       <td className="px-6 py-4 font-semibold text-slate-900">{user.full_name}</td>
                       <td className="px-6 py-4 text-slate-700">{user.email}</td>
                       <td className="px-6 py-4 text-slate-700">{new Date(user.created_at).toLocaleString()}</td>

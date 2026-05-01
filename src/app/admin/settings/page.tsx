@@ -50,7 +50,7 @@ export default function AdminSettingsPage() {
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-2">
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Preferences</p>
-          <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Settings</h1>
+          <h1 className="text-4xl font-serif tracking-tight text-slate-900 lg:text-6xl">Settings</h1>
           <p className="max-w-2xl text-slate-600">
             Update your admin profile information and upload an avatar.
           </p>

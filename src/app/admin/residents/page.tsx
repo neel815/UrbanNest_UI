@@ -184,7 +184,7 @@ export default function AdminResidentsPage() {
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-2">
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Management</p>
-          <h1 className="text-3xl font-semibold tracking-tight text-slate-900">{roleTitle}</h1>
+          <h1 className="text-4xl font-serif tracking-tight text-slate-900 lg:text-6xl">{roleTitle}</h1>
           <p className="max-w-2xl text-slate-600">{roleDescription}</p>
         </div>
 
@@ -299,7 +299,7 @@ export default function AdminResidentsPage() {
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm">
-                <thead className="bg-[#FBF8EF]  text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                <thead className="bg-[#F6F1E5] text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
                   <tr>
                     <th className="px-6 py-3 text-left">Name</th>
                     <th className="px-6 py-3 text-left">Email</th>

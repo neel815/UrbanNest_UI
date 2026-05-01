@@ -159,7 +159,7 @@ export default function AdminDashboardPage() {
         <section className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl space-y-3">
             <p className="text-xs font-bold uppercase tracking-[0.42em] text-[#76806F]">Control Center</p>
-            <h1 className={`${cormorant.className} text-5xl leading-[0.9] font-semibold tracking-tight text-[#173326] lg:text-[4.5rem]`}>
+            <h1 className={`${cormorant.className} text-4xl font-serif tracking-tight text-slate-900 lg:text-6xl`}>
               {stats?.building_name ?? 'Skyline Towers'}
             </h1>
             <p className="max-w-2xl text-[16px] leading-7 text-[#637062]">
