@@ -1,8 +1,14 @@
 'use client';
 
+import { Cormorant_Garamond } from 'next/font/google';
 import { useEffect, useState } from 'react';
 
 import { apiClient, getApiErrorMessage } from '@/utils/api';
+
+const cormorant = Cormorant_Garamond({
+  subsets: ['latin'],
+  weight: ['500', '600', '700'],
+});
 
 interface Incident {
   id: number;
@@ -160,38 +166,38 @@ export default function SecurityIncidentsPage() {
   };
 
   return (
-    <main>
+    <main className="space-y-8">
       <div className="flex flex-col gap-6">
-        <div className="flex flex-col gap-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Incident Management</p>
+        <div className="flex flex-col gap-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.42em] text-[#76806F]">Incident Management</p>
           <div className="flex flex-wrap items-end justify-between gap-3">
-            <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Incident Reporting</h1>
+            <h1 className={`${cormorant.className} text-4xl font-semibold leading-none tracking-tight text-[#173326] lg:text-[4.5rem] lg:leading-[0.9]`}>Incident Reporting</h1>
             <button
               onClick={() => setShowForm(!showForm)}
-              className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 transition hover:-translate-y-0.5"
+              className="rounded-full bg-[#0F5B35] px-5 py-3 text-sm font-semibold text-[#F7F4E8] shadow-[0_12px_28px_rgba(15,91,53,0.18)] transition hover:-translate-y-0.5 hover:bg-[#0B4B2C]"
             >
               Report Incident
             </button>
           </div>
-          <p className="max-w-2xl text-slate-600">
+          <p className="max-w-2xl text-[15px] leading-7 text-[#637062]">
             Track, manage, and resolve security incidents with comprehensive reporting and status monitoring.
           </p>
         </div>
 
         {error && (
-          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
+          <div className="rounded-3xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
             {error}
           </div>
         )}
 
         {/* Report Incident Form */}
         {showForm && (
-          <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white/70 p-6 shadow-sm backdrop-blur">
-            <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-rose-500 to-pink-500" />
-            <h2 className="text-lg font-semibold text-slate-900 mb-4">Report New Incident</h2>
+          <div className="group relative overflow-hidden rounded-[28px] border border-[#E4DDCB] bg-[#FBF8EF] p-6 shadow-[0_10px_30px_rgba(23,51,38,0.06)] backdrop-blur">
+            <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-[#D14C4C] to-[#E56B89]" />
+            <h2 className={`${cormorant.className} mb-4 text-3xl font-semibold tracking-tight text-[#173326]`}>Report New Incident</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.25em] text-[#76806F]">
                   Incident Title *
                 </label>
                 <input
@@ -199,32 +205,32 @@ export default function SecurityIncidentsPage() {
                   required
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-[#0F5B35]/10"
                   placeholder="Brief description of the incident"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.25em] text-[#76806F]">
                   Detailed Description *
                 </label>
                 <textarea
                   required
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-[#0F5B35]/10"
                   rows={4}
                   placeholder="Provide detailed information about the incident"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.25em] text-[#76806F]">
                     Incident Type *
                   </label>
                   <select
                     value={formData.type}
                     onChange={(e) => setFormData({ ...formData, type: e.target.value as Incident['type'] })}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500"
+                    className="w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-[#0F5B35]/10"
                   >
                     <option value="security">Security</option>
                     <option value="safety">Safety</option>
@@ -234,13 +240,13 @@ export default function SecurityIncidentsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.25em] text-[#76806F]">
                     Severity Level *
                   </label>
                   <select
                     value={formData.severity}
                     onChange={(e) => setFormData({ ...formData, severity: e.target.value as Incident['severity'] })}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500"
+                    className="w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-[#0F5B35]/10"
                   >
                     <option value="low">Low</option>
                     <option value="medium">Medium</option>
@@ -250,7 +256,7 @@ export default function SecurityIncidentsPage() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.25em] text-[#76806F]">
                   Location *
                 </label>
                 <input
@@ -258,19 +264,19 @@ export default function SecurityIncidentsPage() {
                   required
                   value={formData.location}
                   onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-[#0F5B35]/10"
                   placeholder="Where did the incident occur?"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.25em] text-[#76806F]">
                   Attachments
                 </label>
                 <input
                   type="file"
                   multiple
                   onChange={handleFileChange}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-[#0F5B35]/10"
                   accept="image/*,video/*,.pdf,.doc,.docx"
                 />
                 {formData.attachments.length > 0 && (
@@ -286,20 +292,20 @@ export default function SecurityIncidentsPage() {
               <div className="flex gap-2">
                 <button
                   type="submit"
-                  className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 transition hover:-translate-y-0.5"
+                  className="rounded-full bg-[#0F5B35] px-5 py-3 text-sm font-semibold text-[#F7F4E8] shadow-[0_12px_28px_rgba(15,91,53,0.18)] transition hover:-translate-y-0.5 hover:bg-[#0B4B2C]"
                 >
                   Report Incident
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowForm(false)}
-                  className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50 transition"
+                  className="rounded-full border border-[#D9D1BC] bg-white px-5 py-3 text-sm font-semibold text-[#173326] shadow-[0_8px_24px_rgba(23,51,38,0.05)] transition hover:-translate-y-0.5 hover:bg-[#FBF8EF]"
                 >
                   Cancel
                 </button>
               </div>
             </form>
-            <div className="pointer-events-none absolute -right-16 -top-16 h-32 w-32 rounded-full bg-slate-900/5 blur-2xl transition group-hover:bg-slate-900/10" />
+            <div className="pointer-events-none absolute -right-16 -top-16 h-32 w-32 rounded-full bg-[#0F5B35]/5 blur-2xl transition group-hover:bg-[#0F5B35]/10" />
           </div>
         )}
 
@@ -437,7 +443,7 @@ export default function SecurityIncidentsPage() {
             ))}
           </div>
         ) : (
-          <div className="rounded-2xl border border-slate-200 bg-white/70 p-12 text-center shadow-sm backdrop-blur">
+          <div className="rounded-2xl border border-slate-200 bg-[#F6F2E8] p-12 text-center shadow-sm backdrop-blur">
             <div className="grid h-16 w-16 place-items-center rounded-2xl bg-slate-100 mx-auto mb-4">
               <svg viewBox="0 0 24 24" className="h-8 w-8 text-slate-400" fill="none" aria-hidden="true">
                 <path
@@ -453,7 +459,7 @@ export default function SecurityIncidentsPage() {
             <p className="mt-2 text-sm text-slate-500">Report your first incident to get started.</p>
             <button
               onClick={() => setShowForm(true)}
-              className="mt-4 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 transition hover:-translate-y-0.5"
+              className="mt-4 rounded-full bg-[#0F5B35] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#0B4B2C]"
             >
               Report Your First Incident
             </button>

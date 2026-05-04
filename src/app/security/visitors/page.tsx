@@ -1,8 +1,14 @@
 'use client';
 
+import { Cormorant_Garamond } from 'next/font/google';
 import { useEffect, useState } from 'react';
 
 import { apiClient } from '@/utils/api';
+
+const cormorant = Cormorant_Garamond({
+  subsets: ['latin'],
+  weight: ['500', '600', '700'],
+});
 
 interface Visitor {
   id: number;
@@ -123,38 +129,38 @@ export default function SecurityVisitorsPage() {
   };
 
   return (
-    <main>
+    <main className="space-y-8">
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Visitor Management</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.42em] text-[#76806F]">Visitor Management</p>
           <div className="flex flex-wrap items-end justify-between gap-3">
-            <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Visitor Access Control</h1>
+            <h1 className={`${cormorant.className} text-4xl font-semibold tracking-tight text-[#173326] lg:text-[4.5rem]`}>Visitor Access Control</h1>
             <button
               onClick={() => setShowForm(!showForm)}
-              className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 transition hover:-translate-y-0.5"
+              className="rounded-full bg-[#0F5B35] px-5 py-3 text-sm font-semibold text-[#F7F4E8] shadow-[0_12px_28px_rgba(15,91,53,0.18)] transition hover:-translate-y-0.5 hover:bg-[#0B4B2C]"
             >
               Register Visitor
             </button>
           </div>
-          <p className="max-w-2xl text-slate-600">
+          <p className="max-w-2xl text-[15px] text-[#637062]">
             Manage visitor registrations, approvals, and access control for building security.
           </p>
         </div>
 
         {error && (
-          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
+          <div className="rounded-3xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
             {error}
           </div>
         )}
 
         {showForm && (
-          <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white/70 p-6 shadow-sm backdrop-blur">
-            <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-emerald-500 to-teal-500" />
-            <h2 className="text-lg font-semibold text-slate-900 mb-4">Register New Visitor</h2>
+          <div className="group relative overflow-hidden rounded-[28px] border border-[#E4DDCB] bg-[#FBF8EF] p-6 shadow-[0_10px_30px_rgba(23,51,38,0.06)] backdrop-blur">
+            <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-[#0F5B35] to-[#1D6A44]" />
+            <h2 className={`${cormorant.className} mb-4 text-3xl font-semibold tracking-tight text-[#173326]`}>Register New Visitor</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.25em] text-[#76806F]">
                     Visitor Name *
                   </label>
                   <input
@@ -162,12 +168,12 @@ export default function SecurityVisitorsPage() {
                     required
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500"
+                    className="w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-[#0F5B35]/10"
                     placeholder="Full name"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.25em] text-[#76806F]">
                     Contact Number *
                   </label>
                   <input
@@ -175,13 +181,13 @@ export default function SecurityVisitorsPage() {
                     required
                     value={formData.contactNumber}
                     onChange={(e) => setFormData({ ...formData, contactNumber: e.target.value })}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500"
+                    className="w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-[#0F5B35]/10"
                     placeholder="+1234567890"
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.25em] text-[#76806F]">
                   Purpose of Visit *
                 </label>
                 <input
@@ -189,13 +195,13 @@ export default function SecurityVisitorsPage() {
                   required
                   value={formData.purpose}
                   onChange={(e) => setFormData({ ...formData, purpose: e.target.value })}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-[#0F5B35]/10"
                   placeholder="e.g., Personal visit, Delivery, Maintenance"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.25em] text-[#76806F]">
                     Host Name *
                   </label>
                   <input
@@ -203,12 +209,12 @@ export default function SecurityVisitorsPage() {
                     required
                     value={formData.hostName}
                     onChange={(e) => setFormData({ ...formData, hostName: e.target.value })}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500"
+                    className="w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-[#0F5B35]/10"
                     placeholder="Resident name"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.25em] text-[#76806F]">
                     Host Unit *
                   </label>
                   <input
@@ -216,33 +222,33 @@ export default function SecurityVisitorsPage() {
                     required
                     value={formData.hostUnit}
                     onChange={(e) => setFormData({ ...formData, hostUnit: e.target.value })}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500"
+                    className="w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-[#0F5B35]/10"
                     placeholder="A-101, B-205, etc."
                   />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.25em] text-[#76806F]">
                     Vehicle Number
                   </label>
                   <input
                     type="text"
                     value={formData.vehicleNumber}
                     onChange={(e) => setFormData({ ...formData, vehicleNumber: e.target.value })}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500"
+                    className="w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-[#0F5B35]/10"
                     placeholder="e.g., ABC-1234"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.25em] text-[#76806F]">
                     Notes
                   </label>
                   <input
                     type="text"
                     value={formData.notes}
                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500"
+                    className="w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-[#0F5B35]/10"
                     placeholder="Additional information"
                   />
                 </div>
@@ -250,27 +256,27 @@ export default function SecurityVisitorsPage() {
               <div className="flex gap-2">
                 <button
                   type="submit"
-                  className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 transition hover:-translate-y-0.5"
+                  className="rounded-full bg-[#0F5B35] px-5 py-3 text-sm font-semibold text-[#F7F4E8] shadow-[0_12px_28px_rgba(15,91,53,0.18)] transition hover:-translate-y-0.5 hover:bg-[#0B4B2C]"
                 >
                   Register Visitor
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowForm(false)}
-                  className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50 transition"
+                  className="rounded-full border border-[#D9D1BC] bg-white px-5 py-3 text-sm font-semibold text-[#173326] shadow-[0_8px_24px_rgba(23,51,38,0.05)] transition hover:-translate-y-0.5 hover:bg-[#FBF8EF]"
                 >
                   Cancel
                 </button>
               </div>
             </form>
-            <div className="pointer-events-none absolute -right-16 -top-16 h-32 w-32 rounded-full bg-slate-900/5 blur-2xl transition group-hover:bg-slate-900/10" />
+            <div className="pointer-events-none absolute -right-16 -top-16 h-32 w-32 rounded-full bg-[#0F5B35]/5 blur-2xl transition group-hover:bg-[#0F5B35]/10" />
           </div>
         )}
 
         {loading ? (
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div key={i} className="rounded-2xl border border-slate-200 bg-[#F6F2E8] p-6 shadow-sm">
                 <div className="flex items-start gap-4">
                   <div className="h-10 w-10 animate-pulse rounded-xl bg-slate-200" />
                   <div className="flex-1 space-y-3">
@@ -287,7 +293,7 @@ export default function SecurityVisitorsPage() {
             {visitors.map((visitor) => (
               <div
                 key={visitor.id}
-                className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white/70 p-6 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md"
+                className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-[#F6F2E8] p-6 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md"
               >
                 <div className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${getStatusColor(visitor.status)}`} />
                 <div className="flex items-start gap-4">

@@ -6,27 +6,29 @@ import { apiClient } from '@/utils/api';
 import { API_ENDPOINTS } from '@/utils/constants';
 
 interface Event {
-  id: number;
+  id: string;
   title: string;
-  description: string;
-  date: string;
-  time: string;
-  location: string;
-  type: 'social' | 'meeting' | 'sports' | 'educational';
-  attendees: number;
-  maxAttendees?: number;
-  isRegistered: boolean;
+  description: string | null;
+  location: string | null;
+  event_date: string;
+  building_id: string | null;
+  created_by: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 interface ForumPost {
-  id: number;
+  id: string;
   title: string;
   content: string;
-  author: string;
-  date: string;
-  category: 'general' | 'complaints' | 'suggestions' | 'marketplace';
-  replies: number;
-  lastActivity: string;
+  category: 'general' | 'maintenance' | 'safety' | 'events' | 'complaints' | 'suggestions';
+  author_id: string;
+  is_pinned: boolean;
+  upvotes: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export default function CommunityPage() {
@@ -55,21 +57,6 @@ export default function CommunityPage() {
     loadData();
   }, []);
 
-  const getEventTypeColor = (type: string) => {
-    switch (type) {
-      case 'social':
-        return 'from-purple-500 to-pink-500';
-      case 'meeting':
-        return 'from-blue-600 to-indigo-600';
-      case 'sports':
-        return 'from-emerald-500 to-teal-500';
-      case 'educational':
-        return 'from-amber-500 to-orange-500';
-      default:
-        return 'from-slate-500 to-slate-600';
-    }
-  };
-
   const getCategoryColor = (category: string) => {
     switch (category) {
       case 'general':
@@ -83,21 +70,6 @@ export default function CommunityPage() {
       default:
         return 'from-slate-500 to-slate-600';
     }
-  };
-
-  const toggleEventRegistration = (eventId: number) => {
-    const submitRegistration = async () => {
-      try {
-        const updatedEvent = await apiClient.post(`${API_ENDPOINTS.resident.events}/${eventId}/register`, {});
-        setEvents(events.map(event => 
-          event.id === eventId ? updatedEvent : event
-        ));
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to update registration');
-      }
-    };
-
-    submitRegistration();
   };
 
   return (
@@ -172,45 +144,26 @@ export default function CommunityPage() {
                 key={event.id}
                 className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white/70 p-6 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md"
               >
-                <div className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${getEventTypeColor(event.type || 'general')}`} />
-                <div className="flex items-start justify-between">
+                <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-emerald-500 to-teal-500" />
+                <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-3">
                       <h3 className="text-lg font-semibold text-slate-900">{event.title}</h3>
                       <span
                         className={`rounded-full px-2 py-1 text-xs font-medium border bg-white/80 backdrop-blur`}
                       >
-                        {event.type?.toUpperCase() || 'GENERAL'}
+                        EVENT
                       </span>
                     </div>
-                    <p className="mt-2 text-slate-600">{event.description}</p>
-                    <div className="mt-4 grid grid-cols-2 gap-4 text-sm text-slate-600">
+                    <p className="mt-2 text-slate-600">{event.description || 'No description provided.'}</p>
+                    <div className="mt-4 grid grid-cols-1 gap-4 text-sm text-slate-600 sm:grid-cols-2">
                       <div>
-                        <span className="font-medium">Date:</span> {new Date(event.date).toLocaleDateString()}
-                      </div>
-                      <div>
-                        <span className="font-medium">Time:</span> {event.time}
+                        <span className="font-medium">Event Date:</span> {new Date(event.event_date).toLocaleDateString()}
                       </div>
                       <div>
                         <span className="font-medium">Location:</span> {event.location}
                       </div>
-                      <div>
-                        <span className="font-medium">Attendees:</span> {event.attendees}
-                        {event.maxAttendees && ` / ${event.maxAttendees}`}
-                      </div>
                     </div>
-                  </div>
-                  <div className="ml-4">
-                    <button
-                      onClick={() => toggleEventRegistration(event.id)}
-                      className={`rounded-full px-4 py-2 text-sm font-semibold transition-all hover:-translate-y-0.5 ${
-                        event.isRegistered
-                          ? 'bg-slate-200 text-slate-700 hover:bg-slate-300'
-                          : 'bg-slate-900 text-white hover:bg-slate-800'
-                      }`}
-                    >
-                      {event.isRegistered ? 'Registered' : 'Register'}
-                    </button>
                   </div>
                 </div>
                 <div className="pointer-events-none absolute -right-16 -top-16 h-32 w-32 rounded-full bg-slate-900/5 blur-2xl transition group-hover:bg-slate-900/10" />
@@ -257,13 +210,13 @@ export default function CommunityPage() {
                     </div>
                     <p className="mt-2 text-slate-600">{post.content}</p>
                     <div className="mt-4 flex items-center gap-4 text-sm text-slate-500">
-                      <span>By {post.author}</span>
+                      <span>By {post.author_id}</span>
                       <span>•</span>
-                      <span>{new Date(post.date).toLocaleDateString()}</span>
+                      <span>{new Date(post.created_at).toLocaleDateString()}</span>
                       <span>•</span>
-                      <span>{post.replies} replies</span>
+                      <span>{post.upvotes} upvotes</span>
                       <span>•</span>
-                      <span>Last activity: {post.lastActivity}</span>
+                      <span>{post.category}</span>
                     </div>
                   </div>
                 </div>

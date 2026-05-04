@@ -1,8 +1,14 @@
 'use client';
 
+import { Cormorant_Garamond } from 'next/font/google';
 import { useEffect, useState } from 'react';
 
 import { apiClient, getApiErrorMessage } from '@/utils/api';
+
+const cormorant = Cormorant_Garamond({
+  subsets: ['latin'],
+  weight: ['500', '600', '700'],
+});
 
 interface AccessPoint {
   id: number;
@@ -116,37 +122,37 @@ export default function SecurityAccessControlPage() {
   };
 
   return (
-    <main>
+    <main className="space-y-8">
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Access Control</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.42em] text-[#76806F]">Access Control</p>
           <div className="flex flex-wrap items-end justify-between gap-3">
-            <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Access Management</h1>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 ring-1 ring-slate-200">
-              <span className="h-2 w-2 rounded-full bg-emerald-500" />
+            <h1 className={`${cormorant.className} text-4xl font-semibold tracking-tight text-[#173326] lg:text-[4.5rem]`}>Access Management</h1>
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#D9D1BC] bg-[#FBF8EF] px-3 py-1.5 text-sm font-semibold text-[#173326] shadow-[0_8px_24px_rgba(23,51,38,0.04)]">
+              <span className="h-2 w-2 rounded-full bg-[#0F5B35]" />
               System Online
             </div>
           </div>
-          <p className="max-w-2xl text-slate-600">
+          <p className="max-w-2xl text-[15px] text-[#637062]">
             Monitor and control building access points, manage entry permissions, and review access logs.
           </p>
         </div>
 
         {error && (
-          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
+          <div className="rounded-3xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
             {error}
           </div>
         )}
 
         {/* Tab Navigation */}
-        <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white/70 p-2 shadow-sm backdrop-blur">
+        <div className="group relative overflow-hidden rounded-[28px] border border-[#E4DDCB] bg-[#FBF8EF] p-2 shadow-[0_10px_30px_rgba(23,51,38,0.06)] backdrop-blur">
           <div className="flex gap-2">
             <button
               onClick={() => setActiveTab('points')}
               className={`flex-1 rounded-xl px-4 py-2 text-sm font-medium transition-all ${
                 activeTab === 'points'
-                  ? 'bg-slate-900 text-white'
-                  : 'text-slate-600 hover:bg-slate-100'
+                  ? 'bg-[#0F5B35] text-[#F7F4E8]'
+                  : 'text-[#637062] hover:bg-[#F4F0E4]'
               }`}
             >
               Access Points
@@ -155,20 +161,20 @@ export default function SecurityAccessControlPage() {
               onClick={() => setActiveTab('logs')}
               className={`flex-1 rounded-xl px-4 py-2 text-sm font-medium transition-all ${
                 activeTab === 'logs'
-                  ? 'bg-slate-900 text-white'
-                  : 'text-slate-600 hover:bg-slate-100'
+                  ? 'bg-[#0F5B35] text-[#F7F4E8]'
+                  : 'text-[#637062] hover:bg-[#F4F0E4]'
               }`}
             >
               Access Logs
             </button>
           </div>
-          <div className="pointer-events-none absolute -right-16 -top-16 h-32 w-32 rounded-full bg-slate-900/5 blur-2xl transition group-hover:bg-slate-900/10" />
+          <div className="pointer-events-none absolute -right-16 -top-16 h-32 w-32 rounded-full bg-[#0F5B35]/5 blur-2xl transition group-hover:bg-[#0F5B35]/10" />
         </div>
 
         {loading ? (
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div key={i} className="rounded-[28px] border border-[#E4DDCB] bg-[#FBF8EF] p-6 shadow-[0_10px_30px_rgba(23,51,38,0.06)]">
                 <div className="flex items-start gap-4">
                   <div className="h-10 w-10 animate-pulse rounded-xl bg-slate-200" />
                   <div className="flex-1 space-y-3">
@@ -185,36 +191,36 @@ export default function SecurityAccessControlPage() {
             {accessPoints.map((point) => (
               <div
                 key={point.id}
-                className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white/70 p-6 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md"
+                className="group relative overflow-hidden rounded-[28px] border border-[#E4DDCB] bg-[#FBF8EF] p-6 shadow-[0_10px_30px_rgba(23,51,38,0.06)] backdrop-blur transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(23,51,38,0.08)]"
               >
                 <div className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${getStatusColor(point.status)}`} />
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-3">
-                      <h3 className="text-lg font-semibold text-slate-900">{point.name}</h3>
+                      <h3 className="text-lg font-semibold text-[#173326]">{point.name}</h3>
                       <span
-                        className={`rounded-full px-2 py-1 text-xs font-medium border bg-white/80 backdrop-blur`}
+                        className={`rounded-full border border-[#D9D1BC] bg-white/80 px-2 py-1 text-xs font-medium text-[#173326] backdrop-blur`}
                       >
                         {point.type?.toUpperCase() || 'GATE'}
                       </span>
                       <span
-                        className={`rounded-full px-2 py-1 text-xs font-medium border bg-white/80 backdrop-blur`}
+                        className={`rounded-full border border-[#D9D1BC] bg-white/80 px-2 py-1 text-xs font-medium text-[#173326] backdrop-blur`}
                       >
                         {point.status?.replace('_', ' ').toUpperCase() || 'ACTIVE'}
                       </span>
                     </div>
                     <div className="mt-2 space-y-1">
-                      <p className="text-slate-600">
+                      <p className="text-[#637062]">
                         <span className="font-medium">Location:</span> {point.location}
                       </p>
-                      <p className="text-slate-600">
+                      <p className="text-[#637062]">
                         <span className="font-medium">Last Access:</span> {new Date(point.lastAccess).toLocaleString()}
                       </p>
-                      <p className="text-slate-600">
+                      <p className="text-[#637062]">
                         <span className="font-medium">Access Count Today:</span> {point.accessCount}
                       </p>
                       {point.restrictions.length > 0 && (
-                        <p className="text-slate-600">
+                          <p className="text-[#637062]">
                           <span className="font-medium">Restrictions:</span> {point.restrictions.join(', ')}
                         </p>
                       )}
@@ -223,10 +229,10 @@ export default function SecurityAccessControlPage() {
                   <div className="flex flex-col gap-2">
                     <button
                       onClick={() => toggleAccessPoint(point.id)}
-                      className={`rounded-full px-4 py-2 text-sm font-semibold transition-all hover:-translate-y-0.5 ${
+                      className={`rounded-full px-5 py-3 text-sm font-semibold transition-all hover:-translate-y-0.5 ${
                         point.status === 'active'
-                          ? 'bg-rose-600 text-white hover:bg-rose-700'
-                          : 'bg-emerald-600 text-white hover:bg-emerald-700'
+                          ? 'bg-[#D14C4C] text-[#F7F4E8] hover:bg-[#B93F3F]'
+                          : 'bg-[#0F5B35] text-[#F7F4E4] hover:bg-[#0B4B2C]'
                       }`}
                     >
                       {point.status === 'active' ? 'Disable' : 'Enable'}

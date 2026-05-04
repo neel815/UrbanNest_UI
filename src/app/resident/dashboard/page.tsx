@@ -30,9 +30,12 @@ type Announcement = {
   id: string;
   title: string;
   content: string;
-  date: string;
   priority: 'low' | 'medium' | 'high';
-  author: string;
+  building_id: string | null;
+  author_user_id: string | null;
+  published_at: string;
+  created_at: string;
+  updated_at: string;
 };
 
 type MaintenanceRequest = {
@@ -47,15 +50,19 @@ type MaintenanceRequest = {
 };
 
 type Visitor = {
-  id: number;
-  name: string;
-  purpose: string;
-  date: string;
-  timeIn: string;
-  timeOut?: string | null;
-  status: 'expected' | 'checked_in' | 'checked_out';
-  contactNumber: string;
-  vehicleNumber?: string | null;
+  id: string;
+  visitor_name: string;
+  visitor_phone: string | null;
+  purpose: string | null;
+  expected_date: string;
+  check_in_time: string | null;
+  check_out_time: string | null;
+  status: 'pending' | 'approved' | 'checked_in' | 'checked_out' | 'denied';
+  vehicle_number: string | null;
+  resident_id: string;
+  approved_by: string | null;
+  created_at: string;
+  updated_at: string;
 };
 
 type Payment = {
@@ -70,16 +77,16 @@ type Payment = {
 };
 
 type Event = {
-  id: number;
+  id: string;
   title: string;
-  description: string;
-  date: string;
-  time: string;
-  location: string;
-  type: string;
-  attendees: number;
-  maxAttendees?: number | null;
-  isRegistered: boolean;
+  description: string | null;
+  location: string | null;
+  event_date: string;
+  building_id: string | null;
+  created_by: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
 };
 
 type TodayItem = {
@@ -198,8 +205,8 @@ export default function ResidentDashboardPage() {
 
   const todayItems: TodayItem[] = [
     ...visitors.slice(0, 2).map((visitor) => ({
-      time: visitor.timeIn || formatDateLabel(visitor.date),
-      title: visitor.purpose ? `${visitor.name} · ${visitor.purpose}` : visitor.name,
+      time: visitor.check_in_time || formatDateLabel(visitor.expected_date),
+      title: visitor.purpose ? `${visitor.visitor_name} · ${visitor.purpose}` : visitor.visitor_name,
       level: visitor.status === 'checked_in' ? ('success' as const) : ('info' as const),
     })),
     ...maintenance.slice(0, 1).map((request) => ({
@@ -208,7 +215,7 @@ export default function ResidentDashboardPage() {
       level: request.status === 'completed' ? ('success' as const) : ('warning' as const),
     })),
     ...announcements.slice(0, 1).map((announcement) => ({
-      time: formatDateLabel(announcement.date),
+      time: formatDateLabel(announcement.published_at),
       title: announcement.title,
       level: 'info' as const,
     })),
@@ -227,8 +234,11 @@ export default function ResidentDashboardPage() {
   const currentDateLabel = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
   const welcomeMetaLine = [currentTime, locationLine, currentDateLabel].filter(Boolean).join(' · ');
   const hasUpcomingEvent = Boolean(upcomingEvent);
-  const eventDay = upcomingEvent?.date ? new Date(upcomingEvent.date).toLocaleDateString('en-US', { weekday: 'long' }) : '';
-  const eventTime = upcomingEvent?.time || '';
+  const eventDateLabel = upcomingEvent?.event_date ? new Date(upcomingEvent.event_date).toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  }) : '';
   const heroTitle = upcomingEvent?.title || '';
   const heroDescription = upcomingEvent?.description || '';
   const duesAmount = duePayment ? duePayment.amount : stats?.total_due ?? 0;
@@ -246,41 +256,33 @@ export default function ResidentDashboardPage() {
 
       {error && <div className="rounded-3xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">{error}</div>}
 
-      <section className="rounded-[32px] bg-[linear-gradient(145deg,#0F5B35,#0A3B24_60%,#062A1A)] px-6 py-6 shadow-[0_18px_50px_rgba(15,91,53,0.22)] lg:px-8 lg:py-7">
-        <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
-          <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#DCE8D8]">
-              <span className="h-2 w-2 rounded-full bg-[#E3A84D]" />
-              {hasUpcomingEvent ? 'This week' : 'Today'}
+      {hasUpcomingEvent && (
+        <section className="rounded-[32px] bg-[linear-gradient(145deg,#0F5B35,#0A3B24_60%,#062A1A)] px-6 py-6 shadow-[0_18px_50px_rgba(15,91,53,0.22)] lg:px-8 lg:py-7">
+          <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
+            <div className="max-w-3xl">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#DCE8D8]">
+                <span className="h-2 w-2 rounded-full bg-[#E3A84D]" />
+                Upcoming event
+              </div>
+              <h2 className={`${cormorant.className} mt-5 text-3xl font-semibold leading-[1.05] tracking-tight text-[#F7F4E8] lg:text-[3.6rem]`}>
+                {heroTitle}
+              </h2>
+              <p className="mt-3 max-w-2xl text-[15px] leading-7 text-[#DDE9DF]">
+                {eventDateLabel}{heroDescription ? ` · ${heroDescription}` : ''}
+                {upcomingEvent?.location ? ` · ${upcomingEvent.location}` : ''}
+              </p>
             </div>
-            {hasUpcomingEvent ? (
-              <>
-                <h2 className={`${cormorant.className} mt-5 text-3xl font-semibold leading-[1.05] tracking-tight text-[#F7F4E8] lg:text-[3.6rem]`}>
-                  {heroTitle}, <span className="italic text-[#F0E9D8]">{eventDay} {eventTime}.</span>
-                </h2>
-                <p className="mt-3 max-w-2xl text-[15px] leading-7 text-[#DDE9DF]">{heroDescription}</p>
-              </>
-            ) : (
-              <>
-                <h2 className={`${cormorant.className} mt-5 text-3xl font-semibold leading-[1.05] tracking-tight text-[#F7F4E8] lg:text-[3.6rem]`}>
-                  No events Today Have a Good Day!
-                </h2>
-                <p className="mt-3 max-w-2xl text-[15px] leading-7 text-[#DDE9DF]">
-                  Check announcements, dues, and visitor updates for the latest activity.
-                </p>
-              </>
-            )}
-          </div>
 
-          <Link
-            href="/resident/community"
-            className="inline-flex items-center justify-center gap-3 rounded-full bg-white/10 px-5 py-3 text-sm font-semibold text-[#F7F4E8] ring-1 ring-white/10 transition hover:bg-white/16"
-          >
-            RSVP
-            <span aria-hidden="true">→</span>
-          </Link>
-        </div>
-      </section>
+            <Link
+              href="/resident/community"
+              className="inline-flex items-center justify-center gap-3 rounded-full bg-white/10 px-5 py-3 text-sm font-semibold text-[#F7F4E8] ring-1 ring-white/10 transition hover:bg-white/16"
+            >
+              View community
+              <span aria-hidden="true">→</span>
+            </Link>
+          </div>
+        </section>
+      )}
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[

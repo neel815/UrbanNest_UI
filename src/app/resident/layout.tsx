@@ -10,7 +10,7 @@ import { useAuthGuard } from '@/hooks/useAuthGuard';
 type NavItem = {
   href: string;
   label: string;
-  icon: 'dashboard' | 'visitors' | 'complaints' | 'announcements' | 'dues' | 'profile';
+  icon: 'dashboard' | 'visitors' | 'Maintenance' | 'announcements' | 'dues' | 'profile';
 };
 
 function SidebarIcon({ name, active }: { name: NavItem['icon']; active?: boolean }) {
@@ -34,7 +34,7 @@ function SidebarIcon({ name, active }: { name: NavItem['icon']; active?: boolean
           <path d="M13.5 18v-1c0-1.9 1.5-3.4 3.4-3.4h.2c1.9 0 3.4 1.5 3.4 3.4v1" stroke={stroke} strokeWidth="1.9" strokeLinecap="round" />
         </svg>
       );
-    case 'complaints':
+    case 'maintenance':
       return (
         <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
           <path d="M12 3l7 3v5.5c0 4.3-3 8.2-7 9.5-4-1.3-7-5.2-7-9.5V6l7-3Z" stroke={stroke} strokeWidth="1.9" strokeLinejoin="round" />
@@ -85,7 +85,7 @@ export default function ResidentLayout({ children }: { children: React.ReactNode
     () => [
       { href: '/resident/dashboard', label: 'Home', icon: 'dashboard' },
       { href: '/resident/visitors', label: 'Visitors', icon: 'visitors' },
-      { href: '/resident/maintenance', label: 'Complaints', icon: 'complaints' },
+      { href: '/resident/maintenance', label: 'Maintenance', icon: 'maintenance' },
       { href: '/resident/announcements', label: 'Announcements', icon: 'announcements' },
       { href: '/resident/payments', label: 'Dues', icon: 'dues' },
       { href: '/resident/community', label: 'Profile', icon: 'profile' },

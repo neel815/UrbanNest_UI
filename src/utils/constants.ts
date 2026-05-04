@@ -25,6 +25,10 @@ export const API_ENDPOINTS = {
     inviteResident: '/api/admin/residents/invite',
     security: '/api/admin/security',
     inviteSecurity: '/api/admin/security/invite',
+    announcements: '/api/admin/announcements',
+    deleteAnnouncement: (id: string) => `/api/admin/announcements/${id}`,
+    events: '/api/admin/events',
+    deleteEvent: (id: string) => `/api/admin/events/${id}`,
   },
   resident: {
     profile: '/api/resident/profile',
@@ -35,5 +39,8 @@ export const API_ENDPOINTS = {
     payments: '/api/resident/payments',
     events: '/api/resident/events',
     forumPosts: '/api/resident/forum-posts',
+  },
+  security: {
+    announcements: '/api/security/announcements',
   },
 };

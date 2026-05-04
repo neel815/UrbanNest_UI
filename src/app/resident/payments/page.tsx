@@ -1,9 +1,15 @@
 'use client';
 
+import { Cormorant_Garamond } from 'next/font/google';
 import { useEffect, useState } from 'react';
 
 import { apiClient, getApiErrorMessage } from '@/utils/api';
 import { API_ENDPOINTS } from '@/utils/constants';
+
+const cormorant = Cormorant_Garamond({
+  subsets: ['latin'],
+  weight: ['500', '600', '700'],
+});
 
 interface Payment {
   id: number;
@@ -107,47 +113,48 @@ export default function PaymentsPage() {
       title: 'Total Due',
       subtitle: 'All outstanding',
       value: `$${totals.total.toFixed(2)}`,
-      accent: 'from-violet-600 to-fuchsia-600',
+      accent: 'from-emerald-600 to-teal-600',
       icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z',
     },
   ];
 
   return (
-    <main>
-      <div className="flex flex-col gap-6">
-        <div className="flex flex-col gap-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Financial</p>
-          <div className="flex flex-wrap items-end justify-between gap-3">
-            <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Payments & Dues</h1>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 ring-1 ring-slate-200">
-              <span className="h-2 w-2 rounded-full bg-emerald-500" />
-              {payments.length} total
-            </div>
+    <main className="space-y-8">
+      <section className="space-y-3">
+        <p className="text-xs font-semibold uppercase tracking-[0.42em] text-[#76806F]">Financial</p>
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <h1 className={`${cormorant.className} text-4xl font-semibold tracking-tight text-[#173326] lg:text-[4.5rem]`}>
+            Payments & Dues
+          </h1>
+          <div className="inline-flex items-center gap-2 rounded-full border border-[#D8D0BC] bg-[#FBF8EF] px-3 py-1.5 text-sm font-semibold text-[#173326] shadow-[0_8px_24px_rgba(23,51,38,0.04)]">
+            <span className="h-2 w-2 rounded-full bg-[#0F5B35]" />
+            {payments.length} total
           </div>
-          <p className="max-w-2xl text-slate-600">
-            Manage your payments, view outstanding dues, and track payment history.
-          </p>
         </div>
+        <p className="max-w-2xl text-[15px] text-[#637062]">
+          Manage your payments, view outstanding dues, and track payment history.
+        </p>
+      </section>
 
         {error && (
-          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
+          <div className="rounded-3xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
             {error}
           </div>
         )}
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {cards.map((card) => (
             <div
               key={card.title}
-              className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white/70 p-5 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md"
+              className="group relative overflow-hidden rounded-[28px] border border-[#D8D0BC] bg-[#F6F2E8] p-5 shadow-[0_8px_24px_rgba(23,51,38,0.04)] backdrop-blur transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(23,51,38,0.08)]"
             >
               <div className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${card.accent}`} />
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-sm font-semibold text-slate-900">{card.title}</p>
-                  <p className="text-xs text-slate-500">{card.subtitle}</p>
+                  <p className="text-sm font-semibold text-[#173326]">{card.title}</p>
+                  <p className="text-xs text-[#7A7F70]">{card.subtitle}</p>
                 </div>
-                <div className="grid h-10 w-10 place-items-center rounded-xl bg-slate-900 text-white shadow-sm">
+                <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#0F5B35] text-white shadow-[0_10px_26px_rgba(15,91,53,0.16)]">
                   <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
                     <path
                       d={card.icon}
@@ -161,13 +168,13 @@ export default function PaymentsPage() {
               </div>
 
               <div className="mt-5 flex items-end justify-between">
-                <p className="text-4xl font-semibold tracking-tight text-slate-900">
-                  {loading ? <span className="inline-block h-10 w-16 animate-pulse rounded bg-slate-200" /> : card.value}
+                <p className="text-4xl font-semibold tracking-tight text-[#173326]">
+                  {loading ? <span className="inline-block h-10 w-16 animate-pulse rounded bg-[#E6E0CF]" /> : card.value}
                 </p>
-                <p className="text-xs font-semibold text-slate-500">UrbanNest</p>
+                <p className="text-xs font-semibold text-[#7A7F70]">UrbanNest</p>
               </div>
 
-              <div className="pointer-events-none absolute -right-16 -top-16 h-32 w-32 rounded-full bg-slate-900/5 blur-2xl transition group-hover:bg-slate-900/10" />
+              <div className="pointer-events-none absolute -right-16 -top-16 h-32 w-32 rounded-full bg-[#0F5B35]/5 blur-2xl transition group-hover:bg-[#0F5B35]/10" />
             </div>
           ))}
         </div>
@@ -175,13 +182,13 @@ export default function PaymentsPage() {
         {loading ? (
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div key={i} className="rounded-[28px] border border-[#D8D0BC] bg-[#F6F2E8] p-6 shadow-[0_8px_24px_rgba(23,51,38,0.04)]">
                 <div className="flex items-start gap-4">
-                  <div className="h-10 w-10 animate-pulse rounded-xl bg-slate-200" />
+                  <div className="h-10 w-10 animate-pulse rounded-xl bg-[#E6E0CF]" />
                   <div className="flex-1 space-y-3">
-                    <div className="h-6 w-3/4 animate-pulse rounded bg-slate-200" />
-                    <div className="h-4 w-full animate-pulse rounded bg-slate-200" />
-                    <div className="h-4 w-2/3 animate-pulse rounded bg-slate-200" />
+                    <div className="h-6 w-3/4 animate-pulse rounded bg-[#E6E0CF]" />
+                    <div className="h-4 w-full animate-pulse rounded bg-[#E6E0CF]" />
+                    <div className="h-4 w-2/3 animate-pulse rounded bg-[#E6E0CF]" />
                   </div>
                 </div>
               </div>
@@ -192,7 +199,7 @@ export default function PaymentsPage() {
             {payments.map((payment) => (
               <div
                 key={payment.id}
-                className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white/70 p-6 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md"
+                className="group relative overflow-hidden rounded-[28px] border border-[#D8D0BC] bg-[#F6F2E8] p-6 shadow-[0_8px_24px_rgba(23,51,38,0.04)] backdrop-blur transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(23,51,38,0.08)]"
               >
                 <div className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${getStatusColor(payment.status || 'pending')}`} />
                 <div className="flex items-start gap-4">
@@ -210,14 +217,14 @@ export default function PaymentsPage() {
                   <div className="flex-1">
                     <div className="flex items-start justify-between gap-4">
                       <div>
-                        <h3 className="text-lg font-semibold text-slate-900">{payment.description}</h3>
+                        <h3 className="text-lg font-semibold text-[#173326]">{payment.description}</h3>
                         <div className="flex items-center gap-2 mt-1">
                           <span
-                            className={`rounded-full px-2 py-1 text-xs font-medium border bg-white/80 backdrop-blur`}
+                            className={`rounded-full border border-[#D8D0BC] px-2 py-1 text-xs font-medium bg-white/70 text-[#173326] backdrop-blur`}
                           >
                             {payment.status?.toUpperCase() || 'PENDING'}
                           </span>
-                          <span className="text-sm text-slate-500 capitalize">
+                          <span className="text-sm capitalize text-[#7A7F70]">
                             {payment.type}
                           </span>
                         </div>
@@ -225,19 +232,19 @@ export default function PaymentsPage() {
                     </div>
                     <div className="mt-4 flex items-center justify-between">
                       <div className="space-y-1">
-                        <p className="text-sm text-slate-600">
+                        <p className="text-sm text-[#637062]">
                           <span className="font-medium">Amount:</span> ${payment.amount.toFixed(2)}
                         </p>
-                        <p className="text-sm text-slate-600">
+                        <p className="text-sm text-[#637062]">
                           <span className="font-medium">Due Date:</span> {new Date(payment.dueDate).toLocaleDateString()}
                         </p>
                         {payment.paidDate && (
-                          <p className="text-sm text-slate-600">
+                          <p className="text-sm text-[#637062]">
                             <span className="font-medium">Paid Date:</span> {new Date(payment.paidDate).toLocaleDateString()}
                           </p>
                         )}
                         {payment.paymentMethod && (
-                          <p className="text-sm text-slate-600">
+                          <p className="text-sm text-[#637062]">
                             <span className="font-medium">Payment Method:</span> {payment.paymentMethod}
                           </p>
                         )}
@@ -245,7 +252,7 @@ export default function PaymentsPage() {
                       {payment.status !== 'paid' && (
                         <button
                           onClick={() => markAsPaid(payment.id)}
-                          className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 transition"
+                          className="rounded-full bg-[#0F5B35] px-4 py-2 text-sm font-semibold text-white shadow-[0_10px_26px_rgba(15,91,53,0.16)] transition hover:-translate-y-0.5 hover:bg-[#0B4B2C]"
                         >
                           Pay Now
                         </button>
@@ -253,14 +260,14 @@ export default function PaymentsPage() {
                     </div>
                   </div>
                 </div>
-                <div className="pointer-events-none absolute -right-16 -top-16 h-32 w-32 rounded-full bg-slate-900/5 blur-2xl transition group-hover:bg-slate-900/10" />
+                <div className="pointer-events-none absolute -right-16 -top-16 h-32 w-32 rounded-full bg-[#0F5B35]/5 blur-2xl transition group-hover:bg-[#0F5B35]/10" />
               </div>
             ))}
           </div>
         ) : (
-          <div className="rounded-2xl border border-slate-200 bg-white/70 p-12 text-center shadow-sm backdrop-blur">
-            <div className="grid h-16 w-16 place-items-center rounded-2xl bg-slate-100 mx-auto mb-4">
-              <svg viewBox="0 0 24 24" className="h-8 w-8 text-slate-400" fill="none" aria-hidden="true">
+          <div className="rounded-[28px] border border-[#D8D0BC] bg-[#F6F2E8] p-12 text-center shadow-[0_8px_24px_rgba(23,51,38,0.04)] backdrop-blur">
+            <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-2xl bg-[#EAF1E8]">
+              <svg viewBox="0 0 24 24" className="h-8 w-8 text-[#9AA092]" fill="none" aria-hidden="true">
                 <path
                   d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
                   stroke="currentColor"
@@ -270,33 +277,32 @@ export default function PaymentsPage() {
                 />
               </svg>
             </div>
-            <p className="text-slate-600 font-medium">No payments or dues at this time</p>
-            <p className="mt-2 text-sm text-slate-500">All your payments are up to date.</p>
+            <p className="font-medium text-[#637062]">No payments or dues at this time</p>
+            <p className="mt-2 text-sm text-[#7A7F70]">All your payments are up to date.</p>
           </div>
         )}
 
         {/* Payment History Section */}
         {payments.filter(p => p.status === 'paid').length > 0 && (
-          <div className="rounded-2xl border border-slate-200 bg-white/70 p-6 shadow-sm backdrop-blur">
-            <h2 className="text-lg font-semibold text-slate-900 mb-4">Payment History</h2>
+          <div className="rounded-[28px] border border-[#D8D0BC] bg-[#F6F2E8] p-6 shadow-[0_8px_24px_rgba(23,51,38,0.04)] backdrop-blur">
+            <h2 className="mb-4 text-lg font-semibold text-[#173326]">Payment History</h2>
             <div className="space-y-3">
               {payments
                 .filter(p => p.status === 'paid')
                 .map((payment) => (
-                  <div key={payment.id} className="flex items-center justify-between py-3 border-b border-slate-100 last:border-0">
+                  <div key={payment.id} className="flex items-center justify-between border-b border-[#E6E0CF] py-3 last:border-0">
                     <div>
-                      <p className="text-sm font-medium text-slate-900">{payment.description}</p>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-sm font-medium text-[#173326]">{payment.description}</p>
+                      <p className="text-xs text-[#7A7F70]">
                         Paid on {new Date(payment.paidDate!).toLocaleDateString()} via {payment.paymentMethod}
                       </p>
                     </div>
-                    <p className="text-sm font-semibold text-slate-900">${payment.amount.toFixed(2)}</p>
+                    <p className="text-sm font-semibold text-[#173326]">${payment.amount.toFixed(2)}</p>
                   </div>
                 ))}
             </div>
           </div>
         )}
-      </div>
     </main>
   );
 }

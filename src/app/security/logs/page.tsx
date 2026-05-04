@@ -1,8 +1,14 @@
 'use client';
 
+import { Cormorant_Garamond } from 'next/font/google';
 import { useEffect, useState } from 'react';
 
 import { apiClient } from '@/utils/api';
+
+const cormorant = Cormorant_Garamond({
+  subsets: ['latin'],
+  weight: ['500', '600', '700'],
+});
 
 interface SecurityLog {
   id: number;
@@ -142,37 +148,37 @@ export default function SecurityLogsPage() {
   });
 
   return (
-    <main>
+    <main className="space-y-8">
       <div className="flex flex-col gap-6">
-        <div className="flex flex-col gap-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Security Logs</p>
+        <div className="flex flex-col gap-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.42em] text-[#76806F]">Security Logs</p>
           <div className="flex flex-wrap items-end justify-between gap-3">
-            <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Logs & Reports</h1>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 ring-1 ring-slate-200">
-              <span className="h-2 w-2 rounded-full bg-emerald-500" />
+            <h1 className={`${cormorant.className} text-4xl font-semibold leading-none tracking-tight text-[#173326] lg:text-[4.5rem] lg:leading-[0.9]`}>Logs & Reports</h1>
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#D9D1BC] bg-[#FBF8EF] px-3 py-1.5 text-sm font-semibold text-[#173326] shadow-[0_8px_24px_rgba(23,51,38,0.04)]">
+              <span className="h-2 w-2 rounded-full bg-[#0F5B35]" />
               System Active
             </div>
           </div>
-          <p className="max-w-2xl text-slate-600">
+          <p className="max-w-2xl text-[15px] leading-7 text-[#637062]">
             Review security logs, monitor system events, and generate comprehensive reports for analysis.
           </p>
         </div>
 
         {error && (
-          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
+          <div className="rounded-3xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
             {error}
           </div>
         )}
 
         {/* Tab Navigation */}
-        <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white/70 p-2 shadow-sm backdrop-blur">
+        <div className="group relative overflow-hidden rounded-[28px] border border-[#E4DDCB] bg-[#FBF8EF] p-2 shadow-[0_10px_30px_rgba(23,51,38,0.06)] backdrop-blur">
           <div className="flex gap-2">
             <button
               onClick={() => setActiveTab('logs')}
               className={`flex-1 rounded-xl px-4 py-2 text-sm font-medium transition-all ${
                 activeTab === 'logs'
-                  ? 'bg-slate-900 text-white'
-                  : 'text-slate-600 hover:bg-slate-100'
+                  ? 'bg-[#0F5B35] text-[#F7F4E8]'
+                  : 'text-[#637062] hover:bg-[#F4F0E4]'
               }`}
             >
               Security Logs
@@ -181,27 +187,27 @@ export default function SecurityLogsPage() {
               onClick={() => setActiveTab('reports')}
               className={`flex-1 rounded-xl px-4 py-2 text-sm font-medium transition-all ${
                 activeTab === 'reports'
-                  ? 'bg-slate-900 text-white'
-                  : 'text-slate-600 hover:bg-slate-100'
+                  ? 'bg-[#0F5B35] text-[#F7F4E8]'
+                  : 'text-[#637062] hover:bg-[#F4F0E4]'
               }`}
             >
               Reports
             </button>
           </div>
-          <div className="pointer-events-none absolute -right-16 -top-16 h-32 w-32 rounded-full bg-slate-900/5 blur-2xl transition group-hover:bg-slate-900/10" />
+          <div className="pointer-events-none absolute -right-16 -top-16 h-32 w-32 rounded-full bg-[#0F5B35]/5 blur-2xl transition group-hover:bg-[#0F5B35]/10" />
         </div>
 
         {activeTab === 'logs' && (
           <>
             {/* Filters */}
-            <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white/70 p-4 shadow-sm backdrop-blur">
+            <div className="group relative overflow-hidden rounded-[28px] border border-[#E4DDCB] bg-[#FBF8EF] p-4 shadow-[0_10px_30px_rgba(23,51,38,0.06)] backdrop-blur">
               <div className="flex flex-wrap gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Type</label>
+                  <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.25em] text-[#76806F]">Type</label>
                   <select
                     value={filters.type}
                     onChange={(e) => setFilters({ ...filters, type: e.target.value as any })}
-                    className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500"
+                    className="rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-[#0F5B35]/10"
                   >
                     <option value="all">All Types</option>
                     <option value="access">Access</option>
@@ -213,11 +219,11 @@ export default function SecurityLogsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Severity</label>
+                  <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.25em] text-[#76806F]">Severity</label>
                   <select
                     value={filters.severity}
                     onChange={(e) => setFilters({ ...filters, severity: e.target.value as any })}
-                    className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500"
+                    className="rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-[#0F5B35]/10"
                   >
                     <option value="all">All Severities</option>
                     <option value="info">Info</option>
@@ -227,11 +233,11 @@ export default function SecurityLogsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Date Range</label>
+                  <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.25em] text-[#76806F]">Date Range</label>
                   <select
                     value={filters.dateRange}
                     onChange={(e) => setFilters({ ...filters, dateRange: e.target.value as any })}
-                    className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500"
+                    className="rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-[#0F5B35]/10"
                   >
                     <option value="today">Today</option>
                     <option value="week">This Week</option>
@@ -246,7 +252,7 @@ export default function SecurityLogsPage() {
             {loading ? (
               <div className="space-y-4">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                  <div key={i} className="rounded-[28px] border border-[#E4DDCB] bg-[#FBF8EF] p-6 shadow-[0_10px_30px_rgba(23,51,38,0.06)]">
                     <div className="flex items-start gap-4">
                       <div className="h-10 w-10 animate-pulse rounded-xl bg-slate-200" />
                       <div className="flex-1 space-y-3">
@@ -263,7 +269,7 @@ export default function SecurityLogsPage() {
                 {filteredLogs.map((log) => (
                   <div
                     key={log.id}
-                    className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white/70 p-6 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md"
+                    className="group relative overflow-hidden rounded-[28px] border border-[#E4DDCB] bg-[#FBF8EF] p-6 shadow-[0_10px_30px_rgba(23,51,38,0.06)] backdrop-blur transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(23,51,38,0.08)]"
                   >
                     <div className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${getSeverityColor(log.severity)}`} />
                     <div className="flex items-start gap-4">
@@ -330,7 +336,7 @@ export default function SecurityLogsPage() {
                 ))}
               </div>
             ) : (
-              <div className="rounded-2xl border border-slate-200 bg-white/70 p-12 text-center shadow-sm backdrop-blur">
+              <div className="rounded-2xl border border-slate-200 bg-[#F6F2E8] p-12 text-center shadow-sm backdrop-blur">
                 <div className="grid h-16 w-16 place-items-center rounded-2xl bg-slate-100 mx-auto mb-4">
                   <svg viewBox="0 0 24 24" className="h-8 w-8 text-slate-400" fill="none" aria-hidden="true">
                     <path
@@ -352,8 +358,8 @@ export default function SecurityLogsPage() {
         {activeTab === 'reports' && (
           <div className="space-y-6">
             {/* Generate Report Actions */}
-            <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white/70 p-6 shadow-sm backdrop-blur">
-              <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-violet-600 to-fuchsia-600" />
+              <div className="group relative overflow-hidden rounded-[28px] border border-[#E4DDCB] bg-[#FBF8EF] p-6 shadow-[0_10px_30px_rgba(23,51,38,0.06)] backdrop-blur">
+              <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r" />
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-semibold text-slate-900">Generate Reports</p>
@@ -372,22 +378,13 @@ export default function SecurityLogsPage() {
                 </div>
               </div>
               <div className="mt-6 flex gap-3">
-                <button
-                  onClick={() => generateReport('daily')}
-                  className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 transition hover:-translate-y-0.5"
-                >
+                <button onClick={() => generateReport('daily')} className="rounded-full bg-[#0F5B35] px-5 py-3 text-sm font-semibold text-[#F7F4E8] shadow-[0_12px_28px_rgba(15,91,53,0.18)] transition hover:-translate-y-0.5 hover:bg-[#0B4B2C]">
                   Daily Report
                 </button>
-                <button
-                  onClick={() => generateReport('weekly')}
-                  className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 transition hover:-translate-y-0.5"
-                >
+                <button onClick={() => generateReport('weekly')} className="rounded-full bg-[#0F5B35] px-5 py-3 text-sm font-semibold text-[#F7F4E8] shadow-[0_12px_28px_rgba(15,91,53,0.18)] transition hover:-translate-y-0.5 hover:bg-[#0B4B2C]">
                   Weekly Report
                 </button>
-                <button
-                  onClick={() => generateReport('monthly')}
-                  className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 transition hover:-translate-y-0.5"
-                >
+                <button onClick={() => generateReport('monthly')} className="rounded-full bg-[#0F5B35] px-5 py-3 text-sm font-semibold text-[#F7F4E8] shadow-[0_12px_28px_rgba(15,91,53,0.18)] transition hover:-translate-y-0.5 hover:bg-[#0B4B2C]">
                   Monthly Report
                 </button>
               </div>
@@ -416,7 +413,7 @@ export default function SecurityLogsPage() {
                     key={report.id}
                     className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white/70 p-6 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md"
                   >
-                    <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-violet-600 to-fuchsia-600" />
+                    <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r" />
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-3">
@@ -461,7 +458,7 @@ export default function SecurityLogsPage() {
                         {report.fileUrl && (
                           <button
                             onClick={() => downloadReport(report.id)}
-                            className="rounded-full bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-700 transition"
+                            className="rounded-full bg-[#0F5B35] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#0B4B2C]"
                           >
                             Download
                           </button>

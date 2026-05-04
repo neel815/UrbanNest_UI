@@ -27,7 +27,7 @@ export default function AdminSecurityPage() {
   const roleTitle = 'Security';
   const roleDescription = 'Manage security staff accounts with full CRUD actions from admin login.';
   const endpoint = API_ENDPOINTS.admin?.security || '/api/admin/security';
-  const createMode = 'invite';
+  const createMode = (process.env.NEXT_PUBLIC_ADMIN_CREATE_MODE as 'invite' | 'direct' | undefined) ?? 'invite';
   const inviteEndpoint = API_ENDPOINTS.admin.inviteSecurity;
   const showCreateImageUpload = false;
   const showUnitSelect = false;

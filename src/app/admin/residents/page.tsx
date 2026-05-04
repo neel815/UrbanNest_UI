@@ -27,7 +27,7 @@ export default function AdminResidentsPage() {
   const roleTitle = 'Residents';
   const roleDescription = 'Invite residents with activation links, then manage resident accounts from the admin portal.';
   const endpoint = API_ENDPOINTS.admin?.residents || '/api/admin/residents';
-  const createMode = 'invite';
+  const createMode = (process.env.NEXT_PUBLIC_ADMIN_CREATE_MODE as 'invite' | 'direct' | undefined) ?? 'invite';
   const inviteEndpoint = API_ENDPOINTS.admin.inviteResident;
   const showCreateImageUpload = false;
   const showUnitSelect = true;
