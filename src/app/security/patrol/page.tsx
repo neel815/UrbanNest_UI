@@ -4,6 +4,7 @@ import { Cormorant_Garamond } from 'next/font/google';
 import { useEffect, useState } from 'react';
 
 import { apiClient } from '@/utils/api';
+import { API_ENDPOINTS } from '@/utils/constants';
 
 const cormorant = Cormorant_Garamond({
   subsets: ['latin'],
@@ -11,7 +12,7 @@ const cormorant = Cormorant_Garamond({
 });
 
 interface PatrolRound {
-  id: number;
+  id: string;
   guardName: string;
   startTime: string;
   endTime?: string;
@@ -32,7 +33,7 @@ interface PatrolCheckpoint {
 }
 
 interface PatrolRoute {
-  id: number;
+  id: string;
   name: string;
   description: string;
   estimatedDuration: number;
@@ -48,14 +49,14 @@ export default function SecurityPatrolPage() {
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState<'rounds' | 'routes' | 'schedule'>('rounds');
   const [showStartForm, setShowStartForm] = useState(false);
-  const [selectedRoute, setSelectedRoute] = useState<number | null>(null);
+  const [selectedRoute, setSelectedRoute] = useState<string>('');
 
   useEffect(() => {
     const loadData = async () => {
       try {
         const [roundsData, routesData] = await Promise.all([
-          apiClient.get('/api/security/patrol-rounds'),
-          apiClient.get('/api/security/patrol-routes')
+          apiClient.get(API_ENDPOINTS.security.patrolRounds),
+          apiClient.get(API_ENDPOINTS.security.patrolRoutes)
         ]);
         setPatrolRounds(roundsData);
         setPatrolRoutes(routesData);
@@ -99,13 +100,13 @@ export default function SecurityPatrolPage() {
     }
   };
 
-  const startPatrolRound = (routeId: number) => {
+  const startPatrolRound = (routeId: string) => {
     const submitPatrol = async () => {
       try {
-        const newRound = await apiClient.post('/api/security/patrol-rounds', { routeId });
+        const newRound = await apiClient.post(API_ENDPOINTS.security.patrolRounds, { routeId });
         setPatrolRounds([newRound, ...patrolRounds]);
         setShowStartForm(false);
-        setSelectedRoute(null);
+        setSelectedRoute('');
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to start patrol');
       }
@@ -114,10 +115,10 @@ export default function SecurityPatrolPage() {
     submitPatrol();
   };
 
-  const completePatrolRound = (roundId: number) => {
+  const completePatrolRound = (roundId: string) => {
     const finishPatrol = async () => {
       try {
-        const updatedRound = await apiClient.request(`/api/security/patrol-rounds/${roundId}/complete`, {
+        const updatedRound = await apiClient.request(API_ENDPOINTS.security.completePatrolRound(roundId), {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
@@ -134,10 +135,10 @@ export default function SecurityPatrolPage() {
     finishPatrol();
   };
 
-  const checkCheckpoint = (roundId: number, checkpointId: number, notes?: string) => {
+  const checkCheckpoint = (roundId: string, checkpointId: number, notes?: string) => {
     const submitCheckpoint = async () => {
       try {
-        const updatedRound = await apiClient.post(`/api/security/patrol-rounds/${roundId}/checkpoints/${checkpointId}`, { notes });
+        const updatedRound = await apiClient.post(API_ENDPOINTS.security.checkCheckpoint(roundId, checkpointId), { notes });
         setPatrolRounds(patrolRounds.map(round => 
           round.id === roundId ? updatedRound : round
         ));
@@ -185,8 +186,8 @@ export default function SecurityPatrolPage() {
                   Select Patrol Route *
                 </label>
                 <select
-                  value={selectedRoute || ''}
-                  onChange={(e) => setSelectedRoute(Number(e.target.value))}
+                  value={selectedRoute}
+                  onChange={(e) => setSelectedRoute(e.target.value)}
                   className="w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-[#0F5B35]/10"
                 >
                   <option value="">Choose a route...</option>
@@ -199,8 +200,8 @@ export default function SecurityPatrolPage() {
               </div>
               <div className="flex gap-2">
                 <button
-                  onClick={() => selectedRoute && startPatrolRound(selectedRoute)}
-                  disabled={!selectedRoute}
+                  onClick={() => startPatrolRound(selectedRoute)}
+                  disabled={selectedRoute === ''}
                   className="rounded-full bg-[#0F5B35] px-5 py-3 text-sm font-semibold text-[#F7F4E8] shadow-[0_12px_28px_rgba(15,91,53,0.18)] transition hover:-translate-y-0.5 hover:bg-[#0B4B2C] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Start Patrol
@@ -208,7 +209,7 @@ export default function SecurityPatrolPage() {
                 <button
                   onClick={() => {
                     setShowStartForm(false);
-                    setSelectedRoute(null);
+                    setSelectedRoute('');
                   }}
                   className="rounded-full border border-[#D9D1BC] bg-white px-5 py-3 text-sm font-semibold text-[#173326] shadow-[0_8px_24px_rgba(23,51,38,0.05)] transition hover:-translate-y-0.5 hover:bg-[#FBF8EF]"
                 >

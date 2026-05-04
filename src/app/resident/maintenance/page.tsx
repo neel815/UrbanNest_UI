@@ -6,14 +6,14 @@ import { apiClient, getApiErrorMessage } from '@/utils/api';
 import { API_ENDPOINTS } from '@/utils/constants';
 
 interface MaintenanceRequest {
-  id: number;
+  id: string;
   title: string;
   description: string;
   category: string;
   priority: 'low' | 'medium' | 'high';
-  status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
-  date: string;
-  lastUpdated: string;
+  status: 'open' | 'in_progress' | 'resolved' | 'cancelled';
+  created_at: string;
+  updated_at: string;
 }
 
 export default function MaintenancePage() {
@@ -45,11 +45,11 @@ export default function MaintenancePage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending':
+      case 'open':
         return 'from-amber-500 to-orange-500';
       case 'in_progress':
         return 'from-blue-600 to-indigo-600';
-      case 'completed':
+      case 'resolved':
         return 'from-emerald-500 to-teal-500';
       case 'cancelled':
         return 'from-rose-500 to-pink-500';
@@ -74,12 +74,11 @@ export default function MaintenancePage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    const newRequest: Omit<MaintenanceRequest, 'id' | 'date' | 'lastUpdated'> = {
+    const newRequest = {
       title: formData.title,
       description: formData.description,
       category: formData.category,
-      priority: formData.priority,
-      status: 'pending'
+      priority: formData.priority
     };
 
     const submitRequest = async () => {
@@ -227,9 +226,9 @@ export default function MaintenancePage() {
                 key={request.id}
                 className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-[#FBF8EF] p-6 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md"
               >
-                <div className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${getStatusColor(request.status || 'pending')}`} />
+                <div className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${getStatusColor(request.status || 'open')}`} />
                 <div className="flex items-start gap-4">
-                  <div className={`grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br ${getStatusColor(request.status || 'pending')} text-white shadow-sm`}>
+                  <div className={`grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br ${getStatusColor(request.status || 'open')} text-white shadow-sm`}>
                     <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
                       <path
                         d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z"
@@ -262,9 +261,9 @@ export default function MaintenancePage() {
                     <div className="mt-4 flex items-center gap-4 text-sm text-slate-500">
                       <span className="capitalize">Category: {request.category}</span>
                       <span>•</span>
-                      <span>Created: {new Date(request.date).toLocaleDateString()}</span>
+                      <span>Created: {new Date(request.created_at).toLocaleDateString()}</span>
                       <span>•</span>
-                      <span>Updated: {new Date(request.lastUpdated).toLocaleDateString()}</span>
+                      <span>Updated: {new Date(request.updated_at).toLocaleDateString()}</span>
                     </div>
                   </div>
                 </div>

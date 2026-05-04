@@ -4,6 +4,7 @@ import { Cormorant_Garamond } from 'next/font/google';
 import { useEffect, useState } from 'react';
 
 import { apiClient } from '@/utils/api';
+import { API_ENDPOINTS } from '@/utils/constants';
 
 const cormorant = Cormorant_Garamond({
   subsets: ['latin'],
@@ -11,7 +12,7 @@ const cormorant = Cormorant_Garamond({
 });
 
 interface SecurityLog {
-  id: number;
+  id: string;
   timestamp: string;
   type: 'access' | 'visitor' | 'incident' | 'patrol' | 'system' | 'alert';
   category: string;
@@ -24,7 +25,7 @@ interface SecurityLog {
 }
 
 interface SecurityReport {
-  id: number;
+  id: string;
   title: string;
   type: 'daily' | 'weekly' | 'monthly' | 'custom';
   generatedAt: string;
@@ -58,8 +59,8 @@ export default function SecurityLogsPage() {
     const loadData = async () => {
       try {
         const [logsData, reportsData] = await Promise.all([
-          apiClient.get('/api/security/logs'),
-          apiClient.get('/api/security/reports')
+          apiClient.get(API_ENDPOINTS.security.logs),
+          apiClient.get(API_ENDPOINTS.security.reports)
         ]);
         setLogs(logsData);
         setReports(reportsData);
@@ -110,7 +111,7 @@ export default function SecurityLogsPage() {
   const generateReport = (type: 'daily' | 'weekly' | 'monthly') => {
     const submitReport = async () => {
       try {
-        const newReport = await apiClient.post('/api/security/reports', { type });
+        const newReport = await apiClient.post(API_ENDPOINTS.security.reports, { type });
         setReports([newReport, ...reports]);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to generate report');
@@ -120,7 +121,7 @@ export default function SecurityLogsPage() {
     submitReport();
   };
 
-  const downloadReport = (reportId: number) => {
+  const downloadReport = (reportId: string) => {
     const report = reports.find(r => r.id === reportId);
     if (report?.fileUrl) {
       window.open(report.fileUrl, '_blank');

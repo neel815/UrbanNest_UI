@@ -137,11 +137,11 @@ export default function SecurityDashboardPage() {
       try {
         const [profile, statsData, visitorData, incidentData, patrolData, accessLogData] = await Promise.all([
           apiClient.get(API_ENDPOINTS.auth.me),
-          apiClient.get('/api/security/dashboard-stats'),
-          apiClient.get('/api/security/visitors'),
-          apiClient.get('/api/security/incidents'),
-          apiClient.get('/api/security/patrol-rounds'),
-          apiClient.get('/api/security/logs'),
+          apiClient.get(API_ENDPOINTS.security.dashboardStats),
+          apiClient.get(API_ENDPOINTS.security.visitors),
+          apiClient.get(API_ENDPOINTS.security.incidents),
+          apiClient.get(API_ENDPOINTS.security.patrolRounds),
+          apiClient.get(API_ENDPOINTS.security.logs),
         ]);
 
         setUser(profile);

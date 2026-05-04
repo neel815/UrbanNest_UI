@@ -4,6 +4,7 @@ import { Cormorant_Garamond } from 'next/font/google';
 import { useEffect, useState } from 'react';
 
 import { apiClient } from '@/utils/api';
+import { API_ENDPOINTS } from '@/utils/constants';
 
 const cormorant = Cormorant_Garamond({
   subsets: ['latin'],
@@ -11,13 +12,13 @@ const cormorant = Cormorant_Garamond({
 });
 
 interface Visitor {
-  id: number;
+  id: string;
   name: string;
   purpose: string;
   date: string;
   timeIn: string;
   timeOut?: string;
-  status: 'expected' | 'checked_in' | 'checked_out' | 'rejected';
+  status: 'pending' | 'approved' | 'checked_in' | 'checked_out' | 'denied';
   contactNumber: string;
   vehicleNumber?: string;
   hostName: string;
@@ -26,11 +27,15 @@ interface Visitor {
   notes?: string;
 }
 
+type VisitorTab = 'pending' | 'approved' | 'inside' | 'history';
+
 export default function SecurityVisitorsPage() {
   const [visitors, setVisitors] = useState<Visitor[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [showForm, setShowForm] = useState(false);
+  const [activeTab, setActiveTab] = useState<VisitorTab>('pending');
   const [formData, setFormData] = useState({
     name: '',
     purpose: '',
@@ -41,30 +46,32 @@ export default function SecurityVisitorsPage() {
     notes: ''
   });
 
-  useEffect(() => {
-    const loadVisitors = async () => {
-      try {
-        const data = await apiClient.get('/api/security/visitors');
-        setVisitors(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load visitors');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const loadVisitors = async () => {
+    try {
+      const data = await apiClient.get(API_ENDPOINTS.security.visitors);
+      setVisitors(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load visitors');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    loadVisitors();
+  useEffect(() => {
+    void loadVisitors();
   }, []);
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'expected':
+      case 'pending':
         return 'from-amber-500 to-orange-500';
+      case 'approved':
+        return 'from-blue-500 to-indigo-500';
       case 'checked_in':
         return 'from-emerald-500 to-teal-500';
       case 'checked_out':
         return 'from-slate-500 to-slate-600';
-      case 'rejected':
+      case 'denied':
         return 'from-rose-500 to-pink-500';
       default:
         return 'from-slate-500 to-slate-600';
@@ -87,7 +94,9 @@ export default function SecurityVisitorsPage() {
 
     const submitVisitor = async () => {
       try {
-        const data = await apiClient.post('/api/security/visitors', newVisitor);
+        setError('');
+        setSuccessMessage('');
+        const data = await apiClient.post(API_ENDPOINTS.security.visitors, newVisitor);
         setVisitors([data, ...visitors]);
         setFormData({
           name: '',
@@ -99,6 +108,7 @@ export default function SecurityVisitorsPage() {
           notes: ''
         });
         setShowForm(false);
+        setSuccessMessage('Visitor registered successfully.');
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to register visitor');
       }
@@ -107,26 +117,44 @@ export default function SecurityVisitorsPage() {
     submitVisitor();
   };
 
-  const updateVisitorStatus = (id: number, newStatus: 'checked_in' | 'checked_out' | 'rejected') => {
-    const submitStatus = async () => {
-      try {
-        const updatedVisitor = await apiClient.request(`/api/security/visitors/${id}`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ status: newStatus })
-        });
-        setVisitors(visitors.map(visitor => 
-          visitor.id === id ? updatedVisitor : visitor
-        ));
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to update visitor');
-      }
-    };
-
-    submitStatus();
+  const runVisitorAction = async (
+    visitorId: string,
+    endpointBuilder: (id: string) => string,
+    successText: string,
+  ) => {
+    try {
+      setError('');
+      setSuccessMessage('');
+      await apiClient.request(endpointBuilder(visitorId), {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      await loadVisitors();
+      setSuccessMessage(successText);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update visitor');
+    }
   };
+
+  const tabs: { key: VisitorTab; label: string; count: number }[] = [
+    { key: 'pending', label: 'Pending', count: visitors.filter((v) => v.status === 'pending').length },
+    { key: 'approved', label: 'Approved', count: visitors.filter((v) => v.status === 'approved').length },
+    { key: 'inside', label: 'Inside', count: visitors.filter((v) => v.status === 'checked_in').length },
+    {
+      key: 'history',
+      label: 'History',
+      count: visitors.filter((v) => v.status === 'checked_out' || v.status === 'denied').length,
+    },
+  ];
+
+  const visibleVisitors = visitors.filter((visitor) => {
+    if (activeTab === 'pending') return visitor.status === 'pending';
+    if (activeTab === 'approved') return visitor.status === 'approved';
+    if (activeTab === 'inside') return visitor.status === 'checked_in';
+    return visitor.status === 'checked_out' || visitor.status === 'denied';
+  });
 
   return (
     <main className="space-y-8">
@@ -152,6 +180,28 @@ export default function SecurityVisitorsPage() {
             {error}
           </div>
         )}
+
+        {successMessage && (
+          <div className="rounded-3xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+            {successMessage}
+          </div>
+        )}
+
+        <div className="flex flex-wrap gap-2">
+          {tabs.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                activeTab === tab.key
+                  ? 'bg-[#173326] text-white shadow-[0_8px_20px_rgba(23,51,38,0.2)]'
+                  : 'border border-[#D9D1BC] bg-white text-[#173326] hover:bg-[#FBF8EF]'
+              }`}
+            >
+              {tab.label} ({tab.count})
+            </button>
+          ))}
+        </div>
 
         {showForm && (
           <div className="group relative overflow-hidden rounded-[28px] border border-[#E4DDCB] bg-[#FBF8EF] p-6 shadow-[0_10px_30px_rgba(23,51,38,0.06)] backdrop-blur">
@@ -288,9 +338,9 @@ export default function SecurityVisitorsPage() {
               </div>
             ))}
           </div>
-        ) : visitors.length > 0 ? (
+        ) : visibleVisitors.length > 0 ? (
           <div className="space-y-4">
-            {visitors.map((visitor) => (
+            {visibleVisitors.map((visitor) => (
               <div
                 key={visitor.id}
                 className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-[#F6F2E8] p-6 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md"
@@ -338,27 +388,35 @@ export default function SecurityVisitorsPage() {
                         <span
                           className={`rounded-full px-2 py-1 text-xs font-medium border bg-white/80 backdrop-blur`}
                         >
-                          {visitor.status?.replace('_', ' ').toUpperCase() || 'EXPECTED'}
+                          {visitor.status?.replace('_', ' ').toUpperCase() || 'PENDING'}
                         </span>
-                        {visitor.status === 'expected' && (
+                        {visitor.status === 'pending' && (
                           <div className="flex gap-1">
                             <button
-                              onClick={() => updateVisitorStatus(visitor.id, 'checked_in')}
+                              onClick={() => runVisitorAction(visitor.id, API_ENDPOINTS.security.visitorApprove, 'Visitor approved successfully.')}
                               className="rounded-full bg-emerald-600 px-2 py-1 text-xs font-semibold text-white hover:bg-emerald-700 transition"
                             >
-                              Check In
+                              Approve
                             </button>
                             <button
-                              onClick={() => updateVisitorStatus(visitor.id, 'rejected')}
+                              onClick={() => runVisitorAction(visitor.id, API_ENDPOINTS.security.visitorDeny, 'Visitor denied successfully.')}
                               className="rounded-full bg-rose-600 px-2 py-1 text-xs font-semibold text-white hover:bg-rose-700 transition"
                             >
-                              Reject
+                              Deny
                             </button>
                           </div>
                         )}
+                        {visitor.status === 'approved' && (
+                          <button
+                            onClick={() => runVisitorAction(visitor.id, API_ENDPOINTS.security.visitorCheckin, 'Visitor checked in successfully.')}
+                            className="rounded-full bg-blue-600 px-2 py-1 text-xs font-semibold text-white hover:bg-blue-700 transition"
+                          >
+                            Check In
+                          </button>
+                        )}
                         {visitor.status === 'checked_in' && (
                           <button
-                            onClick={() => updateVisitorStatus(visitor.id, 'checked_out')}
+                            onClick={() => runVisitorAction(visitor.id, API_ENDPOINTS.security.visitorCheckout, 'Visitor checked out successfully.')}
                             className="rounded-full bg-slate-600 px-2 py-1 text-xs font-semibold text-white hover:bg-slate-700 transition"
                           >
                             Check Out
@@ -402,13 +460,13 @@ export default function SecurityVisitorsPage() {
                 />
               </svg>
             </div>
-            <p className="text-slate-600 font-medium">No visitors registered</p>
-            <p className="mt-2 text-sm text-slate-500">Register your first visitor to get started.</p>
+            <p className="text-slate-600 font-medium">No visitors in this tab</p>
+            <p className="mt-2 text-sm text-slate-500">Try another status tab or register a new visitor.</p>
             <button
               onClick={() => setShowForm(true)}
               className="mt-4 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 transition hover:-translate-y-0.5"
             >
-              Register Your First Visitor
+              Register Visitor
             </button>
           </div>
         )}

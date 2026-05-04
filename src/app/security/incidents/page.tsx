@@ -4,6 +4,7 @@ import { Cormorant_Garamond } from 'next/font/google';
 import { useEffect, useState } from 'react';
 
 import { apiClient, getApiErrorMessage } from '@/utils/api';
+import { API_ENDPOINTS } from '@/utils/constants';
 
 const cormorant = Cormorant_Garamond({
   subsets: ['latin'],
@@ -11,7 +12,7 @@ const cormorant = Cormorant_Garamond({
 });
 
 interface Incident {
-  id: number;
+  id: string;
   title: string;
   description: string;
   type: 'security' | 'safety' | 'maintenance' | 'emergency' | 'other';
@@ -43,7 +44,7 @@ export default function SecurityIncidentsPage() {
   useEffect(() => {
     const loadIncidents = async () => {
       try {
-        const data = await apiClient.get('/api/security/incidents');
+        const data = await apiClient.get(API_ENDPOINTS.security.incidents);
         setIncidents(data);
       } catch (err) {
         setError(getApiErrorMessage(err));
@@ -116,7 +117,7 @@ export default function SecurityIncidentsPage() {
 
     const submitIncident = async () => {
       try {
-        const data = await apiClient.post('/api/security/incidents', newIncident);
+        const data = await apiClient.post(API_ENDPOINTS.security.incidents, newIncident);
         setIncidents([data, ...incidents]);
         setFormData({
           title: '',
@@ -135,10 +136,10 @@ export default function SecurityIncidentsPage() {
     submitIncident();
   };
 
-  const updateIncidentStatus = (id: number, newStatus: 'investigating' | 'resolved' | 'closed', resolution?: string) => {
+  const updateIncidentStatus = (id: string, newStatus: 'investigating' | 'resolved' | 'closed', resolution?: string) => {
     const submitUpdate = async () => {
       try {
-        const updatedIncident = await apiClient.request(`/api/security/incidents/${id}`, {
+        const updatedIncident = await apiClient.request(API_ENDPOINTS.security.updateIncident(id), {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',

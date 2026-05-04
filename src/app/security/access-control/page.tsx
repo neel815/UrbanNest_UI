@@ -4,6 +4,7 @@ import { Cormorant_Garamond } from 'next/font/google';
 import { useEffect, useState } from 'react';
 
 import { apiClient, getApiErrorMessage } from '@/utils/api';
+import { API_ENDPOINTS } from '@/utils/constants';
 
 const cormorant = Cormorant_Garamond({
   subsets: ['latin'],
@@ -11,7 +12,7 @@ const cormorant = Cormorant_Garamond({
 });
 
 interface AccessPoint {
-  id: number;
+  id: string;
   name: string;
   type: 'gate' | 'door' | 'elevator' | 'parking';
   location: string;
@@ -22,7 +23,7 @@ interface AccessPoint {
 }
 
 interface AccessLog {
-  id: number;
+  id: string;
   accessPoint: string;
   personName: string;
   personType: 'resident' | 'visitor' | 'staff' | 'delivery';
@@ -43,8 +44,8 @@ export default function SecurityAccessControlPage() {
     const loadData = async () => {
       try {
         const [pointsData, logsData] = await Promise.all([
-          apiClient.get('/api/security/access-points'),
-          apiClient.get('/api/security/access-logs')
+          apiClient.get(API_ENDPOINTS.security.accessPoints),
+          apiClient.get(API_ENDPOINTS.security.accessLogs)
         ]);
         setAccessPoints(pointsData);
         setAccessLogs(logsData);
@@ -101,10 +102,10 @@ export default function SecurityAccessControlPage() {
     }
   };
 
-  const toggleAccessPoint = (id: number) => {
+  const toggleAccessPoint = (id: string) => {
     const submitToggle = async () => {
       try {
-        const updatedPoint = await apiClient.request(`/api/security/access-points/${id}/toggle`, {
+        const updatedPoint = await apiClient.request(API_ENDPOINTS.security.toggleAccessPoint(id), {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',

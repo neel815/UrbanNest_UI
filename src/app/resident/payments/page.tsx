@@ -12,14 +12,14 @@ const cormorant = Cormorant_Garamond({
 });
 
 interface Payment {
-  id: number;
+  id: string;
   type: 'maintenance' | 'parking' | 'utilities' | 'other';
   description: string;
   amount: number;
-  dueDate: string;
-  status: 'pending' | 'paid' | 'overdue';
-  paidDate?: string;
-  paymentMethod?: string;
+  due_date: string;
+  status: 'pending' | 'paid' | 'overdue' | 'waived';
+  paid_date?: string;
+  transaction_ref?: string;
 }
 
 export default function PaymentsPage() {
@@ -70,7 +70,7 @@ export default function PaymentsPage() {
     }
   };
 
-  const markAsPaid = (id: number) => {
+  const markAsPaid = (id: string) => {
     const payRequest = async () => {
       try {
         const updatedPayment = await apiClient.post(`${API_ENDPOINTS.resident.payments}/${id}/pay`, {});
@@ -236,16 +236,16 @@ export default function PaymentsPage() {
                           <span className="font-medium">Amount:</span> ${payment.amount.toFixed(2)}
                         </p>
                         <p className="text-sm text-[#637062]">
-                          <span className="font-medium">Due Date:</span> {new Date(payment.dueDate).toLocaleDateString()}
+                          <span className="font-medium">Due Date:</span> {new Date(payment.due_date).toLocaleDateString()}
                         </p>
-                        {payment.paidDate && (
+                        {payment.paid_date && (
                           <p className="text-sm text-[#637062]">
-                            <span className="font-medium">Paid Date:</span> {new Date(payment.paidDate).toLocaleDateString()}
+                            <span className="font-medium">Paid Date:</span> {new Date(payment.paid_date).toLocaleDateString()}
                           </p>
                         )}
-                        {payment.paymentMethod && (
+                        {payment.transaction_ref && (
                           <p className="text-sm text-[#637062]">
-                            <span className="font-medium">Payment Method:</span> {payment.paymentMethod}
+                            <span className="font-medium">Payment Method:</span> {payment.transaction_ref}
                           </p>
                         )}
                       </div>
@@ -294,7 +294,7 @@ export default function PaymentsPage() {
                     <div>
                       <p className="text-sm font-medium text-[#173326]">{payment.description}</p>
                       <p className="text-xs text-[#7A7F70]">
-                        Paid on {new Date(payment.paidDate!).toLocaleDateString()} via {payment.paymentMethod}
+                        Paid on {new Date(payment.paid_date!).toLocaleDateString()} via {payment.transaction_ref}
                       </p>
                     </div>
                     <p className="text-sm font-semibold text-[#173326]">${payment.amount.toFixed(2)}</p>

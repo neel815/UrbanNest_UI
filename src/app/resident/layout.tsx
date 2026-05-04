@@ -10,7 +10,7 @@ import { useAuthGuard } from '@/hooks/useAuthGuard';
 type NavItem = {
   href: string;
   label: string;
-  icon: 'dashboard' | 'visitors' | 'Maintenance' | 'announcements' | 'dues' | 'profile';
+  icon: 'dashboard' | 'visitors' | 'maintenance' | 'announcements' | 'dues' | 'profile';
 };
 
 function SidebarIcon({ name, active }: { name: NavItem['icon']; active?: boolean }) {

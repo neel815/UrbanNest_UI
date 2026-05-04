@@ -22,7 +22,7 @@ interface ForumPost {
   id: string;
   title: string;
   content: string;
-  category: 'general' | 'maintenance' | 'safety' | 'events' | 'complaints' | 'suggestions';
+  category: string;
   author_id: string;
   is_pinned: boolean;
   upvotes: number;
@@ -36,26 +36,57 @@ export default function CommunityPage() {
   const [forumPosts, setForumPosts] = useState<ForumPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [activeTab, setActiveTab] = useState<'events' | 'forum'>('events');
+  const [showPostModal, setShowPostModal] = useState(false);
+  const [isPosting, setIsPosting] = useState(false);
+  const [postFormData, setPostFormData] = useState({
+    title: '',
+    content: '',
+    category: 'general',
+  });
+
+  const loadData = async () => {
+    try {
+      const [eventsData, forumData] = await Promise.all([
+        apiClient.get(API_ENDPOINTS.resident.events),
+        apiClient.get(API_ENDPOINTS.resident.forumPosts),
+      ]);
+      setEvents(eventsData);
+      setForumPosts(forumData);
+    } catch (err: any) {
+      setError(err.message || 'Failed to load community data');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [eventsData, forumData] = await Promise.all([
-          apiClient.get(API_ENDPOINTS.resident.events),
-          apiClient.get(API_ENDPOINTS.resident.forumPosts)
-        ]);
-        setEvents(eventsData);
-        setForumPosts(forumData);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
+    void loadData();
   }, []);
+
+  const handleCreatePost = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setError('');
+      setSuccessMessage('');
+      setIsPosting(true);
+      await apiClient.post(API_ENDPOINTS.resident.forumPosts, {
+        title: postFormData.title,
+        content: postFormData.content,
+        category: postFormData.category,
+      });
+      setShowPostModal(false);
+      setPostFormData({ title: '', content: '', category: 'general' });
+      await loadData();
+      setSuccessMessage('Post created successfully.');
+      setActiveTab('forum');
+    } catch (err: any) {
+      setError(err.message || 'Failed to create post');
+    } finally {
+      setIsPosting(false);
+    }
+  };
 
   const getCategoryColor = (category: string) => {
     switch (category) {
@@ -92,6 +123,74 @@ export default function CommunityPage() {
         {error && (
           <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
             {error}
+          </div>
+        )}
+
+        {successMessage && (
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+            {successMessage}
+          </div>
+        )}
+
+        {showPostModal && (
+          <div className="fixed inset-0 z-50 grid place-items-center bg-slate-900/40 p-4">
+            <div className="w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
+              <h2 className="text-xl font-semibold text-slate-900">Create New Post</h2>
+              <form onSubmit={handleCreatePost} className="mt-4 space-y-4">
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-slate-700">Title</label>
+                  <input
+                    type="text"
+                    required
+                    value={postFormData.title}
+                    onChange={(e) => setPostFormData((prev) => ({ ...prev, title: e.target.value }))}
+                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-slate-300"
+                    placeholder="Post title"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-slate-700">Content</label>
+                  <textarea
+                    required
+                    value={postFormData.content}
+                    onChange={(e) => setPostFormData((prev) => ({ ...prev, content: e.target.value }))}
+                    rows={5}
+                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-slate-300"
+                    placeholder="Write your post"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-slate-700">Category</label>
+                  <select
+                    required
+                    value={postFormData.category}
+                    onChange={(e) => setPostFormData((prev) => ({ ...prev, category: e.target.value }))}
+                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-slate-300"
+                  >
+                    <option value="general">general</option>
+                    <option value="complaints">complaints</option>
+                    <option value="suggestions">suggestions</option>
+                    <option value="marketplace">marketplace</option>
+                  </select>
+                </div>
+                <div className="flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowPostModal(false)}
+                    className="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isPosting}
+                    className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60"
+                  >
+                    {isPosting ? 'Posting...' : 'Post'}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         )}
 
@@ -175,7 +274,10 @@ export default function CommunityPage() {
             <div className="rounded-2xl border border-slate-200 bg-white/70 p-6 shadow-sm backdrop-blur">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-slate-900">Discussion Forum</h2>
-                <button className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 transition hover:-translate-y-0.5">
+                <button
+                  onClick={() => setShowPostModal(true)}
+                  className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 transition hover:-translate-y-0.5"
+                >
                   New Post
                 </button>
               </div>
