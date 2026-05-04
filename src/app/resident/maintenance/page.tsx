@@ -122,7 +122,7 @@ export default function MaintenancePage() {
 
         {showForm && (
           <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-[#FBF8EF] p-6 shadow-sm backdrop-blur">
-            <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-blue-600 to-indigo-600" />
+            <div className="absolute inset-x-0 top-0 h-1.5 bg-[#0F5B35]" />
             <h2 className="text-lg font-semibold text-slate-900 mb-4">Submit New Request</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -226,7 +226,7 @@ export default function MaintenancePage() {
                 key={request.id}
                 className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-[#FBF8EF] p-6 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md"
               >
-                <div className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${getStatusColor(request.status || 'open')}`} />
+                <div className="absolute inset-x-0 top-0 h-1.5 bg-[#0F5B35]" />
                 <div className="flex items-start gap-4">
                   <div className={`grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br ${getStatusColor(request.status || 'open')} text-white shadow-sm`}>
                     <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">

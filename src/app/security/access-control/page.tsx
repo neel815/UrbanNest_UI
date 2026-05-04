@@ -194,7 +194,7 @@ export default function SecurityAccessControlPage() {
                 key={point.id}
                 className="group relative overflow-hidden rounded-[28px] border border-[#E4DDCB] bg-[#FBF8EF] p-6 shadow-[0_10px_30px_rgba(23,51,38,0.06)] backdrop-blur transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(23,51,38,0.08)]"
               >
-                <div className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${getStatusColor(point.status)}`} />
+                <div className="absolute inset-x-0 top-0 h-1.5 bg-[#0F5B35]" />
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-3">
@@ -251,7 +251,7 @@ export default function SecurityAccessControlPage() {
                 key={log.id}
                 className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white/70 p-6 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md"
               >
-                <div className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${getAccessStatusColor(log.status)}`} />
+                <div className="absolute inset-x-0 top-0 h-1.5 bg-[#0F5B35]" />
                 <div className="flex items-start gap-4">
                   <div className={`grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br ${getAccessStatusColor(log.status)} text-white shadow-sm`}>
                     <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">

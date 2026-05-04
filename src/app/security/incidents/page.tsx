@@ -194,7 +194,7 @@ export default function SecurityIncidentsPage() {
         {/* Report Incident Form */}
         {showForm && (
           <div className="group relative overflow-hidden rounded-[28px] border border-[#E4DDCB] bg-[#FBF8EF] p-6 shadow-[0_10px_30px_rgba(23,51,38,0.06)] backdrop-blur">
-            <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-[#D14C4C] to-[#E56B89]" />
+            <div className="absolute inset-x-0 top-0 h-1.5 bg-[#0F5B35]" />
             <h2 className={`${cormorant.className} mb-4 text-3xl font-semibold tracking-tight text-[#173326]`}>Report New Incident</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -332,7 +332,7 @@ export default function SecurityIncidentsPage() {
                 key={incident.id}
                 className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white/70 p-6 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md"
               >
-                <div className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${getSeverityColor(incident.severity)}`} />
+                <div className="absolute inset-x-0 top-0 h-1.5 bg-[#0F5B35]" />
                 <div className="flex items-start gap-4">
                   <div className={`grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br ${getTypeColor(incident.type)} text-white shadow-sm`}>
                     <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">

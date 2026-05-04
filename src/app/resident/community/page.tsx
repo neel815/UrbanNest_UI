@@ -243,7 +243,7 @@ export default function CommunityPage() {
                 key={event.id}
                 className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white/70 p-6 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md"
               >
-                <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-emerald-500 to-teal-500" />
+                <div className="absolute inset-x-0 top-0 h-1.5 bg-[#0F5B35]" />
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex flex-wrap items-center gap-3">
@@ -288,7 +288,7 @@ export default function CommunityPage() {
                 key={post.id}
                 className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white/70 p-6 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md"
               >
-                <div className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${getCategoryColor(post.category || 'general')}`} />
+                <div className="absolute inset-x-0 top-0 h-1.5 bg-[#0F5B35]" />
                 <div className="flex items-start gap-4">
                   <div className={`grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br ${getCategoryColor(post.category || 'general')} text-white shadow-sm`}>
                     <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">

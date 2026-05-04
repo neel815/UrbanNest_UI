@@ -95,7 +95,7 @@ export default function AnnouncementsPage() {
                 key={announcement.id}
                 className="group relative overflow-hidden rounded-2xl border border-[#D8D0BC] bg-[#F6F2E8] p-6 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md"
               >
-                <div className={`absolute inset-x-0 top-0 h-1.5 ${announcement.priority === 'high' ? 'bg-rose-500' : announcement.priority === 'medium' ? 'bg-amber-500' : 'bg-emerald-500'}`} />
+                <div className="absolute inset-x-0 top-0 h-1.5 bg-[#0F5B35]" />
                 <div className="flex items-start gap-4">
                   <div className="grid h-10 w-10 place-items-center rounded-xl bg-slate-900 text-white shadow-sm">
                     <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">

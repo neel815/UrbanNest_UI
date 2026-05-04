@@ -30,6 +30,15 @@ type ManagedUser = {
   created_at: string;
 };
 
+type Announcement = {
+  id: string;
+  title: string;
+  content: string;
+  priority: 'low' | 'medium' | 'high';
+  published_at: string;
+  created_at: string;
+};
+
 function StatIcon({ name }: { name: 'residents' | 'security' | 'users' | 'trend' }) {
   const src =
     name === 'residents'
@@ -72,21 +81,24 @@ export default function AdminDashboardPage() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [residents, setResidents] = useState<ManagedUser[]>([]);
   const [security, setSecurity] = useState<ManagedUser[]>([]);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
     const loadStats = async () => {
       try {
-        const [statsData, residentsData, securityData] = await Promise.all([
+        const [statsData, residentsData, securityData, announcementsData] = await Promise.all([
           apiClient.get(API_ENDPOINTS.admin.dashboardStats),
           apiClient.get(API_ENDPOINTS.admin.residents),
           apiClient.get(API_ENDPOINTS.admin.security),
+          apiClient.get(API_ENDPOINTS.admin.announcements),
         ]);
 
         setStats(statsData);
         setResidents(residentsData);
         setSecurity(securityData);
+        setAnnouncements(announcementsData);
       } catch (err) {
         setError(getApiErrorMessage(err));
       } finally {
@@ -151,7 +163,15 @@ export default function AdminDashboardPage() {
     },
   ];
 
-  const latestUser = security[0] || residents[0] || null;
+  const latestAnnouncement = useMemo(
+    () =>
+      [...announcements].sort(
+        (left, right) =>
+          Date.parse(right.published_at || right.created_at) -
+          Date.parse(left.published_at || left.created_at),
+      )[0] || null,
+    [announcements],
+  );
 
   return (
     <main className="space-y-8">
@@ -273,28 +293,30 @@ export default function AdminDashboardPage() {
 
           <article className="rounded-[28px] border border-[#E4DDCB] bg-[#FBF8EF] shadow-[0_10px_30px_rgba(23,51,38,0.06)]">
             <div className="border-b border-[#E4DDCB] px-6 py-5">
-              <h2 className={`${cormorant.className} text-3xl font-semibold text-[#173326]`}>Latest Addition</h2>
-              <p className="text-sm text-[#6A7264]">Most recently added account</p>
+              <h2 className={`${cormorant.className} text-3xl font-semibold text-[#173326]`}>Latest Announcements</h2>
+              <p className="text-sm text-[#6A7264]">Most recently posted update</p>
             </div>
 
             <div className="px-6 py-6">
-              {latestUser ? (
+              {latestAnnouncement ? (
                 <div className="space-y-4">
                   <div className="inline-flex items-center gap-2 rounded-full bg-[#F3E7D2] px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-[#6C5B32]">
-                    {latestUser.role}
+                    {latestAnnouncement.priority}
                   </div>
-                  <h3 className="text-2xl font-semibold leading-tight text-[#173326]">{latestUser.full_name}</h3>
-                  <p className="text-sm leading-6 text-[#6A7264]">{latestUser.email}</p>
-                  <p className="text-sm leading-6 text-[#6A7264]">{formatRelativeTime(latestUser.created_at)}</p>
+                  <h3 className="text-2xl font-semibold leading-tight text-[#173326]">{latestAnnouncement.title}</h3>
+                  <p className="text-sm leading-6 text-[#6A7264]">{latestAnnouncement.content}</p>
+                  <p className="text-sm leading-6 text-[#6A7264]">
+                    Posted {formatRelativeTime(latestAnnouncement.published_at || latestAnnouncement.created_at)}
+                  </p>
                   <Link
-                    href="/admin/residents"
+                    href="/admin/announcements"
                     className="inline-flex rounded-full border border-[#D9D1BC] bg-white px-5 py-3 text-sm font-semibold text-[#173326] shadow-[0_8px_24px_rgba(23,51,38,0.05)] transition hover:-translate-y-0.5 hover:shadow-md"
                   >
-                    Review residents
+                    View announcements
                   </Link>
                 </div>
               ) : (
-                <p className="text-sm text-[#6A7264]">No recent additions available.</p>
+                <p className="text-sm text-[#6A7264]">No announcements available.</p>
               )}
             </div>
           </article>

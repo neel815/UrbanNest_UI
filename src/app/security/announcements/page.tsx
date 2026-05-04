@@ -88,7 +88,7 @@ export default function SecurityAnnouncementsPage() {
               key={announcement.id}
               className="group relative overflow-hidden rounded-[28px] border border-[#E4DDCB] bg-[#FBF8EF] p-6 shadow-[0_10px_30px_rgba(23,51,38,0.06)] backdrop-blur transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(23,51,38,0.08)]"
             >
-              <div className={`absolute inset-x-0 top-0 h-1.5 ${announcement.priority === 'high' ? 'bg-rose-500' : announcement.priority === 'medium' ? 'bg-amber-500' : 'bg-emerald-500'}`} />
+              <div className="absolute inset-x-0 top-0 h-1.5 bg-[#0F5B35]" />
               <div className="flex items-start gap-4">
                 <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#0F5B35] text-white shadow-[0_10px_26px_rgba(15,91,53,0.16)]">
                   <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">

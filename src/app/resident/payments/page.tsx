@@ -148,7 +148,7 @@ export default function PaymentsPage() {
               key={card.title}
               className="group relative overflow-hidden rounded-[28px] border border-[#D8D0BC] bg-[#F6F2E8] p-5 shadow-[0_8px_24px_rgba(23,51,38,0.04)] backdrop-blur transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(23,51,38,0.08)]"
             >
-              <div className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${card.accent}`} />
+              <div className="absolute inset-x-0 top-0 h-1.5 bg-[#0F5B35]" />
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-sm font-semibold text-[#173326]">{card.title}</p>
@@ -201,7 +201,7 @@ export default function PaymentsPage() {
                 key={payment.id}
                 className="group relative overflow-hidden rounded-[28px] border border-[#D8D0BC] bg-[#F6F2E8] p-6 shadow-[0_8px_24px_rgba(23,51,38,0.04)] backdrop-blur transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(23,51,38,0.08)]"
               >
-                <div className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${getStatusColor(payment.status || 'pending')}`} />
+                <div className="absolute inset-x-0 top-0 h-1.5 bg-[#0F5B35]" />
                 <div className="flex items-start gap-4">
                   <div className={`grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br ${getStatusColor(payment.status || 'pending')} text-white shadow-sm`}>
                     <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">

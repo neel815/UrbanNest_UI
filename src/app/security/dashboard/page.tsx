@@ -265,7 +265,7 @@ export default function SecurityDashboardPage() {
               card.dark ? 'border-[#0B4B2C] bg-[#0C4A2C] text-[#F5F1E4]' : 'border-[#D8D0BC] bg-[#FBF8EF] text-[#173326]',
             ].join(' ')}
           >
-            <div className={card.dark ? 'absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-[#194C23] to-[#0A2D1D]' : 'absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-[#E8E0C7] to-[#E8E0C7]'} />
+            <div className="absolute inset-x-0 top-0 h-1.5 bg-[#0F5B35]" />
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className={card.dark ? 'text-sm font-semibold text-[#D7E7D8]' : 'text-sm font-semibold text-[#637062]'}>{card.title}</p>
@@ -310,7 +310,7 @@ export default function SecurityDashboardPage() {
       </section>
 
       <section className="group relative overflow-hidden rounded-[30px] border border-[#D8D0BC] bg-[#FBF8EF] shadow-[0_8px_24px_rgba(23,51,38,0.04)]">
-        <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r" />
+        <div className="absolute inset-x-0 top-0 h-1.5 bg-[#0F5B35]" />
         <div className="border-b border-[#E6E0CF] px-6 py-5">
           <h2 className={`${cormorant.className} text-3xl font-semibold tracking-tight text-[#173326]`}>Live gate activity</h2>
           <p className="text-sm text-[#637062]">Real-time items from visitors, incidents, patrols, and access logs</p>

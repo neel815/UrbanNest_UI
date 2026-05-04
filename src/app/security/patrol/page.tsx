@@ -178,7 +178,7 @@ export default function SecurityPatrolPage() {
         {/* Start Patrol Form */}
         {showStartForm && (
           <div className="group relative overflow-hidden rounded-[28px] border border-[#E4DDCB] bg-[#FBF8EF] p-6 shadow-[0_10px_30px_rgba(23,51,38,0.06)] backdrop-blur">
-            <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-[#0F5B35] to-[#1D6A44]" />
+            <div className="absolute inset-x-0 top-0 h-1.5 bg-[#0F5B35]" />
             <h2 className={`${cormorant.className} mb-4 text-3xl font-semibold tracking-tight text-[#173326]`}>Start New Patrol Round</h2>
             <div className="space-y-4">
               <div>
@@ -280,7 +280,7 @@ export default function SecurityPatrolPage() {
                 key={round.id}
                 className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white/70 p-6 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md"
               >
-                <div className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${getStatusColor(round.status)}`} />
+                <div className="absolute inset-x-0 top-0 h-1.5 bg-[#0F5B35]" />
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-3">
@@ -369,7 +369,7 @@ export default function SecurityPatrolPage() {
                 key={route.id}
                 className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white/70 p-6 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md"
               >
-                <div className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${getPriorityColor(route.priority)}`} />
+                <div className="absolute inset-x-0 top-0 h-1.5 bg-[#0F5B35]" />
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-3">

@@ -1,7 +1,7 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
-import ImageUploadField from '../../../components/ImageUploadField';
+import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
+
 import { apiClient, getApiErrorMessage } from '@/utils/api';
 import { API_ENDPOINTS } from '@/utils/constants';
 
@@ -23,45 +23,53 @@ type ManagedUnit = {
   resident_name?: string | null;
 };
 
+const createMode = (process.env.NEXT_PUBLIC_ADMIN_CREATE_MODE as 'invite' | 'direct' | undefined) ?? 'invite';
+
+function getInitials(name: string) {
+  return (
+    name
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase())
+      .join('') || 'R'
+  );
+}
+
+function getJoinedYear(createdAt: string) {
+  const date = new Date(createdAt);
+  if (Number.isNaN(date.getTime())) return 'N/A';
+  return date.getFullYear();
+}
+
 export default function AdminResidentsPage() {
-  const roleTitle = 'Residents';
-  const roleDescription = 'Invite residents with activation links, then manage resident accounts from the admin portal.';
-  const endpoint = API_ENDPOINTS.admin?.residents || '/api/admin/residents';
-  const createMode = (process.env.NEXT_PUBLIC_ADMIN_CREATE_MODE as 'invite' | 'direct' | undefined) ?? 'invite';
+  const endpoint = API_ENDPOINTS.admin.residents;
   const inviteEndpoint = API_ENDPOINTS.admin.inviteResident;
-  const showCreateImageUpload = false;
-  const showUnitSelect = true;
   const unitsEndpoint = API_ENDPOINTS.admin.units;
 
   const [users, setUsers] = useState<ManagedUser[]>([]);
+  const [units, setUnits] = useState<ManagedUnit[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showCreateForm, setShowCreateForm] = useState(false);
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [profileImage, setProfileImage] = useState('');
   const [unitId, setUnitId] = useState('');
   const [resetLink, setResetLink] = useState('');
-  const [units, setUnits] = useState<ManagedUnit[]>([]);
 
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editFullName, setEditFullName] = useState('');
-  const [editEmail, setEditEmail] = useState('');
-  const [editPassword, setEditPassword] = useState('');
-  const [editProfileImage, setEditProfileImage] = useState('');
-
-  const loadUnits = async () => {
-    if (!showUnitSelect || !unitsEndpoint) return;
+  const loadUnits = useCallback(async () => {
     const data = await apiClient.get(unitsEndpoint);
     setUnits(data);
-  };
+  }, [unitsEndpoint]);
 
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     const data = await apiClient.get(endpoint);
     setUsers(data);
-  };
+  }, [endpoint]);
 
   useEffect(() => {
     const initialize = async () => {
@@ -74,14 +82,43 @@ export default function AdminResidentsPage() {
       }
     };
 
-    initialize();
-  }, [endpoint]);
+    void initialize();
+  }, [loadUnits, loadUsers]);
+
+  const residentUnitMap = useMemo(() => {
+    const map = new Map<string, ManagedUnit>();
+    units.forEach((unit) => {
+      if (unit.resident_name) {
+        map.set(unit.resident_name.trim().toLowerCase(), unit);
+      }
+    });
+    return map;
+  }, [units]);
+
+  const filteredUsers = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return users;
+
+    return users.filter((user) => {
+      const unit = residentUnitMap.get(user.full_name.trim().toLowerCase());
+      const unitLabel = unit?.unit_number ?? '';
+      return (
+        user.full_name.toLowerCase().includes(query) ||
+        user.email.toLowerCase().includes(query) ||
+        unitLabel.toLowerCase().includes(query)
+      );
+    });
+  }, [users, searchQuery, residentUnitMap]);
+
+  const getUnitLabel = (user: ManagedUser) => {
+    const unit = residentUnitMap.get(user.full_name.trim().toLowerCase());
+    return unit?.unit_number ?? 'Unit not assigned';
+  };
 
   const resetCreateForm = () => {
     setFullName('');
     setEmail('');
     setPassword('');
-    setProfileImage('');
     setUnitId('');
   };
 
@@ -90,92 +127,35 @@ export default function AdminResidentsPage() {
     setError('');
     setMessage('');
     setResetLink('');
+
     try {
+      if (!unitId) {
+        throw new Error('Please select a unit');
+      }
+
       if (createMode === 'invite') {
-        if (!inviteEndpoint) {
-          throw new Error('Invite endpoint is not configured');
-        }
-        if (showUnitSelect && !unitId) {
-          throw new Error('Please select a unit');
-        }
         const data = await apiClient.post(inviteEndpoint, {
           full_name: fullName,
           email,
-          profile_image: profileImage || null,
-          unit_id: showUnitSelect ? unitId : null,
+          unit_id: unitId,
         });
-        setMessage(data.message || `${roleTitle.slice(0, -1)} invited successfully.`);
+        setMessage(data.message || 'Resident invited successfully.');
         setResetLink(data.reset_link || '');
       } else {
-        if (showUnitSelect && !unitId) {
-          throw new Error('Please select a unit');
-        }
         await apiClient.post(endpoint, {
           full_name: fullName,
           email,
           password,
-          profile_image: profileImage || null,
-          unit_id: showUnitSelect ? unitId : null,
+          unit_id: unitId,
         });
-        setMessage(`${roleTitle.slice(0, -1)} created successfully.`);
+        setMessage('Resident created successfully.');
       }
+
       resetCreateForm();
+      setShowCreateForm(false);
       await loadUsers();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Create failed');
-    }
-  };
-
-  const startEdit = (user: ManagedUser) => {
-    setEditingId(user.id);
-    setEditFullName(user.full_name);
-    setEditEmail(user.email);
-    setEditPassword('');
-    setEditProfileImage(user.profile_image || '');
-  };
-
-  const cancelEdit = () => {
-    setEditingId(null);
-    setEditFullName('');
-    setEditEmail('');
-    setEditPassword('');
-    setEditProfileImage('');
-  };
-
-  const onUpdate = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!editingId) return;
-    setError('');
-    setMessage('');
-    try {
-      await apiClient.put(`${endpoint}/${editingId}`, {
-        full_name: editFullName,
-        email: editEmail,
-        password: editPassword || null,
-        profile_image: editProfileImage || null,
-      });
-      setMessage(`${roleTitle.slice(0, -1)} updated successfully.`);
-      cancelEdit();
-      await loadUsers();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Update failed');
-    }
-  };
-
-  const onDelete = async (userId: string) => {
-    const confirmed = window.confirm(`Delete this ${roleTitle.slice(0, -1).toLowerCase()}?`);
-    if (!confirmed) return;
-    setError('');
-    setMessage('');
-    try {
-      await apiClient.delete(`${endpoint}/${userId}`);
-      setMessage(`${roleTitle.slice(0, -1)} deleted successfully.`);
-      if (editingId === userId) {
-        cancelEdit();
-      }
-      await loadUsers();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Delete failed');
     }
   };
 
@@ -183,9 +163,18 @@ export default function AdminResidentsPage() {
     <main>
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Management</p>
-          <h1 className="text-4xl font-serif tracking-tight text-slate-900 lg:text-6xl">{roleTitle}</h1>
-          <p className="max-w-2xl text-slate-600">{roleDescription}</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#76806F]">HOME DIRECTORY</p>
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <h1 className="text-4xl font-serif tracking-tight text-slate-900 lg:text-6xl">Residents</h1>
+            <button
+              type="button"
+              onClick={() => setShowCreateForm((current) => !current)}
+              className="rounded-2xl bg-[#0F5B35] px-5 py-3 text-sm font-semibold text-[#F7F4E8] shadow-[0_12px_28px_rgba(15,91,53,0.18)] transition hover:-translate-y-0.5 hover:bg-[#0B4B2C]"
+            >
+              + Add resident
+            </button>
+          </div>
+          <p className="max-w-2xl text-slate-600">Every home, every person. Search, add and stay in touch.</p>
         </div>
 
         {error && (
@@ -193,67 +182,62 @@ export default function AdminResidentsPage() {
             {error}
           </div>
         )}
+
         {message && (
           <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
             {message}
           </div>
         )}
 
-        <div className="rounded-2xl border border-[#E4DDCB] bg-[#FBF8EF] p-6 shadow-sm backdrop-blur">
-          <p className="text-sm font-semibold text-slate-900">
-            {createMode === 'invite' ? `Invite ${roleTitle.slice(0, -1)}` : `Add ${roleTitle.slice(0, -1)}`}
-          </p>
-          <form onSubmit={onCreate} className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Full name</label>
-              <input
-                className="mt-2 w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-slate-900/10"
-                value={fullName}
-                onChange={(event) => setFullName(event.target.value)}
-                required
-                placeholder='Enter Name'
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Email</label>
-              <input
-                type="email"
-                className="mt-2 w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-slate-900/10"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                required
-                placeholder='Enter Email'
-              />
-            </div>
-
-            {createMode === 'direct' && (
+        {showCreateForm && (
+          <div className="rounded-2xl border border-[#E4DDCB] bg-[#FBF8EF] p-6 shadow-sm backdrop-blur">
+            <p className="text-sm font-semibold text-slate-900">
+              {createMode === 'invite' ? 'Invite Resident' : 'Add Resident'}
+            </p>
+            <form onSubmit={onCreate} className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Password</label>
+                <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Full name</label>
                 <input
-                  type="password"
-                  minLength={8}
-                  className="mt-2 w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-slate-900/10"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
+                  className="mt-2 w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-[#0F5B35]/15"
+                  value={fullName}
+                  onChange={(event) => setFullName(event.target.value)}
                   required
+                  placeholder="Enter name"
                 />
               </div>
-            )}
 
-            {showCreateImageUpload && (
-              <div className="sm:col-span-2">
-                <ImageUploadField label="Profile image" value={profileImage} onChange={setProfileImage} />
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Email</label>
+                <input
+                  type="email"
+                  className="mt-2 w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-[#0F5B35]/15"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  required
+                  placeholder="Enter email"
+                />
               </div>
-            )}
 
-            {showUnitSelect && (
+              {createMode === 'direct' && (
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Password</label>
+                  <input
+                    type="password"
+                    minLength={8}
+                    className="mt-2 w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-[#0F5B35]/15"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    required
+                  />
+                </div>
+              )}
+
               <div className="sm:col-span-2">
                 <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">
                   Plot / House Number
                 </label>
                 <select
-                  className="mt-2 w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-slate-500 shadow-sm outline-none focus:ring-2 focus:ring-slate-900/10"
+                  className="mt-2 w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-slate-600 shadow-sm outline-none focus:ring-2 focus:ring-[#0F5B35]/15"
                   value={unitId}
                   onChange={(event) => setUnitId(event.target.value)}
                   required
@@ -263,139 +247,123 @@ export default function AdminResidentsPage() {
                     .filter((unit) => unit.status === 'vacant')
                     .map((unit) => (
                       <option key={unit.id} value={unit.id}>
-                        {unit.unit_number} {unit.floor !== null ? `- Floor ${unit.floor}` : unit.plot_number !== null ? `- Plot ${unit.plot_number}` : ''}
+                        {unit.unit_number}
                       </option>
                     ))}
                 </select>
-                <p className="mt-2 text-xs text-slate-500">
-                  This selects an existing vacant plot/house that is already created under your building.
-                </p>
-              </div>
-            )}
-
-            <div className="sm:col-span-2">
-              <button className="inline-flex items-center justify-center rounded-xl bg-[#0F5B35] px-5 py-2.5 text-sm font-semibold text-[#F7F4E8] shadow-sm transition hover:-translate-y-0.5 over:bg-[#0B4B2C]">
-                {createMode === 'invite' ? `Invite ${roleTitle.slice(0, -1)}` : `Add ${roleTitle.slice(0, -1)}`}
-              </button>
-            </div>
-          </form>
-
-          {resetLink && (
-            <div className="mt-4 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
-              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Activation link</p>
-              <p className="mt-2 break-all font-medium text-slate-900">{resetLink}</p>
-            </div>
-          )}
-        </div>
-
-        <div className="rounded-2xl border border-[#E4DDCB] bg-[#FBF8EF]  shadow-sm backdrop-blur">
-          <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
-            <p className="text-sm font-semibold text-slate-900">{roleTitle} Directory</p>
-            <p className="text-sm text-slate-600">{loading ? 'Loading...' : `${users.length} total`}</p>
-          </div>
-
-          {users.length === 0 && !loading ? (
-            <div className="px-6 py-8 text-sm text-slate-600">No {roleTitle.toLowerCase()} found.</div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-sm">
-                <thead className="bg-[#F6F1E5] text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-                  <tr>
-                    <th className="px-6 py-3 text-left">Name</th>
-                    <th className="px-6 py-3 text-left">Email</th>
-                    <th className="px-6 py-3 text-left">Joined</th>
-                    <th className="px-6 py-3 text-left">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200/70">
-                  {users.map((user) => (
-                    <tr key={user.id} className="bg-[#FBF8EF] ">
-                      <td className="px-6 py-4 font-semibold text-slate-900">{user.full_name}</td>
-                      <td className="px-6 py-4 text-slate-700">{user.email}</td>
-                      <td className="px-6 py-4 text-slate-700">{new Date(user.created_at).toLocaleString()}</td>
-                      <td className="px-6 py-4">
-                        <div className="flex gap-2">
-                          <button
-                            type="button"
-                            onClick={() => startEdit(user)}
-                            className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => onDelete(user.id)}
-                            className="rounded-lg border border-rose-300 px-3 py-1.5 text-xs font-semibold text-rose-700"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-
-        {editingId && (
-          <div className="rounded-2xl border border-slate-200 bg-white/70 p-6 shadow-sm backdrop-blur">
-            <p className="text-sm font-semibold text-slate-900">Edit {roleTitle.slice(0, -1)}</p>
-            <form onSubmit={onUpdate} className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Full name</label>
-                <input
-                  className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none focus:ring-2 focus:ring-slate-900/10"
-                  value={editFullName}
-                  onChange={(event) => setEditFullName(event.target.value)}
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Email</label>
-                <input
-                  type="email"
-                  className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none focus:ring-2 focus:ring-slate-900/10"
-                  value={editEmail}
-                  onChange={(event) => setEditEmail(event.target.value)}
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">
-                  New password (optional)
-                </label>
-                <input
-                  type="password"
-                  minLength={8}
-                  className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none focus:ring-2 focus:ring-slate-900/10"
-                  value={editPassword}
-                  onChange={(event) => setEditPassword(event.target.value)}
-                />
-              </div>
-
-              <div className="sm:col-span-2">
-                <ImageUploadField label="Profile image" value={editProfileImage} onChange={setEditProfileImage} />
               </div>
 
               <div className="sm:col-span-2 flex gap-2">
-                <button className="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white">Save changes</button>
+                <button className="inline-flex items-center justify-center rounded-xl bg-[#0F5B35] px-5 py-2.5 text-sm font-semibold text-[#F7F4E8] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#0B4B2C]">
+                  {createMode === 'invite' ? 'Invite Resident' : 'Add Resident'}
+                </button>
                 <button
                   type="button"
-                  onClick={cancelEdit}
+                  onClick={() => setShowCreateForm(false)}
                   className="rounded-xl border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-700"
                 >
                   Cancel
                 </button>
               </div>
             </form>
+
           </div>
         )}
+
+        {resetLink && (
+          <div className="rounded-2xl border border-[#E4DDCB] bg-[#FBF8EF] px-4 py-4 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Activation link</p>
+            <p className="mt-2 break-all font-medium text-slate-900">{resetLink}</p>
+          </div>
+        )}
+
+        <div className="rounded-[28px] border border-[#E4DDCB] bg-[#FBF8EF] shadow-sm backdrop-blur">
+          <div className="flex items-center justify-between gap-4 border-b border-slate-200 px-6 py-4">
+            <div className="relative w-full max-w-xl">
+              <svg viewBox="0 0 24 24" className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#7A7F70]" fill="none" aria-hidden="true">
+                <path d="m21 21-4.35-4.35M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <input
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Search by name, flat or email"
+                className="w-full rounded-2xl border border-[#D8D0BC] bg-[#F6F2E8] py-3 pl-12 pr-4 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-[#0F5B35]/15"
+              />
+            </div>
+            <p className="shrink-0 text-sm font-semibold text-[#6A7264]">
+              {loading ? 'Loading...' : `${filteredUsers.length} of ${users.length}`}
+            </p>
+          </div>
+
+          {filteredUsers.length === 0 && !loading ? (
+            <div className="px-6 py-8 text-sm text-slate-600">No residents found.</div>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 p-4 lg:grid-cols-2 xl:grid-cols-3">
+              {filteredUsers.map((user) => (
+                <article
+                  key={user.id}
+                  className="rounded-3xl border border-[#D8D0BC] bg-[#FBF8EF] p-4 shadow-sm"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3">
+                      <div className="grid h-12 w-12 place-items-center rounded-full bg-[#004D2D] text-2xl font-semibold text-[#F7F4E8]">
+                        {getInitials(user.full_name)}
+                      </div>
+                      <div>
+                        <h3 className="text-3xl font-semibold tracking-tight text-[#173326]">{user.full_name}</h3>
+                        <p className="text-sm text-[#6A7264]">Since {getJoinedYear(user.created_at)}</p>
+                      </div>
+                    </div>
+                    <span className="rounded-full border border-[#BED8C6] bg-[#E5F1E9] px-3 py-1 text-xs font-semibold text-[#2F7A45]">
+                      Resident
+                    </span>
+                  </div>
+
+                  <div className="mt-4 space-y-2 text-[#4D5B53]">
+                    <p className="flex items-center gap-2 text-base">
+                      <svg viewBox="0 0 24 24" className="h-4 w-4 text-[#657469]" fill="none" aria-hidden="true">
+                        <path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1v-8.5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      {getUnitLabel(user)}
+                    </p>
+                    <p className="flex items-center gap-2 text-base">
+                      <svg viewBox="0 0 24 24" className="h-4 w-4 text-[#657469]" fill="none" aria-hidden="true">
+                        <path d="M22 16.92V21a1 1 0 0 1-1.09 1A19.86 19.86 0 0 1 3 5.09 1 1 0 0 1 4 4h4.09a1 1 0 0 1 1 .75l.7 2.8a1 1 0 0 1-.27.95L8.1 9.9a16 16 0 0 0 6 6l1.4-1.42a1 1 0 0 1 .95-.27l2.8.7a1 1 0 0 1 .75 1Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      --
+                    </p>
+                    <p className="flex items-center gap-2 text-base">
+                      <svg viewBox="0 0 24 24" className="h-4 w-4 text-[#657469]" fill="none" aria-hidden="true">
+                        <path d="M4 6h16v12H4z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="m22 7-10 7L2 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      {user.email}
+                    </p>
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.location.href = `mailto:${user.email}`;
+                      }}
+                      className="rounded-full border border-[#D8D0BC] bg-[#FBF8EF] px-4 py-2 text-sm font-semibold text-[#173326] hover:bg-[#F2EEE2]"
+                    >
+                      Message
+                    </button>
+                    <button
+                      type="button"
+                      className="rounded-full bg-[#0F5B35] px-4 py-2 text-sm font-semibold text-[#F7F4E8] hover:bg-[#0B4B2C]"
+                    >
+                      View
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </main>
   );
 }
-
