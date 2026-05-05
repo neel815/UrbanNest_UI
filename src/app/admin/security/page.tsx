@@ -9,6 +9,7 @@ type ManagedUser = {
   id: string;
   full_name: string;
   email: string;
+  phone_number?: string | null;
   role: string;
   profile_image?: string | null;
   created_at: string;
@@ -24,8 +25,8 @@ type ManagedUnit = {
 };
 
 export default function AdminSecurityPage() {
-  const roleTitle = 'Security';
-  const roleDescription = 'Manage security staff accounts with full CRUD actions from admin login.';
+  const roleTitle = 'Security Guards';
+  const roleDescription = 'Shift-by-shift clarity for the team keeping everyone safe.';
   const endpoint = API_ENDPOINTS.admin?.security || '/api/admin/security';
   const createMode = (process.env.NEXT_PUBLIC_ADMIN_CREATE_MODE as 'invite' | 'direct' | undefined) ?? 'invite';
   const inviteEndpoint = API_ENDPOINTS.admin.inviteSecurity;
@@ -37,9 +38,11 @@ export default function AdminSecurityPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [showCreateForm, setShowCreateForm] = useState(false);
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [profileImage, setProfileImage] = useState('');
   const [unitId, setUnitId] = useState('');
@@ -49,8 +52,20 @@ export default function AdminSecurityPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editFullName, setEditFullName] = useState('');
   const [editEmail, setEditEmail] = useState('');
+  const [editPhoneNumber, setEditPhoneNumber] = useState('');
   const [editPassword, setEditPassword] = useState('');
   const [editProfileImage, setEditProfileImage] = useState('');
+
+  function getInitials(name: string) {
+    return (
+      name
+        .split(' ')
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0]?.toUpperCase())
+        .join('') || 'G'
+    );
+  }
 
   const loadUnits = async () => {
     if (!showUnitSelect || !unitsEndpoint) return;
@@ -80,9 +95,11 @@ export default function AdminSecurityPage() {
   const resetCreateForm = () => {
     setFullName('');
     setEmail('');
+    setPhoneNumber('');
     setPassword('');
     setProfileImage('');
     setUnitId('');
+    setShowCreateForm(false);
   };
 
   const onCreate = async (event: FormEvent<HTMLFormElement>) => {
@@ -101,6 +118,7 @@ export default function AdminSecurityPage() {
         const data = await apiClient.post(inviteEndpoint, {
           full_name: fullName,
           email,
+          phone_number: phoneNumber || null,
           profile_image: profileImage || null,
           unit_id: showUnitSelect ? unitId : null,
         });
@@ -113,6 +131,7 @@ export default function AdminSecurityPage() {
         await apiClient.post(endpoint, {
           full_name: fullName,
           email,
+          phone_number: phoneNumber || null,
           password,
           profile_image: profileImage || null,
           unit_id: showUnitSelect ? unitId : null,
@@ -130,6 +149,7 @@ export default function AdminSecurityPage() {
     setEditingId(user.id);
     setEditFullName(user.full_name);
     setEditEmail(user.email);
+    setEditPhoneNumber(user.phone_number || '');
     setEditPassword('');
     setEditProfileImage(user.profile_image || '');
   };
@@ -138,6 +158,7 @@ export default function AdminSecurityPage() {
     setEditingId(null);
     setEditFullName('');
     setEditEmail('');
+    setEditPhoneNumber('');
     setEditPassword('');
     setEditProfileImage('');
   };
@@ -151,6 +172,7 @@ export default function AdminSecurityPage() {
       await apiClient.put(`${endpoint}/${editingId}`, {
         full_name: editFullName,
         email: editEmail,
+        phone_number: editPhoneNumber || null,
         password: editPassword || null,
         profile_image: editProfileImage || null,
       });
@@ -182,10 +204,22 @@ export default function AdminSecurityPage() {
   return (
     <main>
       <div className="flex flex-col gap-6">
+        {/* Header */}
         <div className="flex flex-col gap-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Management</p>
-          <h1 className="text-4xl font-serif tracking-tight text-slate-900 lg:text-6xl">{roleTitle}</h1>
-          <p className="max-w-2xl text-slate-600">{roleDescription}</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#76806F]">CONTROL CENTER</p>
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h1 className="text-4xl font-serif tracking-tight text-slate-900 lg:text-6xl">{roleTitle}</h1>
+              <p className="max-w-2xl text-slate-600">{roleDescription}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowCreateForm((current) => !current)}
+              className="rounded-2xl bg-[#0F5B35] px-5 py-3 text-sm font-semibold text-[#F7F4E8] shadow-[0_12px_28px_rgba(15,91,53,0.18)] transition hover:-translate-y-0.5 hover:bg-[#0B4B2C]"
+            >
+              + Onboard guard
+            </button>
+          </div>
         </div>
 
         {error && (
@@ -199,135 +233,172 @@ export default function AdminSecurityPage() {
           </div>
         )}
 
-        <div className="rounded-2xl border border-[#E4DDCB] bg-[#FBF8EF] p-6 shadow-sm backdrop-blur">
-          <p className="text-sm font-semibold text-slate-900">
-            {createMode === 'invite' ? `Invite ${roleTitle.slice(0, -1)}` : `Add ${roleTitle.slice(0, -1)}`}
-          </p>
-          <form onSubmit={onCreate} className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Full name</label>
-              <input
-                className="mt-2 w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8]  px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none focus:ring-2 focus:ring-slate-900/10"
-                value={fullName}
-                onChange={(event) => setFullName(event.target.value)}
-                required
-                placeholder='Enter Name'
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Email</label>
-              <input
-                type="email"
-                className="mt-2 w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8]  px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none focus:ring-2 focus:ring-slate-900/10"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                required
-                placeholder='Enter Email'
-              />
-            </div>
-
-            {createMode === 'direct' && (
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Password</label>
-                <input
-                  type="password"
-                  minLength={8}
-                  className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none focus:ring-2 focus:ring-slate-900/10"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  required
-                />
-              </div>
-            )}
-
-            {showCreateImageUpload && (
-              <div className="sm:col-span-2">
-                <ImageUploadField label="Profile image" value={profileImage} onChange={setProfileImage} />
-              </div>
-            )}
-
-            {showUnitSelect && (
-              <div className="sm:col-span-2">
-                <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">
-                  Plot / House Number
-                </label>
-                <select
-                  className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none focus:ring-2 focus:ring-slate-900/10"
-                  value={unitId}
-                  onChange={(event) => setUnitId(event.target.value)}
-                  required
-                >
-                  <option value="">Select a vacant plot / house</option>
-                  {units
-                    .filter((unit) => unit.status === 'vacant')
-                    .map((unit) => (
-                      <option key={unit.id} value={unit.id}>
-                        {unit.unit_number} {unit.floor !== null ? `- Floor ${unit.floor}` : unit.plot_number !== null ? `- Plot ${unit.plot_number}` : ''}
-                      </option>
-                    ))}
-                </select>
-                <p className="mt-2 text-xs text-slate-500">
-                  This selects an existing vacant plot/house that is already created under your building.
-                </p>
-              </div>
-            )}
-
-            <div className="sm:col-span-2">
-              <button className="inline-flex items-center justify-center rounded-xl bg-[#0F5B35] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#0B4B2C]">
-                {createMode === 'invite' ? `Invite ${roleTitle.slice(0, -1)}` : `Add ${roleTitle.slice(0, -1)}`}
-              </button>
-            </div>
-          </form>
-
-          {resetLink && (
-            <div className="mt-4 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
-              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Activation link</p>
-              <p className="mt-2 break-all font-medium text-slate-900">{resetLink}</p>
-            </div>
-          )}
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="rounded-3xl border border-[#D8D0BC] bg-[#FBF8EF] p-6 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#6A7264]">Total Guards</p>
+            <p className="mt-3 text-5xl font-semibold text-[#173326]">{users.length}</p>
+          </div>
+          <div className="rounded-3xl border border-[#D8D0BC] bg-[#FBF8EF] p-6 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#6A7264]">On Duty Now</p>
+            <p className="mt-3 text-5xl font-semibold text-[#173326]">6</p>
+          </div>
+          <div className="rounded-3xl border border-[#D8D0BC] bg-[#FBF8EF] p-6 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#6A7264]">Active Shifts</p>
+            <p className="mt-3 text-5xl font-semibold text-[#173326]">3</p>
+          </div>
         </div>
 
-        <div className="rounded-2xl border border-[#E4DDCB] bg-[#FBF8EF]  shadow-sm backdrop-blur">
-          <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
-            <p className="text-sm font-semibold text-slate-900">{roleTitle} Directory</p>
-            <p className="text-sm text-slate-600">{loading ? 'Loading...' : `${users.length} total`}</p>
+        {/* Create Form */}
+        {showCreateForm && (
+          <div className="rounded-2xl border border-[#E4DDCB] bg-[#FBF8EF] p-6 shadow-sm backdrop-blur">
+            <p className="text-sm font-semibold text-slate-900">
+              {createMode === 'invite' ? 'Invite Security Guard' : 'Add Security Guard'}
+            </p>
+            <form onSubmit={onCreate} className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Full name</label>
+                <input
+                  className="mt-2 w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-[#0F5B35]/15"
+                  value={fullName}
+                  onChange={(event) => setFullName(event.target.value)}
+                  required
+                  placeholder="Enter name"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Email</label>
+                <input
+                  type="email"
+                  className="mt-2 w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-[#0F5B35]/15"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  required
+                  placeholder="Enter email"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Phone Number</label>
+                <input
+                  type="tel"
+                  className="mt-2 w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-[#0F5B35]/15"
+                  value={phoneNumber}
+                  onChange={(event) => setPhoneNumber(event.target.value)}
+                  placeholder="Enter phone number"
+                />
+              </div>
+
+              {createMode === 'direct' && (
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Password</label>
+                  <input
+                    type="password"
+                    minLength={8}
+                    className="mt-2 w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-[#0F5B35]/15"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    required
+                  />
+                </div>
+              )}
+
+              <div className="sm:col-span-2 flex gap-2">
+                <button className="inline-flex items-center justify-center rounded-xl bg-[#0F5B35] px-5 py-2.5 text-sm font-semibold text-[#F7F4E8] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#0B4B2C]">
+                  {createMode === 'invite' ? 'Invite Guard' : 'Add Guard'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowCreateForm(false)}
+                  className="rounded-xl border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-700"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+
+            {resetLink && (
+              <div className="mt-4 rounded-2xl border border-[#E4DDCB] bg-[#FBF8EF] px-4 py-4 shadow-sm">
+                <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Activation link</p>
+                <p className="mt-2 break-all font-medium text-slate-900">{resetLink}</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Today's Roster */}
+        <div className="rounded-[28px] border border-[#E4DDCB] bg-[#FBF8EF] shadow-sm backdrop-blur">
+          <div className="border-b border-slate-200 px-6 py-4">
+            <p className="text-sm font-semibold text-slate-900">Today's Roster</p>
+            <p className="text-xs text-[#6A7264]">Tuesday · April 28, 2026</p>
           </div>
 
           {users.length === 0 && !loading ? (
-            <div className="px-6 py-8 text-sm text-slate-600">No {roleTitle.toLowerCase()} found.</div>
+            <div className="px-6 py-8 text-sm text-slate-600">No guards found.</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm">
-                <thead className="bg-[#F6F1E5] text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                <thead className="border-b border-slate-200 bg-[#FBF8EF]">
                   <tr>
-                    <th className="px-6 py-3 text-left">Name</th>
-                    <th className="px-6 py-3 text-left">Email</th>
-                    <th className="px-6 py-3 text-left">Joined</th>
-                    <th className="px-6 py-3 text-left">Actions</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.25em] text-[#6A7264]">GUARD</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.25em] text-[#6A7264]">POST</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.25em] text-[#6A7264]">SHIFT</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.25em] text-[#6A7264]">STATUS</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.25em] text-[#6A7264]">ACTIONS</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200/70">
-                  {users.map((user) => (
-                    <tr key={user.id} className="bg-[#FBF8EF]">
-                      <td className="px-6 py-4 font-semibold text-slate-900">{user.full_name}</td>
-                      <td className="px-6 py-4 text-slate-700">{user.email}</td>
-                      <td className="px-6 py-4 text-slate-700">{new Date(user.created_at).toLocaleString()}</td>
+                <tbody className="divide-y divide-slate-200/30">
+                  {users.map((user, index) => (
+                    <tr key={user.id} className="hover:bg-[#F6F2E8]">
                       <td className="px-6 py-4">
-                        <div className="flex gap-2">
+                        <div className="flex items-center gap-3">
+                          <div className="grid h-10 w-10 place-items-center rounded-full bg-[#004D2D] text-lg font-semibold text-[#F7F4E8]">
+                            {getInitials(user.full_name)}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-[#173326]">{user.full_name}</p>
+                            <p className="text-xs text-[#6A7264]">{user.phone_number || 'Not provided'}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-[#6A7264]">
+                        <div className="flex items-center gap-2">
+                          <svg viewBox="0 0 24 24" className="h-4 w-4 text-[#657469]" fill="none">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" stroke="currentColor" strokeWidth="2" />
+                          </svg>
+                          Main Gate
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-[#6A7264]">
+                        <div className="flex items-center gap-2">
+                          <svg viewBox="0 0 24 24" className="h-4 w-4 text-[#657469]" fill="none">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
+                            <path d="M12 6v6l4 2" stroke="currentColor" strokeWidth="2" />
+                          </svg>
+                          06:00 - 14:00
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="inline-flex items-center rounded-full border border-[#BED8C6] bg-[#E5F1E9] px-3 py-1 text-xs font-semibold text-[#2F7A45]">
+                          • On Duty
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex gap-3">
                           <button
                             type="button"
                             onClick={() => startEdit(user)}
-                            className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700"
+                            className="text-[#0F5B35] hover:text-[#0B4B2C] font-semibold text-sm"
                           >
-                            Edit
+                            Assign
                           </button>
                           <button
                             type="button"
                             onClick={() => onDelete(user.id)}
-                            className="rounded-lg border border-rose-300 px-3 py-1.5 text-xs font-semibold text-rose-700"
+                            className="text-rose-600 hover:text-rose-700 font-semibold text-sm"
                           >
-                            Delete
+                            Remove
                           </button>
                         </div>
                       </td>
@@ -339,9 +410,10 @@ export default function AdminSecurityPage() {
           )}
         </div>
 
+        {/* Edit Form */}
         {editingId && (
           <div className="rounded-2xl border border-slate-200 bg-white/70 p-6 shadow-sm backdrop-blur">
-            <p className="text-sm font-semibold text-slate-900">Edit {roleTitle.slice(0, -1)}</p>
+            <p className="text-sm font-semibold text-slate-900">Edit Guard</p>
             <form onSubmit={onUpdate} className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Full name</label>
@@ -365,6 +437,16 @@ export default function AdminSecurityPage() {
               </div>
 
               <div>
+                <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Phone Number</label>
+                <input
+                  type="tel"
+                  className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none focus:ring-2 focus:ring-slate-900/10"
+                  value={editPhoneNumber}
+                  onChange={(event) => setEditPhoneNumber(event.target.value)}
+                />
+              </div>
+
+              <div>
                 <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">
                   New password (optional)
                 </label>
@@ -375,10 +457,6 @@ export default function AdminSecurityPage() {
                   value={editPassword}
                   onChange={(event) => setEditPassword(event.target.value)}
                 />
-              </div>
-
-              <div className="sm:col-span-2">
-                <ImageUploadField label="Profile image" value={editProfileImage} onChange={setEditProfileImage} />
               </div>
 
               <div className="sm:col-span-2 flex gap-2">

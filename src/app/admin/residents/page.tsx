@@ -9,6 +9,7 @@ type ManagedUser = {
   id: string;
   full_name: string;
   email: string;
+    phone_number?: string | null;
   role: string;
   profile_image?: string | null;
   created_at: string;
@@ -57,6 +58,7 @@ export default function AdminResidentsPage() {
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
+    const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [unitId, setUnitId] = useState('');
   const [resetLink, setResetLink] = useState('');
@@ -118,6 +120,7 @@ export default function AdminResidentsPage() {
   const resetCreateForm = () => {
     setFullName('');
     setEmail('');
+      setPhoneNumber('');
     setPassword('');
     setUnitId('');
   };
@@ -137,12 +140,14 @@ export default function AdminResidentsPage() {
         const data = await apiClient.post(inviteEndpoint, {
           full_name: fullName,
           email,
+                    phone_number: phoneNumber || null,
           unit_id: unitId,
         });
         setMessage(data.message || 'Resident invited successfully.');
         setResetLink(data.reset_link || '');
       } else {
         await apiClient.post(endpoint, {
+                    phone_number: phoneNumber || null,
           full_name: fullName,
           email,
           password,
@@ -215,8 +220,19 @@ export default function AdminResidentsPage() {
                   onChange={(event) => setEmail(event.target.value)}
                   required
                   placeholder="Enter email"
-                />
-              </div>
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Phone Number</label>
+                  <input
+                    type="tel"
+                    className="mt-2 w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-[#0F5B35]/15"
+                    value={phoneNumber}
+                    onChange={(event) => setPhoneNumber(event.target.value)}
+                    placeholder="Enter phone number"
+                  />
+                </div>
 
               {createMode === 'direct' && (
                 <div>
@@ -330,7 +346,7 @@ export default function AdminResidentsPage() {
                       <svg viewBox="0 0 24 24" className="h-4 w-4 text-[#657469]" fill="none" aria-hidden="true">
                         <path d="M22 16.92V21a1 1 0 0 1-1.09 1A19.86 19.86 0 0 1 3 5.09 1 1 0 0 1 4 4h4.09a1 1 0 0 1 1 .75l.7 2.8a1 1 0 0 1-.27.95L8.1 9.9a16 16 0 0 0 6 6l1.4-1.42a1 1 0 0 1 .95-.27l2.8.7a1 1 0 0 1 .75 1Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
-                      --
+                      {user.phone_number || 'Not provided'}
                     </p>
                     <p className="flex items-center gap-2 text-base">
                       <svg viewBox="0 0 24 24" className="h-4 w-4 text-[#657469]" fill="none" aria-hidden="true">

@@ -1,182 +1,311 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { apiClient, getApiErrorMessage } from '@/utils/api';
 import { API_ENDPOINTS } from '@/utils/constants';
 
-interface MaintenanceRequest {
+type MaintenanceStatus = 'open' | 'in_progress' | 'resolved' | 'cancelled';
+
+type MaintenanceRequest = {
   id: string;
   title: string;
   description: string;
   category: string;
   priority: 'low' | 'medium' | 'high';
-  status: 'open' | 'in_progress' | 'resolved' | 'cancelled';
+  status: MaintenanceStatus;
+  photo_url?: string | null;
+  resolution_note?: string | null;
+  resolved_at?: string | null;
   created_at: string;
   updated_at: string;
-}
+};
+
+type RequestFormState = {
+  title: string;
+  description: string;
+  category: string;
+  priority: 'low' | 'medium' | 'high';
+  photo_url: string;
+};
+
+const categoryLabelMap: Record<string, string> = {
+  plumbing: 'Plumbing',
+  electrical: 'Electrical',
+  carpentry: 'Carpentry',
+  cleaning: 'Cleaning',
+  internet: 'Internet',
+  other: 'Other',
+};
 
 export default function MaintenancePage() {
   const [requests, setRequests] = useState<MaintenanceRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({
+  const [success, setSuccess] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [formData, setFormData] = useState<RequestFormState>({
     title: '',
     description: '',
     category: 'plumbing',
-    priority: 'medium' as 'low' | 'medium' | 'high'
+    priority: 'medium',
+    photo_url: '',
   });
 
-  useEffect(() => {
-    const loadRequests = async () => {
-      try {
-        const data = await apiClient.get(API_ENDPOINTS.resident.maintenance);
-        setRequests(data);
-      } catch (err) {
-        setError(getApiErrorMessage(err));
-      } finally {
-        setLoading(false);
-      }
-    };
+  const loadRequests = async () => {
+    try {
+      const data = await apiClient.get(API_ENDPOINTS.resident.maintenance);
+      setRequests(data);
+    } catch (err) {
+      setError(getApiErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     loadRequests();
   }, []);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'open':
-        return 'from-amber-500 to-orange-500';
-      case 'in_progress':
-        return 'from-blue-600 to-indigo-600';
-      case 'resolved':
-        return 'from-emerald-500 to-teal-500';
-      case 'cancelled':
-        return 'from-rose-500 to-pink-500';
-      default:
-        return 'from-slate-500 to-slate-600';
-    }
-  };
+  const sortedRequests = useMemo(
+    () => [...requests].sort((left, right) => new Date(right.created_at).getTime() - new Date(left.created_at).getTime()),
+    [requests],
+  );
 
-  const getPriorityColor = (priority: string) => {
+  const getPriorityStyle = (priority: MaintenanceRequest['priority']) => {
     switch (priority) {
       case 'high':
-        return 'from-rose-500 to-pink-500';
+        return 'bg-rose-100 text-rose-700 ring-rose-200';
       case 'medium':
-        return 'from-amber-500 to-orange-500';
+        return 'bg-amber-100 text-amber-700 ring-amber-200';
       case 'low':
-        return 'from-emerald-500 to-teal-500';
+        return 'bg-emerald-100 text-emerald-700 ring-emerald-200';
       default:
-        return 'from-slate-500 to-slate-600';
+        return 'bg-slate-100 text-slate-700 ring-slate-200';
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const newRequest = {
-      title: formData.title,
-      description: formData.description,
-      category: formData.category,
-      priority: formData.priority
-    };
+  const getStatusStyle = (status: MaintenanceStatus) => {
+    switch (status) {
+      case 'open':
+        return 'bg-amber-100 text-amber-800 ring-amber-200';
+      case 'in_progress':
+        return 'bg-blue-100 text-blue-800 ring-blue-200';
+      case 'resolved':
+        return 'bg-emerald-100 text-emerald-800 ring-emerald-200';
+      case 'cancelled':
+        return 'bg-slate-100 text-slate-700 ring-slate-200';
+      default:
+        return 'bg-slate-100 text-slate-700 ring-slate-200';
+    }
+  };
 
-    const submitRequest = async () => {
-      try {
-        const data = await apiClient.post(API_ENDPOINTS.resident.maintenance, newRequest);
-        setRequests([data, ...requests]);
-        setFormData({ title: '', description: '', category: 'plumbing', priority: 'medium' });
-        setShowForm(false);
-      } catch (err) {
-        setError(getApiErrorMessage(err));
-      }
-    };
+  const handleCreateRequest = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setSubmitting(true);
+    setError('');
+    setSuccess('');
 
-    submitRequest();
+    try {
+      const payload = {
+        title: formData.title,
+        description: formData.description,
+        category: formData.category,
+        priority: formData.priority,
+        photo_url: formData.photo_url || null,
+      };
+      await apiClient.post(API_ENDPOINTS.resident.maintenance, payload);
+      setSuccess('Maintenance request submitted successfully.');
+      setFormData({ title: '', description: '', category: 'plumbing', priority: 'medium', photo_url: '' });
+      setShowModal(false);
+      await loadRequests();
+    } catch (err) {
+      setError(getApiErrorMessage(err));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const cancelRequest = async (requestId: string) => {
+    const confirmed = window.confirm('Are you sure you want to cancel this request?');
+    if (!confirmed) return;
+
+    setError('');
+    setSuccess('');
+
+    try {
+      await apiClient.patch(API_ENDPOINTS.resident.maintenanceCancel(requestId), {});
+      setSuccess('Maintenance request cancelled.');
+      await loadRequests();
+    } catch (err) {
+      setError(getApiErrorMessage(err));
+    }
   };
 
   return (
-    <main>
-      <div className="flex flex-col gap-6">
-        <div className="flex flex-col gap-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Services</p>
-          <div className="flex flex-wrap items-end justify-between gap-3">
-            <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Maintenance Requests</h1>
-            <button
-              onClick={() => setShowForm(!showForm)}
-              className="rounded-full bg-[#0F5B35] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 over:bg-[#0B4B2C]"
-            >
-              New Request
-            </button>
+    <main className="space-y-8">
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Services</p>
+            <h1 className="mt-1 text-4xl font-bold tracking-tight text-slate-900">Maintenance Requests</h1>
+            <p className="mt-2 max-w-2xl text-slate-600">Track repair and complaint tickets raised for your unit.</p>
           </div>
-          <p className="max-w-2xl text-slate-600">
-            Submit and track maintenance requests for your unit.
-          </p>
+          <button
+            type="button"
+            onClick={() => setShowModal(true)}
+            className="inline-flex items-center justify-center rounded-full bg-[#0F5B35] px-5 py-3 text-sm font-semibold text-[#F7F4E8] transition hover:-translate-y-0.5 hover:bg-[#0B4B2C]"
+          >
+            New Request
+          </button>
         </div>
 
-        {error && (
-          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
-            {error}
-          </div>
-        )}
+        {error && <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}
+        {success && <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{success}</div>}
+      </div>
 
-        {showForm && (
-          <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-[#FBF8EF] p-6 shadow-sm backdrop-blur">
-            <div className="absolute inset-x-0 top-0 h-1.5 bg-[#0F5B35]" />
-            <h2 className="text-lg font-semibold text-slate-900 mb-4">Submit New Request</h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
+      {loading ? (
+        <div className="space-y-4">
+          {[1, 2, 3].map((item) => (
+            <div key={item} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="space-y-3">
+                <div className="h-5 w-48 animate-pulse rounded-full bg-slate-100" />
+                <div className="h-4 w-full animate-pulse rounded-full bg-slate-100" />
+                <div className="h-4 w-2/3 animate-pulse rounded-full bg-slate-100" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : sortedRequests.length === 0 ? (
+        <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center shadow-sm">
+          <p className="text-lg font-semibold text-slate-900">No maintenance requests yet</p>
+          <p className="mt-2 text-sm text-slate-600">Use New Request to submit a repair or complaint ticket.</p>
+          <button
+            type="button"
+            onClick={() => setShowModal(true)}
+            className="mt-5 rounded-full bg-[#0F5B35] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#0B4B2C]"
+          >
+            Submit Your First Request
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {sortedRequests.map((request) => (
+            <article key={request.id} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200">
+                      {categoryLabelMap[request.category] || request.category}
+                    </span>
+                    <span className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${getPriorityStyle(request.priority)}`}>
+                      {request.priority.charAt(0).toUpperCase() + request.priority.slice(1)}
+                    </span>
+                    <span className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${getStatusStyle(request.status)}`}>
+                      {request.status === 'in_progress'
+                        ? 'In Progress'
+                        : request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+                    </span>
+                  </div>
+                  <h2 className="mt-4 text-xl font-semibold text-slate-900">{request.title}</h2>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">{request.description}</p>
+                  <div className="mt-4 flex flex-wrap gap-3 text-sm text-slate-500">
+                    <span>Created {new Date(request.created_at).toLocaleDateString()}</span>
+                    <span>Updated {new Date(request.updated_at).toLocaleDateString()}</span>
+                  </div>
+                  {request.status === 'resolved' && request.resolution_note && (
+                    <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">Resolution Note</p>
+                      <p className="mt-2 text-sm text-emerald-900">{request.resolution_note}</p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-3 lg:items-end">
+                  {request.status === 'open' && (
+                    <button
+                      type="button"
+                      onClick={() => cancelRequest(request.id)}
+                      className="rounded-full border border-rose-300 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-50"
+                    >
+                      Cancel
+                    </button>
+                  )}
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+
+      {showModal && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/50 px-4 py-8 backdrop-blur-sm">
+          <div className="w-full max-w-2xl rounded-3xl bg-white p-6 shadow-2xl">
+            <div className="flex items-start justify-between gap-4">
               <div>
-                <label className="block text-sm font-semibold text-slate-500 mb-1">
-                  Title
-                </label>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">New Request</p>
+                <h2 className="mt-2 text-2xl font-semibold text-slate-900">Submit maintenance request</h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowModal(false)}
+                className="rounded-full px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100"
+              >
+                Close
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateRequest} className="mt-6 space-y-4">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700">Title</label>
                 <input
-                  type="text"
                   required
+                  minLength={2}
+                  maxLength={150}
                   value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="bg-[#F6F2E8] w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500"
-                  placeholder="Brief description of the issue"
+                  onChange={(event) => setFormData({ ...formData, title: event.target.value })}
+                  className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm focus:border-slate-400 focus:outline-none"
+                  placeholder="Short description of the issue"
                 />
               </div>
+
               <div>
-                <label className="block text-sm font-semibold text-slate-500 mb-1">
-                  Description
-                </label>
+                <label className="mb-1 block text-sm font-medium text-slate-700">Description</label>
                 <textarea
                   required
+                  minLength={5}
+                  rows={5}
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="bg-[#F6F2E8] w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500"
-                  rows={3}
-                  placeholder="Detailed description of the maintenance issue"
+                  onChange={(event) => setFormData({ ...formData, description: event.target.value })}
+                  className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm focus:border-slate-400 focus:outline-none"
+                  placeholder="Describe the issue in detail"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+
+              <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-500 mb-1">
-                    Category
-                  </label>
+                  <label className="mb-1 block text-sm font-medium text-slate-700">Category</label>
                   <select
+                    required
                     value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="bg-[#F6F2E8] w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500"
+                    onChange={(event) => setFormData({ ...formData, category: event.target.value })}
+                    className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm focus:border-slate-400 focus:outline-none"
                   >
                     <option value="plumbing">Plumbing</option>
                     <option value="electrical">Electrical</option>
-                    <option value="hvac">HVAC</option>
                     <option value="carpentry">Carpentry</option>
-                    <option value="painting">Painting</option>
+                    <option value="cleaning">Cleaning</option>
+                    <option value="internet">Internet</option>
                     <option value="other">Other</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-slate-500 mb-1">
-                    Priority
-                  </label>
+                  <label className="mb-1 block text-sm font-medium text-slate-700">Priority</label>
                   <select
                     value={formData.priority}
-                    onChange={(e) => setFormData({ ...formData, priority: e.target.value as 'low' | 'medium' | 'high' })}
-                    className="bg-[#F6F2E8] w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500"
+                    onChange={(event) => setFormData({ ...formData, priority: event.target.value as 'low' | 'medium' | 'high' })}
+                    className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm focus:border-slate-400 focus:outline-none"
                   >
                     <option value="low">Low</option>
                     <option value="medium">Medium</option>
@@ -184,117 +313,37 @@ export default function MaintenancePage() {
                   </select>
                 </div>
               </div>
-              <div className="flex gap-2">
-                <button
-                  type="submit"
-                  className="rounded-full bg-[#0F5B35] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 over:bg-[#0B4B2C]"
-                >
-                  Submit Request
-                </button>
+
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700">Photo URL</label>
+                <input
+                  value={formData.photo_url}
+                  onChange={(event) => setFormData({ ...formData, photo_url: event.target.value })}
+                  className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm focus:border-slate-400 focus:outline-none"
+                  placeholder="Optional image URL"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-2">
                 <button
                   type="button"
-                  onClick={() => setShowForm(false)}
-                  className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50 transition"
+                  onClick={() => setShowModal(false)}
+                  className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
                 >
                   Cancel
                 </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="rounded-full bg-[#0F5B35] px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {submitting ? 'Submitting...' : 'Submit Request'}
+                </button>
               </div>
             </form>
-            <div className="pointer-events-none absolute -right-16 -top-16 h-32 w-32 rounded-full bg-slate-900/5 blur-2xl transition group-hover:bg-slate-900/10" />
           </div>
-        )}
-
-        {loading ? (
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="rounded-2xl border border-slate-200 bg-[#FBF8EF] p-6 shadow-sm">
-                <div className="flex items-start gap-4">
-                  <div className="h-10 w-10 animate-pulse rounded-xl bg-slate-200" />
-                  <div className="flex-1 space-y-3">
-                    <div className="h-6 w-3/4 animate-pulse rounded bg-slate-200" />
-                    <div className="h-4 w-full animate-pulse rounded bg-slate-200" />
-                    <div className="h-4 w-2/3 animate-pulse rounded bg-slate-200" />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : requests.length > 0 ? (
-          <div className="space-y-4">
-            {requests.map((request) => (
-              <div
-                key={request.id}
-                className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-[#FBF8EF] p-6 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md"
-              >
-                <div className="absolute inset-x-0 top-0 h-1.5 bg-[#0F5B35]" />
-                <div className="flex items-start gap-4">
-                  <div className={`grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br ${getStatusColor(request.status || 'open')} text-white shadow-sm`}>
-                    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
-                      <path
-                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <h3 className="text-lg font-semibold text-slate-900">{request.title}</h3>
-                        <p className="mt-2 text-slate-600">{request.description}</p>
-                      </div>
-                      <div className="flex flex-col gap-2">
-                        <span
-                          className={`rounded-full px-2 py-1 text-xs font-medium border bg-[#FBF8EF] backdrop-blur`}
-                        >
-                          {request.status?.replace('_', ' ').toUpperCase() || 'PENDING'}
-                        </span>
-                        <span
-                          className={`rounded-full px-2 py-1 text-xs font-medium border bg-[#FBF8EF] backdrop-blur`}
-                        >
-                          {request.priority?.toUpperCase() || 'MEDIUM'}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="mt-4 flex items-center gap-4 text-sm text-slate-500">
-                      <span className="capitalize">Category: {request.category}</span>
-                      <span>•</span>
-                      <span>Created: {new Date(request.created_at).toLocaleDateString()}</span>
-                      <span>•</span>
-                      <span>Updated: {new Date(request.updated_at).toLocaleDateString()}</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="pointer-events-none absolute -right-16 -top-16 h-32 w-32 rounded-full bg-slate-900/5 blur-2xl transition group-hover:bg-slate-900/10" />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="rounded-2xl border border-slate-200 bg-[#FBF8EF] p-12 text-center shadow-sm backdrop-blur">
-            <div className="grid h-16 w-16 place-items-center rounded-2xl bg-slate-100 mx-auto mb-4">
-              <svg viewBox="0 0 24 24" className="h-8 w-8 text-slate-400" fill="none" aria-hidden="true">
-                <path
-                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
-            <p className="text-slate-600 font-medium">No maintenance requests found</p>
-            <p className="mt-2 text-sm text-slate-500">Submit your first maintenance request to get started.</p>
-            <button
-              onClick={() => setShowForm(true)}
-              className="mt-4 rounded-full bg-[#0F5B35] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 over:bg-[#0B4B2C]"
-            >
-              Submit Your First Request
-            </button>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
     </main>
   );
 }
