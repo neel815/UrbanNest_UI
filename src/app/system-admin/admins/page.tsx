@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { DeleteConfirmationDialog } from '@/components/DeleteConfirmationDialog';
 import { apiClient, getApiErrorMessage } from '@/utils/api';
 import { API_ENDPOINTS } from '@/utils/constants';
 
@@ -73,6 +74,9 @@ export default function AdminListPage() {
   const [buildingLoading, setBuildingLoading] = useState(true);
   const [inviting, setInviting] = useState(false);
   const [deletingId, setDeletingId] = useState('');
+  const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [adminToDelete, setAdminToDelete] = useState<AdminItem | null>(null);
 
   const loadAdmins = async () => {
     const data = await apiClient.get(API_ENDPOINTS.systemAdmin.admins);
@@ -123,23 +127,31 @@ export default function AdminListPage() {
     }
   };
 
-  const onDeleteAdmin = async (admin: AdminItem) => {
-    const confirmed = typeof window !== 'undefined' && window.confirm(`Delete ${admin.full_name}? This cannot be undone.`);
-    if (!confirmed) return;
-
+  const onDeleteAdmin = async () => {
+    if (!adminToDelete) return;
+    
     setError('');
     setMessage('');
-    setDeletingId(admin.id);
+    setDeletingId(adminToDelete.id);
 
     try {
-      const data = await apiClient.delete(API_ENDPOINTS.systemAdmin.deleteAdmin(admin.id));
-      setMessage(data.message || `${admin.full_name} deleted`);
+      const data = await apiClient.delete(API_ENDPOINTS.systemAdmin.deleteAdmin(adminToDelete.id));
+      setMessage(data.message || `${adminToDelete.full_name} deleted`);
+      setShowDeleteDialog(false);
+      setAdminToDelete(null);
       await loadAdmins();
     } catch (err) {
       setError(getApiErrorMessage(err));
+      setShowDeleteDialog(false);
+      setAdminToDelete(null);
     } finally {
       setDeletingId('');
     }
+  };
+
+  const onDeleteClick = (admin: AdminItem) => {
+    setAdminToDelete(admin);
+    setShowDeleteDialog(true);
   };
 
   const selectedBuilding = buildings.find((building) => building.id === buildingId);
@@ -419,34 +431,47 @@ export default function AdminListPage() {
                         <td className="px-5 py-5 text-[16px] text-[#4A5752]">{formatJoinedAt(admin.created_at)}</td>
 
                         <td className="px-7 py-5">
-                          <div className="flex items-center justify-end gap-6 text-[15px] font-semibold">
-                            <button
-                              type="button"
-                              onClick={() => setMessage(`Suspend is not available yet for ${admin.full_name}.`)}
-                              className="text-[#495853] transition hover:text-[#20332A]"
-                            >
-                              Suspend
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => onDeleteAdmin(admin)}
-                              disabled={deletingId === admin.id}
-                              className="text-[#CC4343] transition hover:text-[#A63434] disabled:cursor-not-allowed disabled:opacity-60"
-                            >
-                              {deletingId === admin.id ? 'Deleting...' : 'Delete'}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setMessage(`${admin.full_name} is assigned to ${admin.building_name || 'an unassigned society'}.`)}
-                              className="text-[#66716A] transition hover:text-[#1D3027]"
-                              aria-label={`More actions for ${admin.full_name}`}
-                            >
-                              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden="true">
-                                <circle cx="12" cy="5" r="1.8" />
-                                <circle cx="12" cy="12" r="1.8" />
-                                <circle cx="12" cy="19" r="1.8" />
-                              </svg>
-                            </button>
+                          <div className="flex items-center justify-end">
+                            <div className="relative inline-flex">
+                              <button
+                                type="button"
+                                onClick={() => setOpenActionMenuId((prev) => (prev === admin.id ? null : admin.id))}
+                                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-[#66716A] transition hover:border-slate-300 hover:text-[#1D3027]"
+                                aria-label={`Open actions menu for ${admin.full_name}`}
+                              >
+                                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden="true">
+                                  <circle cx="12" cy="5" r="1.8" />
+                                  <circle cx="12" cy="12" r="1.8" />
+                                  <circle cx="12" cy="19" r="1.8" />
+                                </svg>
+                              </button>
+
+                              {openActionMenuId === admin.id && (
+                                <div className="absolute right-0 top-full z-10 mt-2 w-[160px] overflow-hidden rounded-2xl border border-slate-200 bg-white text-left shadow-xl">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setMessage(`Suspend is not available yet for ${admin.full_name}.`);
+                                      setOpenActionMenuId(null);
+                                    }}
+                                    className="w-full px-4 py-3 text-left text-[15px] text-[#495853] transition hover:bg-slate-50 hover:text-[#20332A]"
+                                  >
+                                    Suspend
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      onDeleteClick(admin);
+                                      setOpenActionMenuId(null);
+                                    }}
+                                    disabled={deletingId === admin.id}
+                                    className="w-full px-4 py-3 text-left text-[15px] text-[#CC4343] transition hover:bg-slate-50 hover:text-[#A63434] disabled:cursor-not-allowed disabled:opacity-60"
+                                  >
+                                    {deletingId === admin.id ? 'Deleting...' : 'Delete'}
+                                  </button>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </td>
                       </tr>
@@ -486,6 +511,18 @@ export default function AdminListPage() {
           </div>
         </div>
       )}
+
+      <DeleteConfirmationDialog
+        isOpen={showDeleteDialog}
+        title="Delete Admin?"
+        message={`${adminToDelete?.full_name} will be permanently deleted. This action cannot be undone.`}
+        onConfirm={onDeleteAdmin}
+        onCancel={() => {
+          setShowDeleteDialog(false);
+          setAdminToDelete(null);
+        }}
+        isDangerous
+      />
     </main>
   );
 }

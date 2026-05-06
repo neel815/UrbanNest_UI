@@ -35,6 +35,8 @@ export const API_ENDPOINTS = {
     events: '/api/admin/events',
     deleteEvent: (id: string) => `/api/admin/events/${id}`,
     payments: '/api/admin/payments',
+    triggerOverdueCheck: '/api/admin/payments/trigger-overdue-check',
+    adminDetail: (id: string) => `/api/admin/residents/detail/${id}`,
     paymentsBulk: '/api/admin/payments/bulk',
     paymentsIndividual: '/api/admin/payments/individual',
     paymentsMarkPaid: (id: string) => `/api/admin/payments/${id}/mark-paid`,
@@ -42,6 +44,7 @@ export const API_ENDPOINTS = {
   },
   resident: {
     profile: '/api/resident/profile',
+    residentProfileUpdate: '/api/resident/profile',
     dashboardStats: '/api/resident/dashboard-stats',
     announcements: '/api/resident/announcements',
     maintenance: '/api/resident/maintenance',

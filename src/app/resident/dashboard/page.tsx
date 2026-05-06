@@ -213,7 +213,7 @@ export default function ResidentDashboardPage() {
 
   const todayItems: TodayItem[] = [
     ...visitors.slice(0, 2).map((visitor) => ({
-      time: visitor.check_in_time || formatDateLabel(visitor.expected_date),
+      time: formatDateLabel(visitor.check_in_time || visitor.expected_date),
       title: visitor.purpose ? `${visitor.visitor_name} · ${visitor.purpose}` : visitor.visitor_name,
       level: visitor.status === 'checked_in' ? ('success' as const) : ('info' as const),
     })),
@@ -282,7 +282,7 @@ export default function ResidentDashboardPage() {
             </div>
 
             <Link
-              href="/resident/community"
+              href="/resident/profile"
               className="inline-flex items-center justify-center gap-3 rounded-full bg-white/10 px-5 py-3 text-sm font-semibold text-[#F7F4E8] ring-1 ring-white/10 transition hover:bg-white/16"
             >
               View community
@@ -339,8 +339,8 @@ export default function ResidentDashboardPage() {
             ) : todayItems.length > 0 ? (
               todayItems.map((item) => (
                 <div key={`${item.time}-${item.title}`} className="flex items-center gap-4 px-6 py-5">
-                  <div className="w-20 shrink-0 text-sm font-medium text-[#6A7264]">{item.time}</div>
-                  <div className="min-w-0 flex-1 text-[15px] text-[#173326]">{item.title}</div>
+                  <div className="w-32 min-w-[128px] shrink-0 break-words text-sm font-medium text-[#6A7264]">{item.time}</div>
+                  <div className="min-w-0 flex-1 break-words text-[15px] text-[#173326]">{item.title}</div>
                   <span
                     className={`inline-flex shrink-0 items-center rounded-full px-3 py-1 text-xs font-semibold capitalize ${
                       item.level === 'success'

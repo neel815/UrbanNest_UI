@@ -2,6 +2,7 @@
 
 import { Dispatch, FormEvent, SetStateAction, useEffect, useMemo, useState } from 'react';
 
+import { DeleteConfirmationDialog } from '@/components/DeleteConfirmationDialog';
 import { adminUnitApi, apiClient, getApiErrorMessage } from '@/utils/api';
 
 type UnitRow = {
@@ -151,6 +152,8 @@ export default function AdminUnitsPage() {
   const [editingUnit, setEditingUnit] = useState<UnitRow | null>(null);
   const [form, setForm] = useState<UnitFormState>(emptyForm);
   const [buildingType, setBuildingType] = useState<string | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deletingUnitId, setDeletingUnitId] = useState<string>('');
 
   const loadUnits = async () => {
     const data = await apiClient.get(adminUnitApi.list);
@@ -247,17 +250,23 @@ export default function AdminUnitsPage() {
     }
   };
 
-  const handleDelete = async (unitId: string) => {
-    const confirmed = window.confirm('Delete this unit?');
-    if (!confirmed) return;
+  const handleDeleteClick = (unitId: string) => {
+    setDeletingUnitId(unitId);
+    setShowDeleteDialog(true);
+  };
+
+  const handleDeleteConfirm = async () => {
     setError('');
     setMessage('');
     try {
-      await apiClient.delete(adminUnitApi.delete(unitId));
+      await apiClient.delete(adminUnitApi.delete(deletingUnitId));
       setMessage('Unit deleted successfully.');
+      setShowDeleteDialog(false);
+      setDeletingUnitId('');
       await loadUnits();
     } catch (err) {
       setError(getApiErrorMessage(err));
+      setShowDeleteDialog(false);
     }
   };
 
@@ -342,7 +351,7 @@ export default function AdminUnitsPage() {
                         </button>
                         <button
                           type="button"
-                          onClick={() => handleDelete(unit.id)}
+                          onClick={() => handleDeleteClick(unit.id)}
                           className="rounded-full border border-rose-200 bg-rose-50 px-4 py-2 text-xs font-semibold text-rose-700"
                         >
                           Delete
@@ -380,6 +389,18 @@ export default function AdminUnitsPage() {
           buildingType={buildingType}
         />
       )}
+
+      <DeleteConfirmationDialog
+        isOpen={showDeleteDialog}
+        title="Delete Unit?"
+        message="This unit will be permanently deleted. This action cannot be undone."
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => {
+          setShowDeleteDialog(false);
+          setDeletingUnitId('');
+        }}
+        isDangerous
+      />
     </main>
   );
 }

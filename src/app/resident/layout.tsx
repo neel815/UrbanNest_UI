@@ -88,7 +88,7 @@ export default function ResidentLayout({ children }: { children: React.ReactNode
       { href: '/resident/maintenance', label: 'Maintenance', icon: 'maintenance' },
       { href: '/resident/announcements', label: 'Announcements', icon: 'announcements' },
       { href: '/resident/payments', label: 'Dues', icon: 'dues' },
-      { href: '/resident/community', label: 'Profile', icon: 'profile' },
+      { href: '/resident/profile', label: 'Profile', icon: 'profile' },
     ] satisfies NavItem[],
     [],
   );

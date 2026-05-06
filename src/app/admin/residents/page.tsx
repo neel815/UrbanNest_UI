@@ -24,6 +24,30 @@ type ManagedUnit = {
   resident_name?: string | null;
 };
 
+type ResidentDetail = {
+  id: string;
+  user_id: string;
+  full_name: string;
+  email: string;
+  profile_image?: string | null;
+  unit_number?: string | null;
+  floor?: number | null;
+  plot_number?: string | null;
+  building_name?: string | null;
+  move_in_date?: string | null;
+  lease_end_date?: string | null;
+  emergency_contact_name?: string | null;
+  emergency_contact_phone?: string | null;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  total_maintenance_requests: number;
+  open_maintenance_requests: number;
+  total_payments: number;
+  pending_payments: number;
+  total_visitors: number;
+};
+
 const createMode = (process.env.NEXT_PUBLIC_ADMIN_CREATE_MODE as 'invite' | 'direct' | undefined) ?? 'invite';
 
 function getInitials(name: string) {
@@ -43,6 +67,13 @@ function getJoinedYear(createdAt: string) {
   return date.getFullYear();
 }
 
+function formatDate(value?: string | null) {
+  if (!value) return 'Not set';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Not set';
+  return date.toLocaleDateString();
+}
+
 export default function AdminResidentsPage() {
   const endpoint = API_ENDPOINTS.admin.residents;
   const inviteEndpoint = API_ENDPOINTS.admin.inviteResident;
@@ -55,6 +86,11 @@ export default function AdminResidentsPage() {
   const [message, setMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [selectedResidentId, setSelectedResidentId] = useState('');
+  const [selectedResident, setSelectedResident] = useState<ResidentDetail | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState('');
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -72,6 +108,19 @@ export default function AdminResidentsPage() {
     setUsers(data);
   }, [endpoint]);
 
+  const loadResidentDetail = useCallback(async (residentId: string) => {
+    setDetailLoading(true);
+    setDetailError('');
+    try {
+      const data = await apiClient.get(API_ENDPOINTS.admin.adminDetail(residentId));
+      setSelectedResident(data);
+    } catch (err) {
+      setDetailError(getApiErrorMessage(err));
+    } finally {
+      setDetailLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     const initialize = async () => {
       try {
@@ -85,6 +134,11 @@ export default function AdminResidentsPage() {
 
     void initialize();
   }, [loadUnits, loadUsers]);
+
+  useEffect(() => {
+    if (!isDetailOpen || !selectedResidentId) return;
+    void loadResidentDetail(selectedResidentId);
+  }, [isDetailOpen, loadResidentDetail, selectedResidentId]);
 
   const residentUnitMap = useMemo(() => {
     const map = new Map<string, ManagedUnit>();
@@ -114,6 +168,18 @@ export default function AdminResidentsPage() {
   const getUnitLabel = (user: ManagedUser) => {
     const unit = residentUnitMap.get(user.full_name.trim().toLowerCase());
     return unit?.unit_number ?? 'Unit not assigned';
+  };
+
+  const openResidentDetail = (residentId: string) => {
+    setSelectedResidentId(residentId);
+    setIsDetailOpen(true);
+  };
+
+  const closeResidentDetail = () => {
+    setIsDetailOpen(false);
+    setSelectedResidentId('');
+    setSelectedResident(null);
+    setDetailError('');
   };
 
   const resetCreateForm = () => {
@@ -359,6 +425,7 @@ export default function AdminResidentsPage() {
                     </button>
                     <button
                       type="button"
+                      onClick={() => openResidentDetail(user.id)}
                       className="rounded-full bg-[#0F5B35] px-4 py-2 text-sm font-semibold text-[#F7F4E8] hover:bg-[#0B4B2C]"
                     >
                       View
@@ -370,6 +437,139 @@ export default function AdminResidentsPage() {
           )}
         </div>
       </div>
+
+      {isDetailOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-900/45">
+          <div className="absolute right-0 top-0 flex h-full w-full max-w-2xl flex-col overflow-hidden bg-[#FBF8EF] shadow-2xl">
+            <div className="flex items-start justify-between gap-4 border-b border-[#E4DDCB] px-6 py-5">
+              {detailLoading ? (
+                <div className="space-y-3">
+                  <div className="h-16 w-16 animate-pulse rounded-full bg-[#E9E2CF]" />
+                  <div className="h-6 w-48 animate-pulse rounded-full bg-[#E9E2CF]" />
+                  <div className="h-4 w-40 animate-pulse rounded-full bg-[#E9E2CF]" />
+                </div>
+              ) : selectedResident ? (
+                <div className="flex items-center gap-4">
+                  <div className="grid h-16 w-16 place-items-center rounded-full bg-[#0F5B35] text-xl font-semibold text-[#F7F4E8] shadow-[0_12px_26px_rgba(15,91,53,0.18)]">
+                    {getInitials(selectedResident.full_name)}
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-semibold tracking-tight text-[#173326]">{selectedResident.full_name}</h2>
+                    <p className="text-sm text-[#667065]">{selectedResident.email}</p>
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <span className="rounded-full bg-[#0F5B35] px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-[#F7F4E8]">
+                        Resident
+                      </span>
+                      <span
+                        className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] ${
+                          selectedResident.status === 'active' ? 'bg-[#DDF0DD] text-[#0F5B35]' : 'bg-slate-200 text-slate-700'
+                        }`}
+                      >
+                        {selectedResident.status === 'active' ? 'Active' : 'Inactive'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#7A7F70]">Resident Detail</p>
+                  <h2 className="text-2xl font-semibold tracking-tight text-[#173326]">Loading resident</h2>
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={closeResidentDetail}
+                className="grid h-10 w-10 place-items-center rounded-full border border-[#D8D0BC] bg-white text-[#173326] shadow-sm"
+                aria-label="Close resident detail"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-6 py-6">
+              {detailLoading ? (
+                <div className="space-y-4">
+                  <div className="h-32 animate-pulse rounded-[28px] bg-[#E9E2CF]" />
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="h-40 animate-pulse rounded-[28px] bg-[#E9E2CF]" />
+                    <div className="h-40 animate-pulse rounded-[28px] bg-[#E9E2CF]" />
+                  </div>
+                  <div className="h-40 animate-pulse rounded-[28px] bg-[#E9E2CF]" />
+                </div>
+              ) : detailError ? (
+                <div className="rounded-3xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
+                  {detailError}
+                </div>
+              ) : selectedResident ? (
+                <div className="space-y-5">
+                  <section className="rounded-[28px] border border-[#D8D0BC] bg-white p-5 shadow-sm">
+                    <h3 className="text-lg font-semibold text-[#173326]">Unit Information</h3>
+                    <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#7A7F70]">Building</p>
+                        <p className="mt-1 text-sm font-medium text-[#173326]">{selectedResident.building_name || 'Not assigned'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#7A7F70]">Unit Number</p>
+                        <p className="mt-1 text-sm font-medium text-[#173326]">{selectedResident.unit_number || 'Not assigned'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#7A7F70]">{selectedResident.floor !== null && selectedResident.floor !== undefined ? 'Floor' : 'Plot Number'}</p>
+                        <p className="mt-1 text-sm font-medium text-[#173326]">
+                          {selectedResident.floor !== null && selectedResident.floor !== undefined
+                            ? selectedResident.floor
+                            : selectedResident.plot_number || 'N/A'}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#7A7F70]">Move In Date</p>
+                        <p className="mt-1 text-sm font-medium text-[#173326]">{formatDate(selectedResident.move_in_date)}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#7A7F70]">Lease End Date</p>
+                        <p className="mt-1 text-sm font-medium text-[#173326]">{formatDate(selectedResident.lease_end_date)}</p>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section className="rounded-[28px] border border-[#D8D0BC] bg-white p-5 shadow-sm">
+                    <h3 className="text-lg font-semibold text-[#173326]">Emergency Contact</h3>
+                    <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#7A7F70]">Contact Name</p>
+                        <p className="mt-1 text-sm font-medium text-[#173326]">{selectedResident.emergency_contact_name || 'Not provided'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#7A7F70]">Contact Phone</p>
+                        <p className="mt-1 text-sm font-medium text-[#173326]">{selectedResident.emergency_contact_phone || 'Not provided'}</p>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section className="rounded-[28px] border border-[#D8D0BC] bg-white p-5 shadow-sm">
+                    <h3 className="text-lg font-semibold text-[#173326]">Activity Summary</h3>
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                      {[
+                        { label: 'Maintenance Requests', value: selectedResident.total_maintenance_requests },
+                        { label: 'Open Requests', value: selectedResident.open_maintenance_requests },
+                        { label: 'Total Payments', value: selectedResident.total_payments },
+                        { label: 'Pending Payments', value: selectedResident.pending_payments },
+                        { label: 'Total Visitors', value: selectedResident.total_visitors },
+                      ].map((item) => (
+                        <div key={item.label} className="rounded-2xl border border-[#E4DDCB] bg-[#FBF8EF] p-4">
+                          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#7A7F70]">{item.label}</p>
+                          <p className="mt-2 text-3xl font-semibold tracking-tight text-[#173326]">{item.value}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

@@ -3,6 +3,7 @@
 import { Cormorant_Garamond } from 'next/font/google';
 import { useEffect, useState } from 'react';
 
+import { DeleteConfirmationDialog } from '@/components/DeleteConfirmationDialog';
 import { apiClient, getApiErrorMessage } from '@/utils/api';
 import { API_ENDPOINTS } from '@/utils/constants';
 
@@ -46,6 +47,8 @@ export default function AdminPaymentsPage() {
   const [selectedPaymentId, setSelectedPaymentId] = useState('');
   const [markPaidNotes, setMarkPaidNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [showWaiveDialog, setShowWaiveDialog] = useState(false);
+  const [waivingPaymentId, setWaivingPaymentId] = useState<string>('');
 
   // Raise Bulk Due state
   const [bulkForm, setBulkForm] = useState({
@@ -95,10 +98,7 @@ export default function AdminPaymentsPage() {
     }
   };
 
-  const getStatusColor = (status: string, dueDate?: string) => {
-    if (status === 'pending' && dueDate && new Date(dueDate) < new Date()) {
-      return 'from-red-500 to-pink-500';
-    }
+  const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending':
         return 'from-amber-500 to-orange-500';
@@ -113,22 +113,15 @@ export default function AdminPaymentsPage() {
     }
   };
 
-  const getStatusLabel = (status: string, dueDate?: string) => {
-    if (status === 'pending' && dueDate && new Date(dueDate) < new Date()) {
-      return 'Overdue';
-    }
+  const getStatusLabel = (status: string) => {
     return status.charAt(0).toUpperCase() + status.slice(1);
   };
 
   const getTypeLabel = (type: string) => {
-    const typeMap: Record<string, string> = {
-      maintenance_fee: 'Maintenance Fee',
-      parking: 'Parking',
-      amenity: 'Amenity',
-      penalty: 'Penalty',
-      other: 'Other',
-    };
-    return typeMap[type] || type;
+    return type
+      .split('_')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
   };
 
   const getTypeIcon = (type: string) => {
@@ -148,9 +141,6 @@ export default function AdminPaymentsPage() {
 
   const filteredPayments = payments.filter((p) => {
     if (filterStatus === 'all') return true;
-    if (filterStatus === 'overdue') {
-      return p.status === 'pending' && new Date(p.due_date) < new Date();
-    }
     return p.status === filterStatus;
   });
 
@@ -164,12 +154,12 @@ export default function AdminPaymentsPage() {
     };
 
     payments.forEach((p) => {
-      if (p.status === 'pending' && new Date(p.due_date) < new Date()) {
-        totals.overdue.count += 1;
-        totals.overdue.amount += p.amount;
-      } else if (p.status === 'pending') {
+      if (p.status === 'pending') {
         totals.pending.count += 1;
         totals.pending.amount += p.amount;
+      } else if (p.status === 'overdue') {
+        totals.overdue.count += 1;
+        totals.overdue.amount += p.amount;
       } else if (p.status === 'paid') {
         totals.paid.count += 1;
         totals.paid.amount += p.amount;
@@ -210,19 +200,26 @@ export default function AdminPaymentsPage() {
     }
   };
 
-  const handleWaivePayment = async (paymentId: string) => {
-    if (!window.confirm('Are you sure you want to waive this payment?')) return;
+  const handleWaivePayment = async () => {
     setError('');
     setSubmitting(true);
     try {
-      await apiClient.patch(API_ENDPOINTS.admin.paymentsWaive(paymentId), {});
+      await apiClient.patch(API_ENDPOINTS.admin.paymentsWaive(waivingPaymentId), {});
       setSuccess('Payment waived successfully');
+      setShowWaiveDialog(false);
+      setWaivingPaymentId('');
       await loadPayments();
     } catch (err) {
       setError(getApiErrorMessage(err));
+      setShowWaiveDialog(false);
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const onWaiveClick = (paymentId: string) => {
+    setWaivingPaymentId(paymentId);
+    setShowWaiveDialog(true);
   };
 
   const handleRaiseBulkDue = async () => {
@@ -384,7 +381,6 @@ export default function AdminPaymentsPage() {
               </tr>
             ) : (
               filteredPayments.map((payment) => {
-                const isOverdue = payment.status === 'pending' && new Date(payment.due_date) < new Date();
                 const residentName = residents.find((r) => r.id === payment.resident_id)?.full_name || 'Unknown';
                 const unitNumber = residents.find((r) => r.id === payment.resident_id)?.unit_number || '-';
 
@@ -398,7 +394,7 @@ export default function AdminPaymentsPage() {
                     <td className="px-6 py-4">
                       <span
                         className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${
-                          isOverdue
+                          payment.status === 'overdue'
                             ? 'bg-red-200 text-red-700'
                             : payment.status === 'pending'
                               ? 'bg-yellow-200 text-yellow-700'
@@ -407,11 +403,11 @@ export default function AdminPaymentsPage() {
                                 : 'bg-slate-200 text-slate-700'
                         }`}
                       >
-                        {isOverdue ? 'Overdue' : getStatusLabel(payment.status)}
+                        {getStatusLabel(payment.status)}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      {(payment.status === 'pending' || isOverdue) && (
+                      {(payment.status === 'pending' || payment.status === 'overdue') && (
                         <div className="flex gap-2">
                           <button
                             onClick={() => openMarkPaidModal(payment.id)}
@@ -421,7 +417,7 @@ export default function AdminPaymentsPage() {
                             Mark Paid
                           </button>
                           <button
-                            onClick={() => handleWaivePayment(payment.id)}
+                            onClick={() => onWaiveClick(payment.id)}
                             className="text-sm font-semibold text-slate-600 hover:underline"
                             disabled={submitting}
                           >
@@ -663,6 +659,19 @@ export default function AdminPaymentsPage() {
           </div>
         </div>
       )}
+
+      <DeleteConfirmationDialog
+        isOpen={showWaiveDialog}
+        title="Waive Payment?"
+        message="This payment will be permanently waived. This action cannot be undone."
+        onConfirm={handleWaivePayment}
+        onCancel={() => {
+          setShowWaiveDialog(false);
+          setWaivingPaymentId('');
+        }}
+        isDangerous
+        confirmLabel="Waive"
+      />
     </main>
   );
 }

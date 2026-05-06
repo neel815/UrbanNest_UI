@@ -3,6 +3,7 @@
 import { Cormorant_Garamond } from 'next/font/google';
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 
+import { DeleteConfirmationDialog } from '@/components/DeleteConfirmationDialog';
 import { apiClient, getApiErrorMessage } from '@/utils/api';
 import { API_ENDPOINTS } from '@/utils/constants';
 
@@ -53,6 +54,8 @@ export default function BuildingsPage() {
   const [message, setMessage] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(initialForm);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [buildingToDelete, setBuildingToDelete] = useState<BuildingItem | null>(null);
 
   const loadBuildings = async () => {
     const data = await apiClient.get(API_ENDPOINTS.systemAdmin.buildings);
@@ -132,22 +135,30 @@ export default function BuildingsPage() {
     setError('');
   };
 
-  const onDelete = async (building: BuildingItem) => {
-    const confirmed = window.confirm(`Delete ${building.name}?`);
-    if (!confirmed) return;
-
+  const onDelete = async () => {
+    if (!buildingToDelete) return;
+    
     setError('');
     setMessage('');
     try {
-      await apiClient.delete(`${API_ENDPOINTS.systemAdmin.buildings}/${building.id}`);
+      await apiClient.delete(`${API_ENDPOINTS.systemAdmin.buildings}/${buildingToDelete.id}`);
       setMessage('Building deleted successfully.');
-      if (editingId === building.id) {
+      if (editingId === buildingToDelete.id) {
         resetForm();
       }
+      setShowDeleteDialog(false);
+      setBuildingToDelete(null);
       await loadBuildings();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Delete failed');
+      setShowDeleteDialog(false);
+      setBuildingToDelete(null);
     }
+  };
+
+  const onDeleteClick = (building: BuildingItem) => {
+    setBuildingToDelete(building);
+    setShowDeleteDialog(true);
   };
 
   return (
@@ -428,7 +439,7 @@ export default function BuildingsPage() {
                           </button>
                           <button
                             type="button"
-                            onClick={() => onDelete(building)}
+                            onClick={() => onDeleteClick(building)}
                             className="rounded-lg border border-rose-300 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700"
                           >
                             Delete
@@ -443,6 +454,18 @@ export default function BuildingsPage() {
           )}
         </div>
       </div>
+
+      <DeleteConfirmationDialog
+        isOpen={showDeleteDialog}
+        title="Delete Building?"
+        message={`${buildingToDelete?.name} will be permanently deleted. This action cannot be undone.`}
+        onConfirm={onDelete}
+        onCancel={() => {
+          setShowDeleteDialog(false);
+          setBuildingToDelete(null);
+        }}
+        isDangerous
+      />
     </main>
   );
 }

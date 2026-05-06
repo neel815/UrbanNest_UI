@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 
+import { DeleteConfirmationDialog } from '@/components/DeleteConfirmationDialog';
 import { apiClient, getApiErrorMessage } from '@/utils/api';
 import { API_ENDPOINTS } from '@/utils/constants';
 
@@ -45,6 +46,8 @@ export default function MaintenancePage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [cancelingRequest, setCancelingRequest] = useState<MaintenanceRequest | null>(null);
   const [formData, setFormData] = useState<RequestFormState>({
     title: '',
     description: '',
@@ -127,20 +130,28 @@ export default function MaintenancePage() {
     }
   };
 
-  const cancelRequest = async (requestId: string) => {
-    const confirmed = window.confirm('Are you sure you want to cancel this request?');
-    if (!confirmed) return;
-
+  const cancelRequest = async () => {
+    if (!cancelingRequest) return;
+    
     setError('');
     setSuccess('');
 
     try {
-      await apiClient.patch(API_ENDPOINTS.resident.maintenanceCancel(requestId), {});
+      await apiClient.patch(API_ENDPOINTS.resident.maintenanceCancel(cancelingRequest.id), {});
       setSuccess('Maintenance request cancelled.');
+      setShowCancelDialog(false);
+      setCancelingRequest(null);
       await loadRequests();
     } catch (err) {
       setError(getApiErrorMessage(err));
+      setShowCancelDialog(false);
+      setCancelingRequest(null);
     }
+  };
+
+  const onCancelClick = (request: MaintenanceRequest) => {
+    setCancelingRequest(request);
+    setShowCancelDialog(true);
   };
 
   return (
@@ -226,7 +237,7 @@ export default function MaintenancePage() {
                   {request.status === 'open' && (
                     <button
                       type="button"
-                      onClick={() => cancelRequest(request.id)}
+                      onClick={() => onCancelClick(request)}
                       className="rounded-full border border-rose-300 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-50"
                     >
                       Cancel
@@ -344,6 +355,19 @@ export default function MaintenancePage() {
           </div>
         </div>
       )}
+
+      <DeleteConfirmationDialog
+        isOpen={showCancelDialog}
+        title="Cancel Request?"
+        message="This maintenance request will be marked as cancelled. This action cannot be undone."
+        onConfirm={cancelRequest}
+        onCancel={() => {
+          setShowCancelDialog(false);
+          setCancelingRequest(null);
+        }}
+        isDangerous
+        confirmLabel="Cancel Request"
+      />
     </main>
   );
 }

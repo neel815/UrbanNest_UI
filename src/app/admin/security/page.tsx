@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from 'react';
 import ImageUploadField from '../../../components/ImageUploadField';
+import { DeleteConfirmationDialog } from '@/components/DeleteConfirmationDialog';
 import { apiClient, getApiErrorMessage } from '@/utils/api';
 import { API_ENDPOINTS } from '@/utils/constants';
 
@@ -59,6 +60,8 @@ export default function AdminSecurityPage() {
   const [editPhoneNumber, setEditPhoneNumber] = useState('');
   const [editPassword, setEditPassword] = useState('');
   const [editProfileImage, setEditProfileImage] = useState('');
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deletingUserId, setDeletingUserId] = useState<string>('');
 
   function getInitials(name: string) {
     return (
@@ -198,21 +201,27 @@ export default function AdminSecurityPage() {
     }
   };
 
-  const onDelete = async (userId: string) => {
-    const confirmed = window.confirm(`Delete this ${roleTitle.slice(0, -1).toLowerCase()}?`);
-    if (!confirmed) return;
+  const onDelete = async () => {
     setError('');
     setMessage('');
     try {
-      await apiClient.delete(`${endpoint}/${userId}`);
+      await apiClient.delete(`${endpoint}/${deletingUserId}`);
       setMessage(`${roleTitle.slice(0, -1)} deleted successfully.`);
-      if (editingId === userId) {
+      if (editingId === deletingUserId) {
         cancelEdit();
       }
+      setShowDeleteDialog(false);
+      setDeletingUserId('');
       await loadUsers();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Delete failed');
+      setShowDeleteDialog(false);
     }
+  };
+
+  const onDeleteClick = (userId: string) => {
+    setDeletingUserId(userId);
+    setShowDeleteDialog(true);
   };
 
   return (
@@ -412,7 +421,7 @@ export default function AdminSecurityPage() {
                           </button>
                           <button
                             type="button"
-                            onClick={() => onDelete(user.id)}
+                            onClick={() => onDeleteClick(user.id)}
                             className="text-rose-600 hover:text-rose-700 font-semibold text-sm"
                           >
                             Remove
@@ -490,6 +499,18 @@ export default function AdminSecurityPage() {
           </div>
         )}
       </div>
+
+      <DeleteConfirmationDialog
+        isOpen={showDeleteDialog}
+        title="Delete Security Guard?"
+        message="This security guard will be permanently deleted. This action cannot be undone."
+        onConfirm={onDelete}
+        onCancel={() => {
+          setShowDeleteDialog(false);
+          setDeletingUserId('');
+        }}
+        isDangerous
+      />
     </main>
   );
 }

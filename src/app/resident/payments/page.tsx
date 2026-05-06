@@ -75,6 +75,13 @@ export default function PaymentsPage() {
     }
   };
 
+  const formatPaymentType = (type: string) => {
+    return type
+      .split('_')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
   const markAsPaid = (id: string) => {
     const payRequest = async () => {
       try {
@@ -234,7 +241,7 @@ export default function PaymentsPage() {
                             {payment.status?.toUpperCase() || 'PENDING'}
                           </span>
                           <span className="text-sm capitalize text-[#7A7F70]">
-                            {payment.type}
+                            {formatPaymentType(payment.type)}
                           </span>
                         </div>
                       </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
+import { DeleteConfirmationDialog } from '@/components/DeleteConfirmationDialog';
 import { apiClient, getApiErrorMessage } from '@/utils/api';
 import { API_ENDPOINTS } from '@/utils/constants';
 
@@ -29,6 +30,8 @@ export default function AdminAnnouncementsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deletingAnnouncementId, setDeletingAnnouncementId] = useState<string>('');
   const [announcementForm, setAnnouncementForm] = useState({
     title: '',
     content: '',
@@ -118,14 +121,24 @@ export default function AdminAnnouncementsPage() {
     }
   };
 
-  const deleteAnnouncement = async (id: string) => {
-    if (!window.confirm('Delete this announcement?')) return;
-    try {
-      await apiClient.delete(API_ENDPOINTS.admin.deleteAnnouncement(id));
-      setAnnouncements(announcements.filter((item) => item.id !== id));
-    } catch (err) {
-      setError(getApiErrorMessage(err));
-    }
+  const deleteAnnouncement = () => {
+    const handleDelete = async () => {
+      try {
+        await apiClient.delete(API_ENDPOINTS.admin.deleteAnnouncement(deletingAnnouncementId));
+        setAnnouncements(announcements.filter((item) => item.id !== deletingAnnouncementId));
+        setShowDeleteDialog(false);
+        setDeletingAnnouncementId('');
+      } catch (err) {
+        setError(getApiErrorMessage(err));
+        setShowDeleteDialog(false);
+      }
+    };
+    return handleDelete();
+  };
+
+  const onDeleteClick = (id: string) => {
+    setDeletingAnnouncementId(id);
+    setShowDeleteDialog(true);
   };
 
   return (
@@ -192,7 +205,7 @@ export default function AdminAnnouncementsPage() {
                     <p className="mt-2 line-clamp-2 text-sm text-slate-600">{announcement.content}</p>
                   </div>
                   <button
-                    onClick={() => deleteAnnouncement(announcement.id)}
+                    onClick={() => onDeleteClick(announcement.id)}
                     className="rounded-full border border-rose-200 bg-white px-3 py-2 text-xs font-semibold text-rose-700 transition hover:bg-rose-50 flex-shrink-0"
                   >
                     Delete
@@ -309,6 +322,18 @@ export default function AdminAnnouncementsPage() {
           </div>
         </div>
       )}
+
+      <DeleteConfirmationDialog
+        isOpen={showDeleteDialog}
+        title="Delete Announcement?"
+        message="This announcement will be permanently deleted. This action cannot be undone."
+        onConfirm={deleteAnnouncement}
+        onCancel={() => {
+          setShowDeleteDialog(false);
+          setDeletingAnnouncementId('');
+        }}
+        isDangerous
+      />
     </main>
   );
 }
