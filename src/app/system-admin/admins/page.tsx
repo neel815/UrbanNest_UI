@@ -69,7 +69,6 @@ export default function AdminListPage() {
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-  const [resetLink, setResetLink] = useState('');
   const [loading, setLoading] = useState(true);
   const [buildingLoading, setBuildingLoading] = useState(true);
   const [inviting, setInviting] = useState(false);
@@ -104,7 +103,6 @@ export default function AdminListPage() {
     event.preventDefault();
     setMessage('');
     setError('');
-    setResetLink('');
     setInviting(true);
     try {
       const data = await apiClient.post(API_ENDPOINTS.systemAdmin.inviteAdmin, {
@@ -113,7 +111,6 @@ export default function AdminListPage() {
         building_id: buildingId,
       });
       setMessage(data.message);
-      setResetLink(data.reset_link);
       setFullName('');
       setEmail('');
       setBuildingId('');
@@ -256,7 +253,6 @@ export default function AdminListPage() {
           onClick={() => {
             setMessage('');
             setError('');
-            setResetLink('');
             setIsInviteOpen(true);
           }}
           className="inline-flex items-center gap-2 self-start rounded-full bg-[#0F5B35] px-5 py-3 text-sm font-semibold text-[#F7F4E8] shadow-[0_12px_28px_rgba(15,91,53,0.18)] transition hover:-translate-y-0.5 hover:bg-[#0B4B2C]"
@@ -266,17 +262,11 @@ export default function AdminListPage() {
         </button>
       </section>
 
-      {(message || error || resetLink) && (
+      {(message || error) && (
         <section className="space-y-3">
           {message && (
             <div className="rounded-3xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
               {message}
-            </div>
-          )}
-          {resetLink && (
-            <div className="rounded-3xl border border-[#E6E0CF] bg-[#FBF8EF] px-4 py-3 text-sm text-[#173326] shadow-[0_8px_24px_rgba(23,51,38,0.04)]">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-[#7A7F70]">Password setup link</p>
-              <p className="mt-2 break-all font-medium">{resetLink}</p>
             </div>
           )}
           {error && (

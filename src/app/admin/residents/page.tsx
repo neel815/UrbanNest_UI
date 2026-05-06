@@ -61,7 +61,6 @@ export default function AdminResidentsPage() {
     const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [unitId, setUnitId] = useState('');
-  const [resetLink, setResetLink] = useState('');
 
   const loadUnits = useCallback(async () => {
     const data = await apiClient.get(unitsEndpoint);
@@ -129,7 +128,6 @@ export default function AdminResidentsPage() {
     event.preventDefault();
     setError('');
     setMessage('');
-    setResetLink('');
 
     try {
       if (!unitId) {
@@ -144,7 +142,6 @@ export default function AdminResidentsPage() {
           unit_id: unitId,
         });
         setMessage(data.message || 'Resident invited successfully.');
-        setResetLink(data.reset_link || '');
       } else {
         await apiClient.post(endpoint, {
                     phone_number: phoneNumber || null,
@@ -283,13 +280,6 @@ export default function AdminResidentsPage() {
               </div>
             </form>
 
-          </div>
-        )}
-
-        {resetLink && (
-          <div className="rounded-2xl border border-[#E4DDCB] bg-[#FBF8EF] px-4 py-4 shadow-sm">
-            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Activation link</p>
-            <p className="mt-2 break-all font-medium text-slate-900">{resetLink}</p>
           </div>
         )}
 

@@ -31,7 +31,12 @@ export default function PaymentsPage() {
     const loadPayments = async () => {
       try {
         const data = await apiClient.get(API_ENDPOINTS.resident.payments);
-        setPayments(data);
+        setPayments(
+          (Array.isArray(data) ? data : []).map((payment) => ({
+            ...payment,
+            amount: Number(payment.amount),
+          }))
+        );
       } catch (err) {
         setError(getApiErrorMessage(err));
       } finally {
@@ -86,8 +91,12 @@ export default function PaymentsPage() {
   };
 
   const calculateTotals = () => {
-    const pending = payments.filter(p => p.status === 'pending').reduce((sum, p) => sum + p.amount, 0);
-    const overdue = payments.filter(p => p.status === 'overdue').reduce((sum, p) => sum + p.amount, 0);
+    const pending = payments
+      .filter((p) => p.status === 'pending')
+      .reduce((sum, p) => sum + Number(p.amount), 0);
+    const overdue = payments
+      .filter((p) => p.status === 'overdue')
+      .reduce((sum, p) => sum + Number(p.amount), 0);
     const total = pending + overdue;
     return { pending, overdue, total };
   };
@@ -98,21 +107,21 @@ export default function PaymentsPage() {
     {
       title: 'Pending',
       subtitle: 'Awaiting payment',
-      value: `$${totals.pending.toFixed(2)}`,
+      value: `₹${totals.pending.toFixed(2)}`,
       accent: 'from-amber-500 to-orange-500',
       icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
     },
     {
       title: 'Overdue',
       subtitle: 'Past due date',
-      value: `$${totals.overdue.toFixed(2)}`,
+      value: `₹${totals.overdue.toFixed(2)}`,
       accent: 'from-rose-500 to-pink-500',
       icon: 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 18.5c-.77.833.192 2.5 1.732 2.5z',
     },
     {
       title: 'Total Due',
       subtitle: 'All outstanding',
-      value: `$${totals.total.toFixed(2)}`,
+      value: `₹${totals.total.toFixed(2)}`,
       accent: 'from-emerald-600 to-teal-600',
       icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z',
     },
@@ -233,7 +242,7 @@ export default function PaymentsPage() {
                     <div className="mt-4 flex items-center justify-between">
                       <div className="space-y-1">
                         <p className="text-sm text-[#637062]">
-                          <span className="font-medium">Amount:</span> ${payment.amount.toFixed(2)}
+                          <span className="font-medium">Amount:</span> ₹{payment.amount.toFixed(2)}
                         </p>
                         <p className="text-sm text-[#637062]">
                           <span className="font-medium">Due Date:</span> {new Date(payment.due_date).toLocaleDateString()}
@@ -249,14 +258,6 @@ export default function PaymentsPage() {
                           </p>
                         )}
                       </div>
-                      {payment.status !== 'paid' && (
-                        <button
-                          onClick={() => markAsPaid(payment.id)}
-                          className="rounded-full bg-[#0F5B35] px-4 py-2 text-sm font-semibold text-white shadow-[0_10px_26px_rgba(15,91,53,0.16)] transition hover:-translate-y-0.5 hover:bg-[#0B4B2C]"
-                        >
-                          Pay Now
-                        </button>
-                      )}
                     </div>
                   </div>
                 </div>
@@ -297,7 +298,7 @@ export default function PaymentsPage() {
                         Paid on {new Date(payment.paid_date!).toLocaleDateString()} via {payment.transaction_ref}
                       </p>
                     </div>
-                    <p className="text-sm font-semibold text-[#173326]">${payment.amount.toFixed(2)}</p>
+                    <p className="text-sm font-semibold text-[#173326]">₹{payment.amount.toFixed(2)}</p>
                   </div>
                 ))}
             </div>

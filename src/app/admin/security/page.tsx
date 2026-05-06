@@ -13,6 +13,8 @@ type ManagedUser = {
   role: string;
   profile_image?: string | null;
   created_at: string;
+  must_reset_password?: boolean;
+  is_active?: boolean;
 };
 
 type ManagedUnit = {
@@ -35,6 +37,9 @@ export default function AdminSecurityPage() {
   const unitsEndpoint = API_ENDPOINTS.admin.units;
 
   const [users, setUsers] = useState<ManagedUser[]>([]);
+  const [totalGuards, setTotalGuards] = useState(0);
+  const [onDutyNow, setOnDutyNow] = useState(0);
+  const [activeShifts, setActiveShifts] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
@@ -46,7 +51,6 @@ export default function AdminSecurityPage() {
   const [password, setPassword] = useState('');
   const [profileImage, setProfileImage] = useState('');
   const [unitId, setUnitId] = useState('');
-  const [resetLink, setResetLink] = useState('');
   const [units, setUnits] = useState<ManagedUnit[]>([]);
 
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -76,12 +80,24 @@ export default function AdminSecurityPage() {
   const loadUsers = async () => {
     const data = await apiClient.get(endpoint);
     setUsers(data);
+    setTotalGuards(data.length);
+  };
+
+  const loadStats = async () => {
+    try {
+      const stats = await apiClient.get(API_ENDPOINTS.admin.securityStats);
+      setTotalGuards(stats.total_security ?? 0);
+      setOnDutyNow(stats.on_duty_now ?? 0);
+      setActiveShifts(stats.active_shifts ?? 0);
+    } catch (err) {
+      // ignore - keep previous values
+    }
   };
 
   useEffect(() => {
     const initialize = async () => {
       try {
-        await Promise.all([loadUsers(), loadUnits()]);
+        await Promise.all([loadUsers(), loadUnits(), loadStats()]);
       } catch (err) {
         setError(getApiErrorMessage(err));
       } finally {
@@ -106,7 +122,6 @@ export default function AdminSecurityPage() {
     event.preventDefault();
     setError('');
     setMessage('');
-    setResetLink('');
     try {
       if (createMode === 'invite') {
         if (!inviteEndpoint) {
@@ -123,7 +138,6 @@ export default function AdminSecurityPage() {
           unit_id: showUnitSelect ? unitId : null,
         });
         setMessage(data.message || `${roleTitle.slice(0, -1)} invited successfully.`);
-        setResetLink(data.reset_link || '');
       } else {
         if (showUnitSelect && !unitId) {
           throw new Error('Please select a unit');
@@ -237,15 +251,15 @@ export default function AdminSecurityPage() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div className="rounded-3xl border border-[#D8D0BC] bg-[#FBF8EF] p-6 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#6A7264]">Total Guards</p>
-            <p className="mt-3 text-5xl font-semibold text-[#173326]">{users.length}</p>
+            <p className="mt-3 text-5xl font-semibold text-[#173326]">{totalGuards}</p>
           </div>
           <div className="rounded-3xl border border-[#D8D0BC] bg-[#FBF8EF] p-6 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#6A7264]">On Duty Now</p>
-            <p className="mt-3 text-5xl font-semibold text-[#173326]">6</p>
+            <p className="mt-3 text-5xl font-semibold text-[#173326]">{onDutyNow}</p>
           </div>
           <div className="rounded-3xl border border-[#D8D0BC] bg-[#FBF8EF] p-6 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#6A7264]">Active Shifts</p>
-            <p className="mt-3 text-5xl font-semibold text-[#173326]">3</p>
+            <p className="mt-3 text-5xl font-semibold text-[#173326]">{activeShifts}</p>
           </div>
         </div>
 
@@ -317,13 +331,6 @@ export default function AdminSecurityPage() {
                 </button>
               </div>
             </form>
-
-            {resetLink && (
-              <div className="mt-4 rounded-2xl border border-[#E4DDCB] bg-[#FBF8EF] px-4 py-4 shadow-sm">
-                <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Activation link</p>
-                <p className="mt-2 break-all font-medium text-slate-900">{resetLink}</p>
-              </div>
-            )}
           </div>
         )}
 
@@ -380,9 +387,19 @@ export default function AdminSecurityPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="inline-flex items-center rounded-full border border-[#BED8C6] bg-[#E5F1E9] px-3 py-1 text-xs font-semibold text-[#2F7A45]">
-                          • On Duty
-                        </span>
+                        {user.must_reset_password ? (
+                          <span className="inline-flex items-center rounded-full border border-[#F5D0D0] bg-[#FEF2F2] px-3 py-1 text-xs font-semibold text-[#9B2C2C]">
+                            Pending
+                          </span>
+                        ) : user.is_active ? (
+                          <span className="inline-flex items-center rounded-full border border-[#BED8C6] bg-[#E5F1E9] px-3 py-1 text-xs font-semibold text-[#2F7A45]">
+                            • On Duty
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-600">
+                            Off Duty
+                          </span>
+                        )}
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex gap-3">

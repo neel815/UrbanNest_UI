@@ -191,7 +191,15 @@ export default function ResidentDashboardPage() {
         setAnnouncements(announcementsData);
         setMaintenance(maintenanceData);
         setVisitors(visitorsData);
-        setPayments(paymentsData);
+        setPayments(
+          (Array.isArray(paymentsData) ? paymentsData : []).map((payment) => ({
+            ...payment,
+            amount: Number(payment.amount),
+            dueDate: payment.dueDate || payment.due_date,
+            paidDate: payment.paidDate || payment.paid_date || null,
+            paymentMethod: payment.paymentMethod || payment.transaction_ref || null,
+          }))
+        );
         setEvents(eventsData);
       } catch (err) {
         setError(getApiErrorMessage(err));
@@ -242,7 +250,7 @@ export default function ResidentDashboardPage() {
   const heroTitle = upcomingEvent?.title || '';
   const heroDescription = upcomingEvent?.description || '';
   const duesAmount = duePayment ? duePayment.amount : stats?.total_due ?? 0;
-  const dueDateLabel = duePayment?.dueDate ? formatDateLabel(duePayment.dueDate) : 'soon';
+  const dueDateLabel = duePayment?.dueDate ? formatDateLabel(duePayment.dueDate) : 'No due date set';
 
   return (
     <main className="space-y-8">
@@ -296,8 +304,9 @@ export default function ResidentDashboardPage() {
             href={card.href}
             className="group flex min-h-[168px] flex-col justify-between rounded-[28px] border border-[#E4DDCB] bg-[#FBF8EF] p-5 shadow-[0_10px_30px_rgba(23,51,38,0.06)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_38px_rgba(23,51,38,0.09)]"
           >
+            <div className="h-1.5 w-full rounded-full bg-[#0F5B35]" />
             <div className="flex items-start justify-between gap-4">
-              <div className="grid h-11 w-11 place-items-center rounded-full bg-[#E4EDE6] text-[#0F5B35]">
+              <div className="grid h-11 w-11 place-items-center rounded-full border border-[#E4DDCB] bg-[#E4EDE6] text-[#0F5B35] shadow-[0_8px_24px_rgba(23,51,38,0.04)]">
                 <QuickActionIcon name={card.icon} />
               </div>
               <span className="text-2xl leading-none text-[#788179] transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5">→</span>

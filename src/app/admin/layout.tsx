@@ -24,6 +24,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       { href: '/admin/units', label: 'Units', icon: '/assets/admin/maintenance.svg' },
       { href: '/admin/security', label: 'Security Guards', icon: '/assets/admin/security.svg' },
       { href: '/admin/announcements', label: 'Announcements', icon: '/assets/admin/announcements.svg' },
+      { href: '/admin/payments', label: 'Payments & Dues', icon: '/assets/admin/maintenance.svg' },
       { href: '/admin/maintenance', label: 'Maintenance', icon: '/assets/admin/maintenance.svg' },
       { href: '/admin/settings', label: 'Settings', icon: '/assets/admin/settings.svg' },
     ] satisfies NavItem[],

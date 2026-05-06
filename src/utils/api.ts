@@ -36,9 +36,17 @@ export const apiClient = {
 
       if (!response.ok) {
         if (response.status === 401) {
-          // Clear invalid token
+          // Clear invalid token and redirect to login for client-side sessions
           if (typeof window !== 'undefined') {
             localStorage.removeItem('access_token');
+            try {
+              window.location.href = '/login';
+              // stop further execution — the browser will navigate away
+              return;
+            } catch (e) {
+              // If redirect fails, still throw so callers can handle it
+              throw new Error('Authentication required. Please log in again.');
+            }
           }
           throw new Error('Authentication required. Please log in again.');
         } else if (response.status === 404) {
