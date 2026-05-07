@@ -98,9 +98,11 @@ export default function AdminResidentsPage() {
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
-    const [phoneNumber, setPhoneNumber] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [unitId, setUnitId] = useState('');
+  const [moveInDate, setMoveInDate] = useState('');
+  const [leaseEndDate, setLeaseEndDate] = useState('');
 
   const loadUnits = useCallback(async () => {
     const data = await apiClient.get(unitsEndpoint);
@@ -207,9 +209,11 @@ export default function AdminResidentsPage() {
   const resetCreateForm = () => {
     setFullName('');
     setEmail('');
-      setPhoneNumber('');
+    setPhoneNumber('');
     setPassword('');
     setUnitId('');
+    setMoveInDate('');
+    setLeaseEndDate('');
   };
 
   const onCreate = async (event: FormEvent<HTMLFormElement>) => {
@@ -226,17 +230,21 @@ export default function AdminResidentsPage() {
         const data = await apiClient.post(inviteEndpoint, {
           full_name: fullName,
           email,
-                    phone_number: phoneNumber || null,
+          phone_number: phoneNumber || null,
           unit_id: unitId,
+          move_in_date: moveInDate || null,
+          lease_end_date: leaseEndDate || null,
         });
         setMessage(data.message || 'Resident invited successfully.');
       } else {
         await apiClient.post(endpoint, {
-                    phone_number: phoneNumber || null,
+          phone_number: phoneNumber || null,
           full_name: fullName,
           email,
           password,
           unit_id: unitId,
+          move_in_date: moveInDate || null,
+          lease_end_date: leaseEndDate || null,
         });
         setMessage('Resident created successfully.');
       }
@@ -352,6 +360,28 @@ export default function AdminResidentsPage() {
                       </option>
                     ))}
                 </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Move In Date</label>
+                <input
+                  type="date"
+                  className="mt-2 w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-[#0F5B35]/15"
+                  value={moveInDate}
+                  onChange={(event) => setMoveInDate(event.target.value)}
+                  placeholder="Select move in date"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Lease End Date</label>
+                <input
+                  type="date"
+                  className="mt-2 w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-[#0F5B35]/15"
+                  value={leaseEndDate}
+                  onChange={(event) => setLeaseEndDate(event.target.value)}
+                  placeholder="Select lease end date"
+                />
               </div>
 
               <div className="sm:col-span-2 flex gap-2">
