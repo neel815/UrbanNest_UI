@@ -114,6 +114,7 @@ export default function AdminPaymentsPage() {
   };
 
   const getStatusLabel = (status: string) => {
+    if (status === 'waived') return 'Canceled';
     return status.charAt(0).toUpperCase() + status.slice(1);
   };
 
@@ -205,7 +206,7 @@ export default function AdminPaymentsPage() {
     setSubmitting(true);
     try {
       await apiClient.patch(API_ENDPOINTS.admin.paymentsWaive(waivingPaymentId), {});
-      setSuccess('Payment waived successfully');
+      setSuccess('Payment canceled successfully');
       setShowWaiveDialog(false);
       setWaivingPaymentId('');
       await loadPayments();
@@ -327,7 +328,7 @@ export default function AdminPaymentsPage() {
           { label: 'Pending', value: totals.pending.count, amount: totals.pending.amount, textColor: 'text-[#C05A0A]' },
           { label: 'Overdue', value: totals.overdue.count, amount: totals.overdue.amount, textColor: 'text-[#C1121F]' },
           { label: 'Paid', value: totals.paid.count, amount: totals.paid.amount, textColor: 'text-[#0F5B35]' },
-          { label: 'Waived', value: totals.waived.count, amount: totals.waived.amount, textColor: 'text-[#4A5568]' },
+          { label: 'Canceled', value: totals.waived.count, amount: totals.waived.amount, textColor: 'text-[#4A5568]' },
         ].map((card) => (
           <div key={card.label} className="group relative overflow-hidden rounded-[28px] border border-[#E4DDCB] bg-[#FBF8EF] p-6 shadow-[0_10px_30px_rgba(23,51,38,0.06)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_38px_rgba(23,51,38,0.09)]">
             <div className="absolute inset-x-0 top-0 h-1.5 bg-[#0F5B35]" />
@@ -353,7 +354,7 @@ export default function AdminPaymentsPage() {
                 : 'text-[#7A7F70] hover:text-[#173326]'
             }`}
           >
-            {status === 'all' ? 'All' : status.charAt(0).toUpperCase() + status.slice(1)}
+            {status === 'all' ? 'All' : status === 'waived' ? 'Canceled' : status.charAt(0).toUpperCase() + status.slice(1)}
           </button>
         ))}
       </div>
@@ -421,7 +422,7 @@ export default function AdminPaymentsPage() {
                             className="text-sm font-semibold text-slate-600 hover:underline"
                             disabled={submitting}
                           >
-                            Waive
+                            Cancel
                           </button>
                         </div>
                       )}
@@ -436,7 +437,7 @@ export default function AdminPaymentsPage() {
                           )}
                         </div>
                       )}
-                      {payment.status === 'waived' && <div className="text-xs text-[#7A7F70]">Waived</div>}
+                      {payment.status === 'waived' && <div className="text-xs text-[#7A7F70]">Canceled</div>}
                     </td>
                   </tr>
                 );
@@ -662,15 +663,15 @@ export default function AdminPaymentsPage() {
 
       <DeleteConfirmationDialog
         isOpen={showWaiveDialog}
-        title="Waive Payment?"
-        message="This payment will be permanently waived. This action cannot be undone."
+        title="Cancel Payment?"
+        message="This payment will be permanently canceled. This action cannot be undone."
         onConfirm={handleWaivePayment}
         onCancel={() => {
           setShowWaiveDialog(false);
           setWaivingPaymentId('');
         }}
         isDangerous
-        confirmLabel="Waive"
+        confirmLabel="Cancel"
       />
     </main>
   );

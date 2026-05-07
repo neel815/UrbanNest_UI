@@ -56,6 +56,7 @@ export default function BuildingsPage() {
   const [form, setForm] = useState(initialForm);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [buildingToDelete, setBuildingToDelete] = useState<BuildingItem | null>(null);
+  const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
 
   const loadBuildings = async () => {
     const data = await apiClient.get(API_ENDPOINTS.systemAdmin.buildings);
@@ -429,21 +430,44 @@ export default function BuildingsPage() {
                       </td>
                       <td className="px-6 py-4 text-[#173326]">{new Date(building.updated_at).toLocaleString()}</td>
                       <td className="px-6 py-4">
-                        <div className="flex gap-2">
+                        <div className="relative inline-flex">
                           <button
                             type="button"
-                            onClick={() => onEdit(building)}
-                            className="rounded-lg border border-[#D9D1BC] bg-white px-3 py-1.5 text-xs font-semibold text-[#173326]"
+                            onClick={() => setOpenActionMenuId((prev) => (prev === building.id ? null : building.id))}
+                            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-[#66716A] transition hover:border-slate-300 hover:text-[#1D3027]"
+                            aria-label={`Open actions menu for ${building.name}`}
                           >
-                            Edit
+                            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden="true">
+                              <circle cx="12" cy="5" r="1.8" />
+                              <circle cx="12" cy="12" r="1.8" />
+                              <circle cx="12" cy="19" r="1.8" />
+                            </svg>
                           </button>
-                          <button
-                            type="button"
-                            onClick={() => onDeleteClick(building)}
-                            className="rounded-lg border border-rose-300 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700"
-                          >
-                            Delete
-                          </button>
+
+                          {openActionMenuId === building.id && (
+                            <div className="absolute right-0 top-full z-10 mt-2 w-[160px] overflow-hidden rounded-2xl border border-slate-200 bg-white text-left shadow-xl">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  onEdit(building);
+                                  setOpenActionMenuId(null);
+                                }}
+                                className="w-full px-4 py-3 text-left text-[15px] text-[#495853] transition hover:bg-slate-50 hover:text-[#20332A]"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  onDeleteClick(building);
+                                  setOpenActionMenuId(null);
+                                }}
+                                className="w-full px-4 py-3 text-left text-[15px] text-[#CC4343] transition hover:bg-slate-50 hover:text-[#A63434]"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </td>
                     </tr>

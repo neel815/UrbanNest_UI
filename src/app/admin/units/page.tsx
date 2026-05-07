@@ -154,6 +154,7 @@ export default function AdminUnitsPage() {
   const [buildingType, setBuildingType] = useState<string | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deletingUnitId, setDeletingUnitId] = useState<string>('');
+  const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
 
   const loadUnits = async () => {
     const data = await apiClient.get(adminUnitApi.list);
@@ -341,21 +342,44 @@ export default function AdminUnitsPage() {
                     <td className="px-6 py-4 text-[#6A7264]">{formatStatus(unit.status)}</td>
                     <td className="px-6 py-4 text-[#6A7264]">{unit.resident_name ?? '—'}</td>
                     <td className="px-6 py-4">
-                      <div className="flex gap-2">
+                      <div className="relative inline-flex">
                         <button
                           type="button"
-                          onClick={() => openEditModal(unit)}
-                          className="rounded-full border border-[#D9D1BC] bg-white px-4 py-2 text-xs font-semibold text-[#173326]"
+                          onClick={() => setOpenActionMenuId((prev) => (prev === unit.id ? null : unit.id))}
+                          className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-[#66716A] transition hover:border-slate-300 hover:text-[#1D3027]"
+                          aria-label={`Open actions menu for unit ${unit.unit_number}`}
                         >
-                          Edit
+                          <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden="true">
+                            <circle cx="12" cy="5" r="1.8" />
+                            <circle cx="12" cy="12" r="1.8" />
+                            <circle cx="12" cy="19" r="1.8" />
+                          </svg>
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteClick(unit.id)}
-                          className="rounded-full border border-rose-200 bg-rose-50 px-4 py-2 text-xs font-semibold text-rose-700"
-                        >
-                          Delete
-                        </button>
+
+                        {openActionMenuId === unit.id && (
+                          <div className="absolute right-0 top-full z-10 mt-2 w-[150px] overflow-hidden rounded-2xl border border-slate-200 bg-white text-left shadow-xl">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                openEditModal(unit);
+                                setOpenActionMenuId(null);
+                              }}
+                              className="w-full px-4 py-3 text-left text-[15px] text-[#495853] transition hover:bg-slate-50 hover:text-[#20332A]"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                handleDeleteClick(unit.id);
+                                setOpenActionMenuId(null);
+                              }}
+                              className="w-full px-4 py-3 text-left text-[15px] text-[#CC4343] transition hover:bg-slate-50 hover:text-[#A63434]"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </td>
                   </tr>
