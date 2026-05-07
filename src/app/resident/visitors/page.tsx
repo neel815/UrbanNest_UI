@@ -294,7 +294,7 @@ export default function VisitorsPage() {
                         >
                           {visitor.status?.replace('_', ' ').toUpperCase() || 'PENDING'}
                         </span>
-                        {visitor.status === 'pending' && (
+                        {visitor.status === 'approved' && (
                           <button
                             onClick={() => updateVisitorStatus(visitor.id, 'checked_in')}
                             className="rounded-full bg-emerald-600 px-3 py-1 text-xs font-semibold text-white hover:bg-emerald-700 transition"

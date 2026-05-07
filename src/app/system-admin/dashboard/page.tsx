@@ -119,7 +119,6 @@ export default function DashboardPage() {
       title: 'Total Admins',
       value: stats?.total_admins ?? 0,
       subtitle: 'Across 32 societies',
-      trend: '+12%',
       icon: 'shield' as const,
       active: true,
     },
@@ -127,7 +126,6 @@ export default function DashboardPage() {
       title: 'Residents',
       value: stats?.total_residents ?? 0,
       subtitle: 'Active this month',
-      trend: '+4.2%',
       icon: 'users' as const,
       active: false,
     },
@@ -135,7 +133,6 @@ export default function DashboardPage() {
       title: 'Security Guards',
       value: stats?.total_security ?? 0,
       subtitle: 'Registered platform-wide',
-      trend: '+2.1%',
       icon: 'guard' as const,
       active: false,
     },
@@ -143,7 +140,6 @@ export default function DashboardPage() {
       title: 'Total Users',
       value: stats?.total_users ?? 0,
       subtitle: 'Includes all roles',
-      trend: '-0.4%',
       icon: 'id' as const,
       active: false,
     },
@@ -207,9 +203,6 @@ export default function DashboardPage() {
             </div>
 
             <div className="mt-8 flex items-center gap-2 text-sm font-semibold">
-              <span className={`rounded-full px-3 py-1 ${card.active ? 'bg-white/10 text-[#F7F4E8]' : card.trend.startsWith('-') ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}`}>
-                {card.trend}
-              </span>
               <span className={card.active ? 'text-[#C9D7CC]' : 'text-[#677062]'}>vs last month</span>
             </div>
           </article>

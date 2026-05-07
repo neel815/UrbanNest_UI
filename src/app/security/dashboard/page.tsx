@@ -209,7 +209,12 @@ export default function SecurityDashboardPage() {
         time: visitor.timeIn || visitor.date,
         title: visitor.name,
         subtitle: `${visitor.hostUnit} · ${visitor.purpose || 'Visitor'}`,
-        status: visitor.status === 'checked_in' ? 'approved' : visitor.status === 'rejected' ? 'alert' : 'pending',
+        status:
+          visitor.status === 'denied'
+            ? 'alert'
+            : visitor.status === 'pending'
+            ? 'pending'
+            : 'approved',
       })),
       ...incidents.slice(0, 1).map((incident): ActivityItem => ({
         time: incident.reportedAt,
