@@ -20,11 +20,9 @@ interface Visitor {
   timeOut?: string;
   status: 'pending' | 'approved' | 'checked_in' | 'checked_out' | 'denied';
   contactNumber: string;
-  vehicleNumber?: string;
   hostName: string;
   hostUnit: string;
   approvedBy?: string;
-  notes?: string;
 }
 
 type VisitorTab = 'pending' | 'approved' | 'inside' | 'history';
@@ -40,10 +38,8 @@ export default function SecurityVisitorsPage() {
     name: '',
     purpose: '',
     contactNumber: '',
-    vehicleNumber: '',
     hostName: '',
     hostUnit: '',
-    notes: ''
   });
 
   const loadVisitors = async () => {
@@ -80,16 +76,14 @@ export default function SecurityVisitorsPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const newVisitor: Omit<Visitor, 'id' | 'timeIn' | 'timeOut' | 'status' | 'approvedBy'> = {
       name: formData.name,
       purpose: formData.purpose,
       date: new Date().toISOString().split('T')[0],
       contactNumber: formData.contactNumber,
-      vehicleNumber: formData.vehicleNumber || undefined,
       hostName: formData.hostName,
       hostUnit: formData.hostUnit,
-      notes: formData.notes || undefined
     };
 
     const submitVisitor = async () => {
@@ -102,10 +96,8 @@ export default function SecurityVisitorsPage() {
           name: '',
           purpose: '',
           contactNumber: '',
-          vehicleNumber: '',
           hostName: '',
           hostUnit: '',
-          notes: ''
         });
         setShowForm(false);
         setSuccessMessage('Visitor registered successfully.');
@@ -277,32 +269,6 @@ export default function SecurityVisitorsPage() {
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.25em] text-[#76806F]">
-                    Vehicle Number
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.vehicleNumber}
-                    onChange={(e) => setFormData({ ...formData, vehicleNumber: e.target.value })}
-                    className="w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-[#0F5B35]/10"
-                    placeholder="e.g., ABC-1234"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.25em] text-[#76806F]">
-                    Notes
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.notes}
-                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                    className="w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-[#0F5B35]/10"
-                    placeholder="Additional information"
-                  />
-                </div>
-              </div>
               <div className="flex gap-2">
                 <button
                   type="submit"
@@ -372,16 +338,6 @@ export default function SecurityVisitorsPage() {
                           <p className="text-slate-600">
                             <span className="font-medium">Contact:</span> {visitor.contactNumber}
                           </p>
-                          {visitor.vehicleNumber && (
-                            <p className="text-slate-600">
-                              <span className="font-medium">Vehicle:</span> {visitor.vehicleNumber}
-                            </p>
-                          )}
-                          {visitor.notes && (
-                            <p className="text-slate-600">
-                              <span className="font-medium">Notes:</span> {visitor.notes}
-                            </p>
-                          )}
                         </div>
                       </div>
                       <div className="flex flex-col gap-2">
