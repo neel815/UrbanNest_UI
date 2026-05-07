@@ -4,15 +4,17 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { apiClient, getApiErrorMessage } from '@/utils/api';
 import { API_ENDPOINTS } from '@/utils/constants';
+import { DeleteConfirmationDialog } from '@/components/DeleteConfirmationDialog';
 
 type ManagedUser = {
   id: string;
   full_name: string;
   email: string;
-    phone_number?: string | null;
+  phone_number?: string | null;
   role: string;
   profile_image?: string | null;
   created_at: string;
+  must_reset_password?: boolean | null;
 };
 
 type ManagedUnit = {
@@ -91,6 +93,8 @@ export default function AdminResidentsPage() {
   const [selectedResident, setSelectedResident] = useState<ResidentDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailError, setDetailError] = useState('');
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -180,6 +184,24 @@ export default function AdminResidentsPage() {
     setSelectedResidentId('');
     setSelectedResident(null);
     setDetailError('');
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!selectedResident) return;
+    setDeleteLoading(true);
+    setDetailError('');
+    try {
+      // backend expects the user id (not the resident profile id)
+      await apiClient.delete(`${API_ENDPOINTS.admin.residents}/${selectedResident.user_id}`);
+      setMessage('Resident deleted successfully.');
+      setIsDeleteOpen(false);
+      closeResidentDetail();
+      await loadUsers();
+    } catch (err) {
+      setDetailError(getApiErrorMessage(err));
+    } finally {
+      setDeleteLoading(false);
+    }
   };
 
   const resetCreateForm = () => {
@@ -382,7 +404,14 @@ export default function AdminResidentsPage() {
                         {getInitials(user.full_name)}
                       </div>
                       <div>
-                        <h3 className="text-3xl font-semibold tracking-tight text-[#173326]">{user.full_name}</h3>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-3xl font-semibold tracking-tight text-[#173326]">{user.full_name}</h3>
+                          {user.must_reset_password && (
+                            <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800">
+                              Pending
+                            </span>
+                          )}
+                        </div>
                         <p className="text-sm text-[#6A7264]">Since {getJoinedYear(user.created_at)}</p>
                       </div>
                     </div>
@@ -564,12 +593,32 @@ export default function AdminResidentsPage() {
                       ))}
                     </div>
                   </section>
+                  <div className="mt-6 border-t pt-4">
+                    <div className="flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => setIsDeleteOpen(true)}
+                        className="rounded-full bg-rose-700 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-800"
+                      >
+                        Delete resident
+                      </button>
+                    </div>
+                  </div>
                 </div>
               ) : null}
             </div>
           </div>
         </div>
       )}
+      <DeleteConfirmationDialog
+        title="Delete resident"
+        message={`Are you sure you want to delete ${selectedResident?.full_name || 'this resident'}? This action cannot be undone.`}
+        isOpen={isDeleteOpen}
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setIsDeleteOpen(false)}
+        isDangerous
+        confirmLabel={deleteLoading ? 'Deleting...' : 'Delete Resident'}
+      />
     </main>
   );
 }

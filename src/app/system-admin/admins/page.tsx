@@ -332,21 +332,6 @@ export default function AdminListPage() {
                 );
               })}
             </div>
-
-            <button
-              type="button"
-              className="inline-flex items-center gap-2 rounded-full border border-[#E6E0CF] bg-[#F8F4E7]/90 px-4 py-3 text-sm font-medium text-[#596154] shadow-[0_8px_24px_rgba(23,51,38,0.04)] transition hover:bg-[#F3EFE3]"
-            >
-              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" aria-hidden="true">
-                <path
-                  d="M3 5h18M6 12h12M10 19h4"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
-              More filters
-            </button>
           </div>
         </div>
 
@@ -396,7 +381,14 @@ export default function AdminListPage() {
                               {getInitials(admin.full_name)}
                             </div>
                             <div className="min-w-0">
-                              <p className="truncate text-[16px] font-semibold leading-tight text-[#122B20]">{admin.full_name}</p>
+                              <div className="flex items-center gap-2">
+                                <p className="truncate text-[16px] font-semibold leading-tight text-[#122B20]">{admin.full_name}</p>
+                                {admin.must_reset_password && (
+                                  <span className="inline-flex shrink-0 items-center rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-800">
+                                    Pending
+                                  </span>
+                                )}
+                              </div>
                               <p className="truncate text-[13px] text-[#53605A]">{admin.email}</p>
                             </div>
                           </div>

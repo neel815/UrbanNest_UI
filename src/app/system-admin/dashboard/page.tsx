@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { Cormorant_Garamond } from 'next/font/google';
 import { useEffect, useState } from 'react';
 
@@ -162,9 +163,12 @@ export default function DashboardPage() {
           <button className="rounded-full border border-[#D9D1BC] bg-white px-5 py-3 text-sm font-semibold text-[#173326] shadow-[0_8px_24px_rgba(23,51,38,0.05)]">
             Export report
           </button>
-          <button className="rounded-full bg-[#0F5B35] px-5 py-3 text-sm font-semibold text-[#F7F4E8] shadow-[0_12px_28px_rgba(15,91,53,0.18)] transition hover:-translate-y-0.5 hover:bg-[#0B4B2C]">
+          <Link 
+            href="/system-admin/admins"
+            className="rounded-full bg-[#0F5B35] px-5 py-3 text-sm font-semibold text-[#F7F4E8] shadow-[0_12px_28px_rgba(15,91,53,0.18)] transition hover:-translate-y-0.5 hover:bg-[#0B4B2C]"
+          >
             + Invite admin
-          </button>
+          </Link>
         </div>
       </section>
 
