@@ -1,10 +1,14 @@
-'use client';
+﻿'use client';
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { apiClient, getApiErrorMessage } from '@/utils/api';
 import { API_ENDPOINTS } from '@/utils/constants';
 import { DeleteConfirmationDialog } from '@/components/DeleteConfirmationDialog';
+import SearchIcon from '@/assets/icons/search.svg';
+import HomeFilledIcon from '@/assets/icons/home-filled.svg';
+import MailIcon from '@/assets/icons/mail.svg';
+import PhoneIcon from '@/assets/icons/phone.svg';
 
 type ManagedUser = {
   id: string;
@@ -404,9 +408,7 @@ export default function AdminResidentsPage() {
         <div className="rounded-[28px] border border-[#E4DDCB] bg-[#FBF8EF] shadow-sm backdrop-blur">
           <div className="flex items-center justify-between gap-4 border-b border-slate-200 px-6 py-4">
             <div className="relative w-full max-w-xl">
-              <svg viewBox="0 0 24 24" className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#7A7F70]" fill="none" aria-hidden="true">
-                <path d="m21 21-4.35-4.35M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              <SearchIcon className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#7A7F70]" fill="none" aria-hidden="true" />
               <input
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
@@ -452,22 +454,15 @@ export default function AdminResidentsPage() {
 
                   <div className="mt-4 space-y-2 text-[#4D5B53]">
                     <p className="flex items-center gap-2 text-base">
-                      <svg viewBox="0 0 24 24" className="h-4 w-4 text-[#657469]" fill="none" aria-hidden="true">
-                        <path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1v-8.5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
+                      <HomeFilledIcon className="h-4 w-4 text-[#657469]" fill="none" aria-hidden="true" />
                       {getUnitLabel(user)}
                     </p>
                     <p className="flex items-center gap-2 text-base">
-                      <svg viewBox="0 0 24 24" className="h-4 w-4 text-[#657469]" fill="none" aria-hidden="true">
-                        <path d="M22 16.92V21a1 1 0 0 1-1.09 1A19.86 19.86 0 0 1 3 5.09 1 1 0 0 1 4 4h4.09a1 1 0 0 1 1 .75l.7 2.8a1 1 0 0 1-.27.95L8.1 9.9a16 16 0 0 0 6 6l1.4-1.42a1 1 0 0 1 .95-.27l2.8.7a1 1 0 0 1 .75 1Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
+                      <PhoneIcon className="h-4 w-4 text-[#657469]" fill="none" aria-hidden="true" />
                       {user.phone_number || 'Not provided'}
                     </p>
                     <p className="flex items-center gap-2 text-base">
-                      <svg viewBox="0 0 24 24" className="h-4 w-4 text-[#657469]" fill="none" aria-hidden="true">
-                        <path d="M4 6h16v12H4z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        <path d="m22 7-10 7L2 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
+                      <MailIcon className="h-4 w-4 text-[#657469]" fill="none" aria-hidden="true" />
                       {user.email}
                     </p>
                   </div>
@@ -542,7 +537,7 @@ export default function AdminResidentsPage() {
                 className="grid h-10 w-10 place-items-center rounded-full border border-[#D8D0BC] bg-white text-[#173326] shadow-sm"
                 aria-label="Close resident detail"
               >
-                ×
+                Ã—
               </button>
             </div>
 

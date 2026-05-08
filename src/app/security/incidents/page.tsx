@@ -1,10 +1,11 @@
-'use client';
+﻿'use client';
 
 import { Cormorant_Garamond } from 'next/font/google';
 import { useEffect, useState } from 'react';
 
 import { apiClient, getApiErrorMessage } from '@/utils/api';
 import { API_ENDPOINTS } from '@/utils/constants';
+import AlertBoldIcon from '@/assets/icons/alert-bold.svg';
 
 const cormorant = Cormorant_Garamond({
   subsets: ['latin'],
@@ -335,15 +336,7 @@ export default function SecurityIncidentsPage() {
                 <div className="absolute inset-x-0 top-0 h-1.5 bg-[#0F5B35]" />
                 <div className="flex items-start gap-4">
                   <div className={`grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br ${getTypeColor(incident.type)} text-white shadow-sm`}>
-                    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
-                      <path
-                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 18.5c-.77.833.192 2.5 1.732 2.5z"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
+                    <AlertBoldIcon className="h-5 w-5" fill="none" aria-hidden="true" />
                   </div>
                   <div className="flex-1">
                     <div className="flex items-start justify-between gap-4">
@@ -446,15 +439,7 @@ export default function SecurityIncidentsPage() {
         ) : (
           <div className="rounded-2xl border border-slate-200 bg-[#F6F2E8] p-12 text-center shadow-sm backdrop-blur">
             <div className="grid h-16 w-16 place-items-center rounded-2xl bg-slate-100 mx-auto mb-4">
-              <svg viewBox="0 0 24 24" className="h-8 w-8 text-slate-400" fill="none" aria-hidden="true">
-                <path
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 18.5c-.77.833.192 2.5 1.732 2.5z"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              <AlertBoldIcon className="h-8 w-8 text-slate-400" fill="none" aria-hidden="true" />
             </div>
             <p className="text-slate-600 font-medium">No incidents reported</p>
             <p className="mt-2 text-sm text-slate-500">Report your first incident to get started.</p>

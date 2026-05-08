@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { Cormorant_Garamond } from 'next/font/google';
@@ -6,6 +6,10 @@ import { useEffect, useState } from 'react';
 
 import { apiClient, getApiErrorMessage } from '@/utils/api';
 import { API_ENDPOINTS } from '@/utils/constants';
+import BellIcon from '@/assets/icons/bell.svg';
+import SettingsGearIcon from '@/assets/icons/settings-gear.svg';
+import ReceiptIcon from '@/assets/icons/receipt.svg';
+import UsersGroupIcon from '@/assets/icons/users-group.svg';
 
 const cormorant = Cormorant_Garamond({
   subsets: ['latin'],
@@ -129,35 +133,22 @@ function QuickActionIcon({ name }: { name: 'visitor' | 'complaint' | 'dues' | 'n
   switch (name) {
     case 'visitor':
       return (
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
-          <path d="M9 12.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" stroke={stroke} strokeWidth="1.9" />
-          <path d="M16.5 10.8a2.8 2.8 0 1 0 0-5.6 2.8 2.8 0 0 0 0 5.6Z" stroke={stroke} strokeWidth="1.9" />
-          <path d="M4.5 19v-1c0-2.5 2-4.5 4.5-4.5h0c2.5 0 4.5 2 4.5 4.5v1" stroke={stroke} strokeWidth="1.9" strokeLinecap="round" />
-        </svg>
+        <UsersGroupIcon className="h-5 w-5" fill="none" aria-hidden="true" />
       );
 
     case 'complaint':
       return (
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
-          <path d="M10.3 4.3c.4-1.8 2.9-1.8 3.4 0a1.7 1.7 0 0 0 2.6 1.1c1.5-.9 3.3.8 2.4 2.3a1.7 1.7 0 0 0 1.1 2.6c1.7.4 1.7 2.9 0 3.3a1.7 1.7 0 0 0-1.1 2.6c.9 1.5-.8 3.3-2.3 2.4a1.7 1.7 0 0 0-2.6 1.1c-.5 1.7-2.9 1.7-3.4 0a1.7 1.7 0 0 0-2.6-1.1c-1.5.9-3.3-.8-2.4-2.3a1.7 1.7 0 0 0-1.1-2.6c-1.7-.4-1.7-2.9 0-3.3a1.7 1.7 0 0 0 1.1-2.6c-.9-1.5.8-3.3 2.3-2.4.6.4 1.4.1 1.7-.6Z" stroke={stroke} strokeWidth="1.9" strokeLinejoin="round" />
-          <path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" stroke={stroke} strokeWidth="1.9" />
-        </svg>
+        <SettingsGearIcon className="h-5 w-5" fill="none" aria-hidden="true" />
       );
 
     case 'dues':
       return (
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
-          <rect x="5" y="4.5" width="14" height="15" rx="2.5" stroke={stroke} strokeWidth="1.9" />
-          <path d="M8 9h8M8 12.5h5M8 16h4" stroke={stroke} strokeWidth="1.9" strokeLinecap="round" />
-          <path d="M15.5 7.5h1" stroke={stroke} strokeWidth="2.2" strokeLinecap="round" />
-        </svg>
+        <ReceiptIcon className="h-5 w-5" fill="none" aria-hidden="true" />
       );
 
     default:
       return (
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
-          <path d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 0 0-4-5.7V5a2 2 0 1 0-4 0v.3A6 6 0 0 0 6 11v3.2c0 .5-.2 1-.6 1.4L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9" stroke={stroke} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+        <BellIcon className="h-5 w-5" fill="none" aria-hidden="true" />
       );
   }
 }

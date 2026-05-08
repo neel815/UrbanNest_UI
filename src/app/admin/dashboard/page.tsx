@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { apiClient, getApiErrorMessage } from '@/utils/api';
 import { API_ENDPOINTS } from '@/utils/constants';
+import ResidentsWhiteIcon from '@/assets/icons/residents-white.svg';
 
 const cormorant = Cormorant_Garamond({
   subsets: ['latin'],
@@ -40,14 +41,16 @@ type Announcement = {
 };
 
 function StatIcon({ name }: { name: 'residents' | 'security' | 'users' | 'trend' }) {
+  if (name === 'residents') {
+    return <ResidentsWhiteIcon className="h-5 w-5" fill="none" aria-hidden="true" />;
+  }
+
   const src =
-    name === 'residents'
-      ? '/assets/admin/card-residents.svg'
-      : name === 'security'
-        ? '/assets/admin/card-security.svg'
-        : name === 'trend'
-          ? '/assets/admin/card-trend.svg'
-          : '/assets/admin/card-users.svg';
+    name === 'security'
+      ? '/assets/admin/card-security.svg'
+      : name === 'users'
+        ? '/assets/admin/card-users.svg'
+        : '/assets/admin/card-trend.svg';
 
   return <Image src={src} alt="" width={20} height={20} aria-hidden="true" unoptimized />;
 }

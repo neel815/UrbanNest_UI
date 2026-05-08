@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { createPortal } from 'react-dom';
 import { FormEvent, useEffect, useState } from 'react';
@@ -6,6 +6,9 @@ import ImageUploadField from '../../../components/ImageUploadField';
 import { DeleteConfirmationDialog } from '@/components/DeleteConfirmationDialog';
 import { apiClient, getApiErrorMessage } from '@/utils/api';
 import { API_ENDPOINTS } from '@/utils/constants';
+import ClockSmallIcon from '@/assets/icons/clock-small.svg';
+import MoreVerticalIcon from '@/assets/icons/more-vertical.svg';
+import CircleIcon from '@/assets/icons/circle.svg';
 
 type ManagedUser = {
   id: string;
@@ -466,18 +469,13 @@ export default function AdminSecurityPage() {
                       </td>
                       <td className="px-6 py-4 text-[#6A7264]">
                         <div className="flex items-center gap-2">
-                          <svg viewBox="0 0 24 24" className="h-4 w-4 text-[#657469]" fill="none">
-                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" stroke="currentColor" strokeWidth="2" />
-                          </svg>
+                          <CircleIcon className="h-4 w-4 text-[#657469]" fill="none" />
                           {user.assigned_building_name || 'Unassigned'}
                         </div>
                       </td>
                       <td className="px-6 py-4 text-[#6A7264]">
                         <div className="flex items-center gap-2">
-                          <svg viewBox="0 0 24 24" className="h-4 w-4 text-[#657469]" fill="none">
-                            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
-                            <path d="M12 6v6l4 2" stroke="currentColor" strokeWidth="2" />
-                          </svg>
+                          <ClockSmallIcon className="h-4 w-4 text-[#657469]" fill="none" />
                           {formatShiftLabel(user.shift)}
                         </div>
                       </td>
@@ -508,11 +506,7 @@ export default function AdminSecurityPage() {
                               className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-[#66716A] transition hover:border-slate-300 hover:text-[#1D3027]"
                               aria-label={`Open actions menu for ${user.full_name}`}
                             >
-                              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor" aria-hidden="true">
-                                <circle cx="12" cy="5" r="1.8" />
-                                <circle cx="12" cy="12" r="1.8" />
-                                <circle cx="12" cy="19" r="1.8" />
-                              </svg>
+                              <MoreVerticalIcon className="h-4 w-4" fill="currentColor" aria-hidden="true" />
                             </button>
 
                             {openActionMenuId === user.id && actionMenuAnchor && typeof document !== 'undefined' &&

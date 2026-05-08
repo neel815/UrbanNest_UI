@@ -1,10 +1,12 @@
-'use client';
+﻿'use client';
 
 import { Cormorant_Garamond } from 'next/font/google';
 import { useEffect, useState } from 'react';
 
 import { apiClient } from '@/utils/api';
 import { API_ENDPOINTS } from '@/utils/constants';
+import MapFoldIcon from '@/assets/icons/map-fold.svg';
+import CalendarIcon from '@/assets/icons/calendar.svg';
 
 const cormorant = Cormorant_Garamond({
   subsets: ['latin'],
@@ -403,15 +405,7 @@ export default function SecurityPatrolPage() {
         ) : activeTab === 'schedule' ? (
           <div className="rounded-2xl border border-slate-200 bg-white/70 p-12 text-center shadow-sm backdrop-blur">
             <div className="grid h-16 w-16 place-items-center rounded-2xl bg-slate-100 mx-auto mb-4">
-              <svg viewBox="0 0 24 24" className="h-8 w-8 text-slate-400" fill="none" aria-hidden="true">
-                <path
-                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              <CalendarIcon className="h-8 w-8 text-slate-400" fill="none" aria-hidden="true" />
             </div>
             <p className="text-slate-600 font-medium">Patrol Schedule Coming Soon</p>
             <p className="mt-2 text-sm text-slate-500">Advanced scheduling features will be available in the next update.</p>
@@ -419,15 +413,7 @@ export default function SecurityPatrolPage() {
         ) : (
           <div className="rounded-2xl border border-slate-200 bg-white/70 p-12 text-center shadow-sm backdrop-blur">
             <div className="grid h-16 w-16 place-items-center rounded-2xl bg-slate-100 mx-auto mb-4">
-              <svg viewBox="0 0 24 24" className="h-8 w-8 text-slate-400" fill="none" aria-hidden="true">
-                <path
-                  d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              <MapFoldIcon className="h-8 w-8 text-slate-400" fill="none" aria-hidden="true" />
             </div>
             <p className="text-slate-600 font-medium">
               {activeTab === 'rounds' ? 'No active patrol rounds' : 'No patrol routes configured'}

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { Cormorant_Garamond } from 'next/font/google';
@@ -6,6 +6,10 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { apiClient, getApiErrorMessage } from '@/utils/api';
 import { API_ENDPOINTS } from '@/utils/constants';
+import ChevronRightIcon from '@/assets/icons/chevron-right.svg';
+import BriefcaseIcon from '@/assets/icons/briefcase.svg';
+import AlertIcon from '@/assets/icons/alert.svg';
+import UsersIcon from '@/assets/icons/users.svg';
 
 const cormorant = Cormorant_Garamond({
   subsets: ['latin'],
@@ -98,23 +102,15 @@ function QuickActionIcon({ name }: { name: QuickAction['icon'] }) {
   switch (name) {
     case 'visitor':
       return (
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
-          <path d="M9 12.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" stroke={stroke} strokeWidth="1.9" />
-          <path d="M16.5 10.8a2.8 2.8 0 1 0 0-5.6 2.8 2.8 0 0 0 0 5.6Z" stroke={stroke} strokeWidth="1.9" />
-          <path d="M4.5 19v-1c0-2.5 2-4.5 4.5-4.5h0c2.5 0 4.5 2 4.5 4.5v1" stroke={stroke} strokeWidth="1.9" strokeLinecap="round" />
-        </svg>
+        <UsersIcon className="h-5 w-5" fill="none" aria-hidden="true" />
       );
     case 'incident':
       return (
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
-          <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 18.5c-.77.833.192 2.5 1.732 2.5z" stroke={stroke} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+        <AlertIcon className="h-5 w-5" fill="none" aria-hidden="true" />
       );
     default:
       return (
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
-          <path d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v9a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" stroke={stroke} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+        <BriefcaseIcon className="h-5 w-5" fill="none" aria-hidden="true" />
       );
   }
 }
@@ -330,9 +326,7 @@ export default function SecurityDashboardPage() {
               <div className="grid h-11 w-11 place-items-center rounded-full bg-[#E8EFE8] text-[#0F5B35] shadow-sm">
                 <QuickActionIcon name={action.icon} />
               </div>
-              <svg viewBox="0 0 24 24" className="h-5 w-5 text-[#6C7368] transition group-hover:translate-x-0.5" fill="none" aria-hidden="true">
-                <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              <ChevronRightIcon className="h-5 w-5 text-[#6C7368] transition group-hover:translate-x-0.5" fill="none" aria-hidden="true" />
             </div>
             <div className="mt-6 space-y-1">
               <h2 className={`${cormorant.className} text-3xl font-semibold tracking-tight text-[#173326]`}>{action.title}</h2>

@@ -1,9 +1,10 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 
 import { apiClient, getApiErrorMessage } from '@/utils/api';
 import { API_ENDPOINTS } from '@/utils/constants';
+import UserIcon from '@/assets/icons/user.svg';
 
 interface Visitor {
   id: string;
@@ -260,15 +261,7 @@ export default function VisitorsPage() {
                 <div className="absolute inset-x-0 top-0 h-1.5 bg-[#0F5B35]" />
                 <div className="flex items-start gap-4">
                   <div className={`grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br ${getStatusColor(visitor.status || 'pending')} text-white shadow-sm`}>
-                    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
-                      <path
-                        d="M17 20v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M12 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
+                    <UserIcon className="h-5 w-5" fill="none" aria-hidden="true" />
                   </div>
                   <div className="flex-1">
                   <div className="flex items-start justify-between gap-4">
@@ -336,15 +329,7 @@ export default function VisitorsPage() {
         ) : (
           <div className="rounded-2xl border border-slate-200 bg-[#FBF8EF] p-12 text-center shadow-sm backdrop-blur">
             <div className="grid h-16 w-16 place-items-center rounded-2xl bg-slate-100 mx-auto mb-4">
-              <svg viewBox="0 0 24 24" className="h-8 w-8 text-slate-400" fill="none" aria-hidden="true">
-                <path
-                  d="M17 20v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M12 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              <UserIcon className="h-8 w-8 text-slate-400" fill="none" aria-hidden="true" />
             </div>
             <p className="text-slate-600 font-medium">No visitors registered</p>
             <p className="mt-2 text-sm text-slate-500">Register your first visitor to get started.</p>

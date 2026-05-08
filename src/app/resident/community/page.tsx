@@ -1,9 +1,11 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 
 import { apiClient } from '@/utils/api';
 import { API_ENDPOINTS } from '@/utils/constants';
+import UserIcon from '@/assets/icons/user.svg';
+import ChatIcon from '@/assets/icons/chat.svg';
 
 interface Event {
   id: string;
@@ -291,15 +293,7 @@ export default function CommunityPage() {
                 <div className="absolute inset-x-0 top-0 h-1.5 bg-[#0F5B35]" />
                 <div className="flex items-start gap-4">
                   <div className={`grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br ${getCategoryColor(post.category || 'general')} text-white shadow-sm`}>
-                    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
-                      <path
-                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.003 9.003 0 00-8.682-4.947 9.82 9.82 0 00-8.682 4.947C4.03 16.418 0 12.418 0 8c0-4.418 4.03-8 9-8a9.003 9.003 0 018.682 4.947 9.82 9.82 0 018.682-4.947C21.97 16.418 26 12.418 26 8c0-4.418-4.03-8-9-8z"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
+                    <ChatIcon className="h-5 w-5" fill="none" aria-hidden="true" />
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-3">
@@ -329,15 +323,7 @@ export default function CommunityPage() {
         ) : (
           <div className="rounded-2xl border border-slate-200 bg-white/70 p-12 text-center shadow-sm backdrop-blur">
             <div className="grid h-16 w-16 place-items-center rounded-2xl bg-slate-100 mx-auto mb-4">
-              <svg viewBox="0 0 24 24" className="h-8 w-8 text-slate-400" fill="none" aria-hidden="true">
-                <path
-                  d="M17 20v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M12 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              <UserIcon className="h-8 w-8 text-slate-400" fill="none" aria-hidden="true" />
             </div>
             <p className="text-slate-600 font-medium">
               {activeTab === 'events' ? 'No upcoming events at this time' : 'No discussion posts yet'}

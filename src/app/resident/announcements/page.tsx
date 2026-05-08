@@ -1,9 +1,10 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 
 import { apiClient, getApiErrorMessage } from '@/utils/api';
 import { API_ENDPOINTS } from '@/utils/constants';
+import BellBoldIcon from '@/assets/icons/bell-bold.svg';
 
 interface Announcement {
   id: string;
@@ -98,15 +99,7 @@ export default function AnnouncementsPage() {
                 <div className="absolute inset-x-0 top-0 h-1.5 bg-[#0F5B35]" />
                 <div className="flex items-start gap-4">
                   <div className="grid h-10 w-10 place-items-center rounded-xl bg-slate-900 text-white shadow-sm">
-                    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
-                      <path
-                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
+                    <BellBoldIcon className="h-5 w-5" fill="none" aria-hidden="true" />
                   </div>
                   <div className="flex-1">
                     <div className="flex items-start justify-between gap-4">
@@ -132,15 +125,7 @@ export default function AnnouncementsPage() {
         ) : (
           <div className="rounded-2xl border border-slate-200 bg-[#F6F2E8] p-12 text-center shadow-sm backdrop-blur">
             <div className="grid h-16 w-16 place-items-center rounded-2xl bg-slate-100 mx-auto mb-4">
-              <svg viewBox="0 0 24 24" className="h-8 w-8 text-slate-400" fill="none" aria-hidden="true">
-                <path
-                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              <BellBoldIcon className="h-8 w-8 text-slate-400" fill="none" aria-hidden="true" />
             </div>
             <p className="text-slate-600 font-medium">No announcements at this time</p>
             <p className="mt-2 text-sm text-slate-500">Check back later for updates from building management.</p>

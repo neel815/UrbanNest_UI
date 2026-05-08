@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { Cormorant_Garamond } from 'next/font/google';
 import { FormEvent, useEffect, useMemo, useState } from 'react';
@@ -6,6 +6,8 @@ import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { DeleteConfirmationDialog } from '@/components/DeleteConfirmationDialog';
 import { apiClient, getApiErrorMessage } from '@/utils/api';
 import { API_ENDPOINTS } from '@/utils/constants';
+import BuildingIcon from '@/assets/icons/building.svg';
+import MoreVerticalIcon from '@/assets/icons/more-vertical.svg';
 
 type BuildingItem = {
   id: string;
@@ -234,15 +236,7 @@ export default function BuildingsPage() {
                 </div>
 
                 <div className={`grid h-12 w-12 place-items-center rounded-full ${item.active ? 'bg-white/8 text-[#F7F4E8]' : 'bg-[#E4EDE6] text-[#0F5B35]'}`}>
-                  <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
-                    <path
-                      d="M4 20V7.8c0-.54.29-1.03.75-1.3l7-4c.45-.26 1.05-.26 1.5 0l6 4c.46.27.75.76.75 1.3V20M7 20V12h10v8M10 12V8h4v4"
-                      stroke="currentColor"
-                      strokeWidth="1.9"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
+                  <BuildingIcon className="h-5 w-5" fill="none" aria-hidden="true" />
                 </div>
               </div>
 
@@ -274,15 +268,7 @@ export default function BuildingsPage() {
                 </p>
               </div>
               <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#E4EDE6] text-[#0F5B35]">
-                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
-                  <path
-                    d="M4 20V7.8c0-.54.29-1.03.75-1.3l7-4c.45-.26 1.05-.26 1.5 0l6 4c.46.27.75.76.75 1.3V20M7 20V12h10v8M10 12V8h4v4"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+                <BuildingIcon className="h-5 w-5" fill="none" aria-hidden="true" />
               </div>
             </div>
 
@@ -437,11 +423,7 @@ export default function BuildingsPage() {
                             className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-[#66716A] transition hover:border-slate-300 hover:text-[#1D3027]"
                             aria-label={`Open actions menu for ${building.name}`}
                           >
-                            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden="true">
-                              <circle cx="12" cy="5" r="1.8" />
-                              <circle cx="12" cy="12" r="1.8" />
-                              <circle cx="12" cy="19" r="1.8" />
-                            </svg>
+                            <MoreVerticalIcon className="h-5 w-5" fill="currentColor" aria-hidden="true" />
                           </button>
 
                           {openActionMenuId === building.id && (

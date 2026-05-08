@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Image from 'next/image';
 import Link from 'next/link';
@@ -6,6 +6,13 @@ import { usePathname } from 'next/navigation';
 import { useMemo } from 'react';
 
 import { useAuthGuard } from '@/hooks/useAuthGuard';
+import BellIcon from '@/assets/icons/bell.svg';
+import HomeMarkIcon from '@/assets/icons/home-mark.svg';
+import ReceiptIcon from '@/assets/icons/receipt.svg';
+import HomeIcon from '@/assets/icons/home.svg';
+import UserProfileIcon from '@/assets/icons/user-profile.svg';
+import ShieldAlertIcon from '@/assets/icons/shield-alert.svg';
+import UsersGroupIcon from '@/assets/icons/users-group.svg';
 
 type NavItem = {
   href: string;
@@ -19,49 +26,27 @@ function SidebarIcon({ name, active }: { name: NavItem['icon']; active?: boolean
   switch (name) {
     case 'dashboard':
       return (
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
-          <path d="M4 11.5 12 4l8 7.5" stroke={stroke} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M6.5 10.5V20h11V10.5" stroke={stroke} strokeWidth="1.9" strokeLinejoin="round" />
-          <path d="M10 20v-5h4v5" stroke={stroke} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+        <HomeIcon className="h-5 w-5" fill="none" aria-hidden="true" style={{ color: stroke }} />
       );
     case 'visitors':
       return (
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
-          <path d="M9 12.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" stroke={stroke} strokeWidth="1.9" />
-          <path d="M16.5 10.8a2.8 2.8 0 1 0 0-5.6 2.8 2.8 0 0 0 0 5.6Z" stroke={stroke} strokeWidth="1.9" />
-          <path d="M4.5 19v-1c0-2.5 2-4.5 4.5-4.5h0c2.5 0 4.5 2 4.5 4.5v1" stroke={stroke} strokeWidth="1.9" strokeLinecap="round" />
-          <path d="M13.5 18v-1c0-1.9 1.5-3.4 3.4-3.4h.2c1.9 0 3.4 1.5 3.4 3.4v1" stroke={stroke} strokeWidth="1.9" strokeLinecap="round" />
-        </svg>
+        <UsersGroupIcon className="h-5 w-5" fill="none" aria-hidden="true" style={{ color: stroke }} />
       );
     case 'maintenance':
       return (
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
-          <path d="M12 3l7 3v5.5c0 4.3-3 8.2-7 9.5-4-1.3-7-5.2-7-9.5V6l7-3Z" stroke={stroke} strokeWidth="1.9" strokeLinejoin="round" />
-          <path d="M9.5 12h5" stroke={stroke} strokeWidth="1.9" strokeLinecap="round" />
-          <path d="M12 8.7v.1" stroke={stroke} strokeWidth="2.4" strokeLinecap="round" />
-        </svg>
+        <ShieldAlertIcon className="h-5 w-5" fill="none" aria-hidden="true" style={{ color: stroke }} />
       );
     case 'announcements':
       return (
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
-          <path d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 0 0-4-5.7V5a2 2 0 1 0-4 0v.3A6 6 0 0 0 6 11v3.2c0 .5-.2 1-.6 1.4L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9" stroke={stroke} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+        <BellIcon className="h-5 w-5" fill="none" aria-hidden="true" style={{ color: stroke }} />
       );
     case 'dues':
       return (
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
-          <rect x="4.5" y="4.5" width="15" height="15" rx="2.5" stroke={stroke} strokeWidth="1.9" />
-          <path d="M8 9.2h8M8 12.5h5M8 15.8h4" stroke={stroke} strokeWidth="1.9" strokeLinecap="round" />
-          <path d="M15.5 7.5h1" stroke={stroke} strokeWidth="2.2" strokeLinecap="round" />
-        </svg>
+        <ReceiptIcon className="h-5 w-5" fill="none" aria-hidden="true" style={{ color: stroke }} />
       );
     default:
       return (
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
-          <path d="M12 7a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z" stroke={stroke} strokeWidth="1.9" />
-          <path d="M4.5 19a7.5 7.5 0 0 1 15 0" stroke={stroke} strokeWidth="1.9" strokeLinecap="round" />
-        </svg>
+        <UserProfileIcon className="h-5 w-5" fill="none" aria-hidden="true" style={{ color: stroke }} />
       );
   }
 }
@@ -99,11 +84,7 @@ export default function ResidentLayout({ children }: { children: React.ReactNode
         <aside className="flex w-full flex-col border-b border-[#E6E0CF] bg-[#F7F3E8] px-5 py-5 lg:sticky lg:top-0 lg:h-screen lg:w-[320px] lg:border-b-0 lg:border-r lg:px-6">
           <div className="flex items-center gap-3">
             <div className="grid h-12 w-12 place-items-center rounded-full bg-[#0F5B35] text-white shadow-[0_10px_26px_rgba(15,91,53,0.22)]">
-              <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" aria-hidden="true">
-                <path d="M12 4 4 11v9h16v-9l-8-7Z" stroke="currentColor" strokeWidth="1.9" strokeLinejoin="round" />
-                <path d="M9.5 20v-6h5v6" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-                <path d="M9 11.5h6" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
-              </svg>
+              <HomeMarkIcon className="h-6 w-6" fill="none" aria-hidden="true" />
             </div>
             <div>
               <p className="text-[15px] font-semibold tracking-[-0.02em] text-[#173326]">UrbanNest</p>

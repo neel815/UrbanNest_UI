@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 
 import { SystemAdminUserProvider, useSystemAdminUser } from '@/context/system-admin-user-context';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
+import SettingsGearIcon from '@/assets/icons/settings-gear.svg';
 
 type NavItem = {
   href: string;
@@ -37,6 +38,16 @@ const navItems: NavItem[] = [
 ];
 
 function SidebarIcon({ src, active }: { src: string; active?: boolean }) {
+  if (src === '/assets/system-admin/settings.svg') {
+    return (
+      <SettingsGearIcon
+        className={active ? 'h-5 w-5 brightness-0 invert' : 'h-5 w-5'}
+        fill="none"
+        aria-hidden="true"
+      />
+    );
+  }
+
   return (
     <Image
       src={src}

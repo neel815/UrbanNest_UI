@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Image from 'next/image';
 import Link from 'next/link';
@@ -6,6 +6,12 @@ import { usePathname } from 'next/navigation';
 import { useMemo } from 'react';
 
 import { useAuthGuard } from '@/hooks/useAuthGuard';
+import BriefcaseIcon from '@/assets/icons/briefcase.svg';
+import HomeIcon from '@/assets/icons/home.svg';
+import AlertIcon from '@/assets/icons/alert.svg';
+import HomeSimpleIcon from '@/assets/icons/home-simple.svg';
+import LayoutIcon from '@/assets/icons/layout.svg';
+import UsersIcon from '@/assets/icons/users.svg';
 
 type NavItem = {
   href: string;
@@ -19,38 +25,23 @@ function NavIcon({ name, active }: { name: NavItem['icon']; active?: boolean }) 
   switch (name) {
     case 'dashboard':
       return (
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
-          <path d="M4 11.5 12 4l8 7.5" stroke={stroke} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M6.5 10.5V20h11V10.5" stroke={stroke} strokeWidth="1.9" strokeLinejoin="round" />
-          <path d="M10 20v-5h4v5" stroke={stroke} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+        <HomeIcon className="h-5 w-5" fill="none" aria-hidden="true" style={{ color: stroke }} />
       );
     case 'visitors':
       return (
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
-          <path d="M9 12.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" stroke={stroke} strokeWidth="1.9" />
-          <path d="M16.5 10.8a2.8 2.8 0 1 0 0-5.6 2.8 2.8 0 0 0 0 5.6Z" stroke={stroke} strokeWidth="1.9" />
-          <path d="M4.5 19v-1c0-2.5 2-4.5 4.5-4.5h0c2.5 0 4.5 2 4.5 4.5v1" stroke={stroke} strokeWidth="1.9" strokeLinecap="round" />
-        </svg>
+        <UsersIcon className="h-5 w-5" fill="none" aria-hidden="true" style={{ color: stroke }} />
       );
     case 'entries':
       return (
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
-          <path d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v9a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" stroke={stroke} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+        <BriefcaseIcon className="h-5 w-5" fill="none" aria-hidden="true" style={{ color: stroke }} />
       );
     case 'incidents':
       return (
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
-          <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 18.5c-.77.833.192 2.5 1.732 2.5z" stroke={stroke} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+        <AlertIcon className="h-5 w-5" fill="none" aria-hidden="true" style={{ color: stroke }} />
       );
     default:
       return (
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
-          <path d="M9 4v16M15 4v16" stroke={stroke} strokeWidth="1.9" strokeLinecap="round" />
-          <path d="M4 7h16M4 17h16" stroke={stroke} strokeWidth="1.9" strokeLinecap="round" />
-        </svg>
+        <LayoutIcon className="h-5 w-5" fill="none" aria-hidden="true" style={{ color: stroke }} />
       );
   }
 }
@@ -87,10 +78,7 @@ export default function SecurityLayout({ children }: { children: React.ReactNode
         <aside className="flex w-full flex-col border-b border-[#E6E0CF] bg-[#F7F3E8] px-5 py-5 lg:sticky lg:top-0 lg:h-screen lg:w-[314px] lg:border-b-0 lg:border-r lg:px-6">
           <div className="flex items-center gap-3">
             <div className="grid h-12 w-12 place-items-center rounded-full bg-[#0F5B35] text-white shadow-[0_10px_26px_rgba(15,91,53,0.22)]">
-              <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" aria-hidden="true">
-                <path d="M12 4 4 11v9h16v-9l-8-7Z" stroke="currentColor" strokeWidth="1.9" strokeLinejoin="round" />
-                <path d="M9.5 20v-6h5v6" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              <HomeSimpleIcon className="h-6 w-6" fill="none" aria-hidden="true" />
             </div>
             <div>
               <p className="text-[15px] font-semibold tracking-[-0.02em] text-[#173326]">UrbanNest</p>

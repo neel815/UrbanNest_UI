@@ -6,12 +6,21 @@ import { usePathname } from 'next/navigation';
 import { useMemo } from 'react';
 
 import { useAuthGuard } from '@/hooks/useAuthGuard';
+import SettingsGearIcon from '@/assets/icons/settings-gear.svg';
 
 type NavItem = {
   href: string;
   label: string;
   icon: string;
 };
+
+function SidebarIcon({ src, active }: { src: string; active?: boolean }) {
+  if (src === '/assets/admin/settings.svg') {
+    return <SettingsGearIcon className={active ? 'h-5 w-5 brightness-0 invert' : 'h-5 w-5'} fill="none" aria-hidden="true" />;
+  }
+
+  return <Image src={src} alt="" width={20} height={20} aria-hidden="true" className={active ? 'brightness-0 invert' : ''} unoptimized />;
+}
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -64,7 +73,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         : 'text-[#596154] hover:bg-[#FBF8EF] hover:text-[#173326] hover:shadow-[0_8px_20px_rgba(23,51,38,0.06)]',
                     ].join(' ')}
                   >
-                    <Image src={item.icon} alt="" width={20} height={20} aria-hidden="true" className={active ? 'brightness-0 invert' : ''} unoptimized />
+                    <SidebarIcon src={item.icon} active={active} />
                     <span>{item.label}</span>
                   </Link>
                 );

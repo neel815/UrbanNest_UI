@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { Cormorant_Garamond } from 'next/font/google';
@@ -7,6 +7,10 @@ import { useEffect, useState } from 'react';
 import { useSystemAdminUser } from '@/context/system-admin-user-context';
 import { apiClient, getApiErrorMessage } from '@/utils/api';
 import { API_ENDPOINTS } from '@/utils/constants';
+import ListCompactIcon from '@/assets/icons/list-compact.svg';
+import ShieldIcon from '@/assets/icons/shield.svg';
+import UsersGroupIcon from '@/assets/icons/users-group.svg';
+import ShieldCheckIcon from '@/assets/icons/shield-check.svg';
 
 const cormorant = Cormorant_Garamond({
   subsets: ['latin'],
@@ -46,41 +50,32 @@ const fallbackSocieties: SocietyItem[] = [
   { name: 'Lotus Residency', units: 198, occupancy_percent: 74 },
 ];
 
-function StatIcon({ name }: { name: 'shield' | 'users' | 'guard' | 'id' }) {
+function StatIcon({ name, active }: { name: 'shield' | 'users' | 'guard' | 'id'; active?: boolean }) {
   if (name === 'shield') {
     return (
-      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
-        <path d="M12 22s7-3.8 7-9.8V5.5L12 3l-7 2.5v6.7c0 6 7 9.8 7 9.8Z" stroke="currentColor" strokeWidth="1.9" strokeLinejoin="round" />
-      </svg>
+      <ShieldIcon className="h-5 w-5" fill="none" aria-hidden="true" />
     );
   }
 
   if (name === 'users') {
     return (
-      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
-        <path d="M9 12.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" stroke="currentColor" strokeWidth="1.9" />
-        <path d="M16.5 10.8a2.8 2.8 0 1 0 0-5.6 2.8 2.8 0 0 0 0 5.6Z" stroke="currentColor" strokeWidth="1.9" />
-        <path d="M4.5 19v-1c0-2.5 2-4.5 4.5-4.5h0c2.5 0 4.5 2 4.5 4.5v1" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
-        <path d="M13.5 18v-1c0-1.9 1.5-3.4 3.4-3.4h.2c1.9 0 3.4 1.5 3.4 3.4v1" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
-      </svg>
+      <UsersGroupIcon
+        className={`h-5 w-5 ${active ? 'text-white' : ''}`}
+        fill="none"
+        aria-hidden="true"
+        style={active ? { color: '#FFFFFF' } : undefined}
+      />
     );
   }
 
   if (name === 'guard') {
     return (
-      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
-        <path d="M12 3l7 3v5.2c0 4.4-3 8.4-7 9.8-4-1.4-7-5.4-7-9.8V6l7-3Z" stroke="currentColor" strokeWidth="1.9" strokeLinejoin="round" />
-        <path d="M9.5 12h5" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
-      </svg>
+      <ShieldCheckIcon className="h-5 w-5" fill="none" aria-hidden="true" />
     );
   }
 
   return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
-      <rect x="5" y="4.5" width="14" height="15" rx="2.5" stroke="currentColor" strokeWidth="1.9" />
-      <path d="M8 10h8M8 13h5" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
-      <circle cx="9" cy="7.5" r="1" fill="currentColor" />
-    </svg>
+    <ListCompactIcon className="h-5 w-5" fill="none" aria-hidden="true" />
   );
 }
 
@@ -202,7 +197,7 @@ export default function DashboardPage() {
               </div>
 
               <div className={`grid h-12 w-12 place-items-center rounded-full ${card.active ? 'bg-white/8 text-[#F7F4E8]' : 'bg-[#E4EDE6] text-[#0F5B35]'}`}>
-                <StatIcon name={card.icon} />
+                <StatIcon name={card.icon} active={card.active} />
               </div>
             </div>
 

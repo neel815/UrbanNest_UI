@@ -1,10 +1,13 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 
 import { DeleteConfirmationDialog } from '@/components/DeleteConfirmationDialog';
 import { apiClient, getApiErrorMessage } from '@/utils/api';
 import { API_ENDPOINTS } from '@/utils/constants';
+import ClockIcon from '@/assets/icons/clock.svg';
+import PlusIcon from '@/assets/icons/plus.svg';
+import PinIcon from '@/assets/icons/pin.svg';
 
 type ModalKind = 'announcement' | null;
 
@@ -154,9 +157,7 @@ export default function AdminAnnouncementsPage() {
             onClick={openCreateModal}
             className="inline-flex items-center gap-2 rounded-2xl bg-[#0F5B35] px-5 py-3 text-sm font-semibold text-[#F7F4E8] shadow-[0_12px_28px_rgba(15,91,53,0.18)] transition hover:-translate-y-0.5 hover:bg-[#0B4B2C]"
           >
-            <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-            </svg>
+            <PlusIcon className="h-5 w-5" fill="currentColor" />
             New announcement
           </button>
         </div>
@@ -194,9 +195,7 @@ export default function AdminAnnouncementsPage() {
                       </span>
                       {announcement.is_pinned && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-[#E9BF73] px-3 py-1 text-xs font-semibold text-[#173326]">
-                          <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5.951-1.429a1 1 0 00.725-.725l5.951-1.429a1 1 0 001.169-1.409l-7-14z" />
-                          </svg>
+                          <PinIcon className="h-3.5 w-3.5" fill="currentColor" />
                           PINNED
                         </span>
                       )}
@@ -215,9 +214,7 @@ export default function AdminAnnouncementsPage() {
                 <div className="mt-4 space-y-2">
                   <div className="flex items-center justify-between text-sm">
                     <span className="flex items-center gap-1 text-slate-500">
-                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
+                      <ClockIcon className="h-4 w-4" fill="none" stroke="currentColor" />
                       {getTimeAgo(announcement.published_at)}
                     </span>
                     <span className="font-semibold text-[#0F5B35]">

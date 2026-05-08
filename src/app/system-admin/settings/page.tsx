@@ -1,9 +1,10 @@
-'use client';
+﻿'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
 import { apiClient, getApiErrorMessage } from '@/utils/api';
 import { API_ENDPOINTS } from '@/utils/constants';
 import ImageUploadField from '../../../components/ImageUploadField';
+import AccountIcon from '@/assets/icons/account.svg';
 
 export default function SettingsPage() {
   const [appName, setAppName] = useState('');
@@ -84,15 +85,7 @@ export default function SettingsPage() {
                 <p className="mt-1 text-sm text-slate-600">Personal details for the current System Admin.</p>
               </div>
               <div className="grid h-10 w-10 place-items-center rounded-xl bg-slate-900 text-white shadow-sm">
-                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
-                  <path
-                    d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+                <AccountIcon className="h-5 w-5" fill="none" aria-hidden="true" />
               </div>
             </div>
 

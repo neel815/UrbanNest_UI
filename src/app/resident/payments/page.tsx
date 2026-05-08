@@ -1,10 +1,17 @@
-'use client';
+﻿'use client';
 
 import { Cormorant_Garamond } from 'next/font/google';
 import { useEffect, useState } from 'react';
 
 import { apiClient, getApiErrorMessage } from '@/utils/api';
 import { API_ENDPOINTS } from '@/utils/constants';
+import AlertIcon from '@/assets/icons/alert.svg';
+import BriefcaseIcon from '@/assets/icons/briefcase.svg';
+import ClockIcon from '@/assets/icons/clock.svg';
+import CreditCardIcon from '@/assets/icons/credit-card.svg';
+import DocumentIcon from '@/assets/icons/document.svg';
+import SettingsGearIcon from '@/assets/icons/settings-gear.svg';
+import UtilitiesIcon from '@/assets/icons/utilities.svg';
 
 const cormorant = Cormorant_Garamond({
   subsets: ['latin'],
@@ -60,18 +67,17 @@ export default function PaymentsPage() {
     }
   };
 
-  const getTypeIcon = (type: string) => {
+  const getTypeIcon = (type: Payment['type']): React.FC<React.SVGProps<SVGSVGElement>> => {
     switch (type) {
       case 'maintenance':
-        return 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z';
+        return SettingsGearIcon;
       case 'parking':
-        return 'M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v9a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4';
+        return BriefcaseIcon;
       case 'utilities':
-        return 'M13 10V3L4 14h7v7m9 0v-7l-7-7v7m0 7h7';
+        return UtilitiesIcon;
       case 'other':
-        return 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z';
       default:
-        return 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z';
+        return DocumentIcon;
     }
   };
 
@@ -116,21 +122,21 @@ export default function PaymentsPage() {
       subtitle: 'Awaiting payment',
       value: `₹${totals.pending.toFixed(2)}`,
       accent: 'from-amber-500 to-orange-500',
-      icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
+      Icon: ClockIcon,
     },
     {
       title: 'Overdue',
       subtitle: 'Past due date',
       value: `₹${totals.overdue.toFixed(2)}`,
       accent: 'from-rose-500 to-pink-500',
-      icon: 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 18.5c-.77.833.192 2.5 1.732 2.5z',
+      Icon: AlertIcon,
     },
     {
       title: 'Total Due',
       subtitle: 'All outstanding',
       value: `₹${totals.total.toFixed(2)}`,
       accent: 'from-emerald-600 to-teal-600',
-      icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z',
+      Icon: CreditCardIcon,
     },
   ];
 
@@ -164,33 +170,32 @@ export default function PaymentsPage() {
               key={card.title}
               className="group relative overflow-hidden rounded-[28px] border border-[#D8D0BC] bg-[#F6F2E8] p-5 shadow-[0_8px_24px_rgba(23,51,38,0.04)] backdrop-blur transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(23,51,38,0.08)]"
             >
-              <div className="absolute inset-x-0 top-0 h-1.5 bg-[#0F5B35]" />
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-sm font-semibold text-[#173326]">{card.title}</p>
-                  <p className="text-xs text-[#7A7F70]">{card.subtitle}</p>
-                </div>
-                <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#0F5B35] text-white shadow-[0_10px_26px_rgba(15,91,53,0.16)]">
-                  <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
-                    <path
-                      d={card.icon}
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </div>
-              </div>
+              {(() => {
+                const CardIcon = card.Icon;
+                return (
+                  <>
+                    <div className="absolute inset-x-0 top-0 h-1.5 bg-[#0F5B35]" />
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold text-[#173326]">{card.title}</p>
+                        <p className="text-xs text-[#7A7F70]">{card.subtitle}</p>
+                      </div>
+                      <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#0F5B35] text-white shadow-[0_10px_26px_rgba(15,91,53,0.16)]">
+                        <CardIcon className="h-5 w-5" fill="none" aria-hidden="true" />
+                      </div>
+                    </div>
 
-              <div className="mt-5 flex items-end justify-between">
-                <p className="text-4xl font-semibold tracking-tight text-[#173326]">
-                  {loading ? <span className="inline-block h-10 w-16 animate-pulse rounded bg-[#E6E0CF]" /> : card.value}
-                </p>
-                <p className="text-xs font-semibold text-[#7A7F70]">UrbanNest</p>
-              </div>
+                    <div className="mt-5 flex items-end justify-between">
+                      <p className="text-4xl font-semibold tracking-tight text-[#173326]">
+                        {loading ? <span className="inline-block h-10 w-16 animate-pulse rounded bg-[#E6E0CF]" /> : card.value}
+                      </p>
+                      <p className="text-xs font-semibold text-[#7A7F70]">UrbanNest</p>
+                    </div>
 
-              <div className="pointer-events-none absolute -right-16 -top-16 h-32 w-32 rounded-full bg-[#0F5B35]/5 blur-2xl transition group-hover:bg-[#0F5B35]/10" />
+                    <div className="pointer-events-none absolute -right-16 -top-16 h-32 w-32 rounded-full bg-[#0F5B35]/5 blur-2xl transition group-hover:bg-[#0F5B35]/10" />
+                  </>
+                );
+              })()}
             </div>
           ))}
         </div>
@@ -217,73 +222,64 @@ export default function PaymentsPage() {
                 key={payment.id}
                 className="group relative overflow-hidden rounded-[28px] border border-[#D8D0BC] bg-[#F6F2E8] p-6 shadow-[0_8px_24px_rgba(23,51,38,0.04)] backdrop-blur transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(23,51,38,0.08)]"
               >
-                <div className="absolute inset-x-0 top-0 h-1.5 bg-[#0F5B35]" />
-                <div className="flex items-start gap-4">
-                  <div className={`grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br ${getStatusColor(payment.status || 'pending')} text-white shadow-sm`}>
-                    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
-                      <path
-                        d={getTypeIcon(payment.type)}
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <h3 className="text-lg font-semibold text-[#173326]">{payment.description}</h3>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span
-                            className={`rounded-full border border-[#D8D0BC] px-2 py-1 text-xs font-medium bg-white/70 text-[#173326] backdrop-blur`}
-                          >
-                            {payment.status?.toUpperCase() || 'PENDING'}
-                          </span>
-                          <span className="text-sm capitalize text-[#7A7F70]">
-                            {formatPaymentType(payment.type)}
-                          </span>
+                {(() => {
+                  const TypeIcon = getTypeIcon(payment.type);
+                  return (
+                    <>
+                      <div className="absolute inset-x-0 top-0 h-1.5 bg-[#0F5B35]" />
+                      <div className="flex items-start gap-4">
+                        <div className={`grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br ${getStatusColor(payment.status || 'pending')} text-white shadow-sm`}>
+                          <TypeIcon className="h-5 w-5" fill="none" aria-hidden="true" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-start justify-between gap-4">
+                            <div>
+                              <h3 className="text-lg font-semibold text-[#173326]">{payment.description}</h3>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span
+                                  className={`rounded-full border border-[#D8D0BC] px-2 py-1 text-xs font-medium bg-white/70 text-[#173326] backdrop-blur`}
+                                >
+                                  {payment.status?.toUpperCase() || 'PENDING'}
+                                </span>
+                                <span className="text-sm capitalize text-[#7A7F70]">
+                                  {formatPaymentType(payment.type)}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="mt-4 flex items-center justify-between">
+                            <div className="space-y-1">
+                              <p className="text-sm text-[#637062]">
+                                <span className="font-medium">Amount:</span> ₹{payment.amount.toFixed(2)}
+                              </p>
+                              <p className="text-sm text-[#637062]">
+                                <span className="font-medium">Due Date:</span> {new Date(payment.due_date).toLocaleDateString()}
+                              </p>
+                              {payment.paid_date && (
+                                <p className="text-sm text-[#637062]">
+                                  <span className="font-medium">Paid Date:</span> {new Date(payment.paid_date).toLocaleDateString()}
+                                </p>
+                              )}
+                              {payment.transaction_ref && (
+                                <p className="text-sm text-[#637062]">
+                                  <span className="font-medium">Payment Method:</span> {payment.transaction_ref}
+                                </p>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="mt-4 flex items-center justify-between">
-                      <div className="space-y-1">
-                        <p className="text-sm text-[#637062]">
-                          <span className="font-medium">Amount:</span> ₹{payment.amount.toFixed(2)}
-                        </p>
-                        <p className="text-sm text-[#637062]">
-                          <span className="font-medium">Due Date:</span> {new Date(payment.due_date).toLocaleDateString()}
-                        </p>
-                        {payment.paid_date && (
-                          <p className="text-sm text-[#637062]">
-                            <span className="font-medium">Paid Date:</span> {new Date(payment.paid_date).toLocaleDateString()}
-                          </p>
-                        )}
-                        {payment.transaction_ref && (
-                          <p className="text-sm text-[#637062]">
-                            <span className="font-medium">Payment Method:</span> {payment.transaction_ref}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="pointer-events-none absolute -right-16 -top-16 h-32 w-32 rounded-full bg-[#0F5B35]/5 blur-2xl transition group-hover:bg-[#0F5B35]/10" />
+                      <div className="pointer-events-none absolute -right-16 -top-16 h-32 w-32 rounded-full bg-[#0F5B35]/5 blur-2xl transition group-hover:bg-[#0F5B35]/10" />
+                    </>
+                  );
+                })()}
               </div>
             ))}
           </div>
         ) : (
           <div className="rounded-[28px] border border-[#D8D0BC] bg-[#F6F2E8] p-12 text-center shadow-[0_8px_24px_rgba(23,51,38,0.04)] backdrop-blur">
             <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-2xl bg-[#EAF1E8]">
-              <svg viewBox="0 0 24 24" className="h-8 w-8 text-[#9AA092]" fill="none" aria-hidden="true">
-                <path
-                  d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              <CreditCardIcon className="h-8 w-8 text-[#9AA092]" fill="none" aria-hidden="true" />
             </div>
             <p className="font-medium text-[#637062]">No payments or dues at this time</p>
             <p className="mt-2 text-sm text-[#7A7F70]">All your payments are up to date.</p>

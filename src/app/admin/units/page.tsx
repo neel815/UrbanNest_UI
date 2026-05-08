@@ -1,9 +1,10 @@
-'use client';
+﻿'use client';
 
 import { Dispatch, FormEvent, SetStateAction, useEffect, useMemo, useState } from 'react';
 
 import { DeleteConfirmationDialog } from '@/components/DeleteConfirmationDialog';
 import { adminUnitApi, apiClient, getApiErrorMessage } from '@/utils/api';
+import MoreVerticalIcon from '@/assets/icons/more-vertical.svg';
 
 type UnitRow = {
   id: string;
@@ -349,11 +350,7 @@ export default function AdminUnitsPage() {
                           className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-[#66716A] transition hover:border-slate-300 hover:text-[#1D3027]"
                           aria-label={`Open actions menu for unit ${unit.unit_number}`}
                         >
-                          <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden="true">
-                            <circle cx="12" cy="5" r="1.8" />
-                            <circle cx="12" cy="12" r="1.8" />
-                            <circle cx="12" cy="19" r="1.8" />
-                          </svg>
+                          <MoreVerticalIcon className="h-5 w-5" fill="currentColor" aria-hidden="true" />
                         </button>
 
                         {openActionMenuId === unit.id && (

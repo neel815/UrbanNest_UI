@@ -1,9 +1,14 @@
-'use client';
+﻿'use client';
 
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { DeleteConfirmationDialog } from '@/components/DeleteConfirmationDialog';
 import { apiClient, getApiErrorMessage } from '@/utils/api';
 import { API_ENDPOINTS } from '@/utils/constants';
+import CloseIcon from '@/assets/icons/close.svg';
+import BuildingAltIcon from '@/assets/icons/building-alt.svg';
+import SearchSmallIcon from '@/assets/icons/search-small.svg';
+import MoreVerticalIcon from '@/assets/icons/more-vertical.svg';
+import UserCircleIcon from '@/assets/icons/user-circle.svg';
 
 type BuildingItem = {
   id: string;
@@ -292,15 +297,7 @@ export default function AdminListPage() {
       <section className="rounded-[32px] border border-[#E6E0CF] bg-[#FBF8EF] shadow-[0_20px_60px_rgba(23,51,38,0.06)]">
         <div className="flex flex-col gap-4 border-b border-[#E6E0CF] px-4 py-4 lg:flex-row lg:items-center lg:justify-between lg:px-5">
           <div className="flex min-w-0 flex-1 items-center gap-3 rounded-full border border-[#E6E0CF] bg-[#F8F4E7]/90 px-4 py-3 shadow-[0_8px_24px_rgba(23,51,38,0.04)]">
-            <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0 text-[#7A7F70]" fill="none" aria-hidden="true">
-              <path
-                d="m21 21-4.35-4.35M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+            <SearchSmallIcon className="h-5 w-5 shrink-0 text-[#7A7F70]" fill="none" aria-hidden="true" />
             <input
               className="min-w-0 flex-1 bg-transparent text-sm text-[#173326] outline-none placeholder:text-[#9AA092]"
               placeholder="Search by name, email or society"
@@ -345,15 +342,7 @@ export default function AdminListPage() {
           ) : filteredAdmins.length === 0 ? (
             <div className="px-6 py-14 text-center">
               <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[#0F5B35] text-[#F7F4E8] shadow-[0_12px_28px_rgba(15,91,53,0.18)]">
-                <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" aria-hidden="true">
-                  <path
-                    d="M12 12a4 4 0 1 0-8 0 4 4 0 0 0 8 0ZM20 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+                <UserCircleIcon className="h-6 w-6" fill="none" aria-hidden="true" />
               </div>
               <p className="mt-4 text-sm font-semibold text-[#173326]">No admins match this filter</p>
               <p className="mt-1 text-sm text-[#596154]">Try a different search term or status chip.</p>
@@ -396,15 +385,7 @@ export default function AdminListPage() {
 
                         <td className="px-5 py-5">
                           <div className="inline-flex items-center gap-2 text-[16px] text-[#1F3128]">
-                            <svg viewBox="0 0 24 24" className="h-4 w-4 text-[#6D756F]" fill="none" aria-hidden="true">
-                              <path
-                                d="M4 20V6.8c0-.42.22-.81.58-1.02l6.8-3.9a1.25 1.25 0 0 1 1.24 0l6.8 3.9c.36.21.58.6.58 1.02V20M7 20V12h10v8M10 8.5h4"
-                                stroke="currentColor"
-                                strokeWidth="1.8"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
+                            <BuildingAltIcon className="h-4 w-4 text-[#6D756F]" fill="none" aria-hidden="true" />
                             <span className="truncate max-w-[220px]">{admin.building_name || 'Unassigned'}</span>
                           </div>
                         </td>
@@ -431,11 +412,7 @@ export default function AdminListPage() {
                                 className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-[#66716A] transition hover:border-slate-300 hover:text-[#1D3027]"
                                 aria-label={`Open actions menu for ${admin.full_name}`}
                               >
-                                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden="true">
-                                  <circle cx="12" cy="5" r="1.8" />
-                                  <circle cx="12" cy="12" r="1.8" />
-                                  <circle cx="12" cy="19" r="1.8" />
-                                </svg>
+                                <MoreVerticalIcon className="h-5 w-5" fill="currentColor" aria-hidden="true" />
                               </button>
 
                               {openActionMenuId === admin.id && (
@@ -493,9 +470,7 @@ export default function AdminListPage() {
                 className="grid h-10 w-10 place-items-center rounded-full border border-[#E6E0CF] bg-white text-[#596154] transition hover:text-[#173326]"
                 aria-label="Close invite form"
               >
-                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
-                  <path d="M6 6l12 12M18 6 6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                </svg>
+                <CloseIcon className="h-5 w-5" fill="none" aria-hidden="true" />
               </button>
             </div>
 
