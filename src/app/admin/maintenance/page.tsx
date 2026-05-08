@@ -65,6 +65,23 @@ export default function AdminMaintenancePage() {
     [activeTab, requests],
   );
 
+  const statusCounts = useMemo(
+    () =>
+      requests.reduce<Record<MaintenanceStatus, number>>(
+        (counts, request) => {
+          counts[request.status] += 1;
+          return counts;
+        },
+        {
+          open: 0,
+          in_progress: 0,
+          resolved: 0,
+          cancelled: 0,
+        },
+      ),
+    [requests],
+  );
+
   const getPriorityStyle = (priority: MaintenanceRequest['priority']) => {
     switch (priority) {
       case 'high':
@@ -169,7 +186,7 @@ export default function AdminMaintenancePage() {
           <p className="mt-2 max-w-2xl text-slate-600">Track open issues for your building and move requests through the approved workflow.</p>
         </div>
 
-        <div className="flex flex-wrap gap-2 rounded-3xl border border-[#E4DDCB] bg-[#FBF8EF] p-2 shadow-sm">
+        <div className="flex flex-wrap gap-2">
           {tabs.map((tab) => {
             const active = activeTab === tab.key;
             return (
@@ -178,11 +195,13 @@ export default function AdminMaintenancePage() {
                 type="button"
                 onClick={() => setActiveTab(tab.key)}
                 className={[
-                  'rounded-2xl px-4 py-2.5 text-sm font-semibold transition',
-                  active ? 'bg-[#0F5B35] text-[#F7F4E8] shadow-[0_12px_28px_rgba(15,91,53,0.18)]' : 'text-slate-600 hover:bg-[#E9E2CF]',
+                  'rounded-full px-4 py-2 text-sm font-semibold transition',
+                  active
+                    ? 'bg-[#173326] text-white shadow-[0_8px_20px_rgba(23,51,38,0.2)]'
+                    : 'border border-[#D9D1BC] bg-white text-[#173326] hover:bg-[#FBF8EF]',
                 ].join(' ')}
               >
-                {tab.label}
+                {tab.label} ({statusCounts[tab.key]})
               </button>
             );
           })}

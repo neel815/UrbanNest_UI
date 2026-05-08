@@ -357,7 +357,7 @@ export default function AdminUnitsPage() {
                         </button>
 
                         {openActionMenuId === unit.id && (
-                          <div className="absolute right-0 top-full z-10 mt-2 w-[150px] overflow-hidden rounded-2xl border border-slate-200 bg-white text-left shadow-xl">
+                         <div className="absolute bottom-full right-0 z-10 mb-2 w-[150px] overflow-hidden rounded-2xl border border-slate-200 bg-white text-left shadow-xl">
                             <button
                               type="button"
                               onClick={() => {

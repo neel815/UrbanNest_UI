@@ -1,5 +1,6 @@
 'use client';
 
+import { createPortal } from 'react-dom';
 import { FormEvent, useEffect, useState } from 'react';
 import ImageUploadField from '../../../components/ImageUploadField';
 import { DeleteConfirmationDialog } from '@/components/DeleteConfirmationDialog';
@@ -16,6 +17,9 @@ type ManagedUser = {
   created_at: string;
   must_reset_password?: boolean;
   is_active?: boolean;
+  shift?: string | null;
+  assigned_building_name?: string | null;
+  badge_number?: string | null;
 };
 
 type ManagedUnit = {
@@ -26,6 +30,13 @@ type ManagedUnit = {
   status: string;
   resident_name?: string | null;
 };
+
+const shiftOptions = [
+  { value: 'morning', label: 'Morning' },
+  { value: 'evening', label: 'Evening' },
+  { value: 'night', label: 'Night' },
+  { value: 'rotating', label: 'Rotating' },
+] as const;
 
 export default function AdminSecurityPage() {
   const roleTitle = 'Security Guards';
@@ -51,6 +62,7 @@ export default function AdminSecurityPage() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [profileImage, setProfileImage] = useState('');
+  const [shift, setShift] = useState('rotating');
   const [unitId, setUnitId] = useState('');
   const [units, setUnits] = useState<ManagedUnit[]>([]);
 
@@ -60,8 +72,12 @@ export default function AdminSecurityPage() {
   const [editPhoneNumber, setEditPhoneNumber] = useState('');
   const [editPassword, setEditPassword] = useState('');
   const [editProfileImage, setEditProfileImage] = useState('');
+  const [editShift, setEditShift] = useState('rotating');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deletingUserId, setDeletingUserId] = useState<string>('');
+  const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
+  const [actionMenuAnchor, setActionMenuAnchor] = useState<HTMLElement | null>(null);
+  const [deletingId, setDeletingId] = useState<string>('');
 
   function getInitials(name: string) {
     return (
@@ -73,6 +89,16 @@ export default function AdminSecurityPage() {
         .join('') || 'G'
     );
   }
+
+  const formatShiftLabel = (shift?: string | null) => {
+    if (!shift) return 'To be assigned';
+    return shift
+      .replace(/_/g, ' ')
+      .split(' ')
+      .filter(Boolean)
+      .map((part) => part[0]?.toUpperCase() + part.slice(1))
+      .join(' ');
+  };
 
   const loadUnits = async () => {
     if (!showUnitSelect || !unitsEndpoint) return;
@@ -117,6 +143,7 @@ export default function AdminSecurityPage() {
     setPhoneNumber('');
     setPassword('');
     setProfileImage('');
+    setShift('rotating');
     setUnitId('');
     setShowCreateForm(false);
   };
@@ -138,6 +165,7 @@ export default function AdminSecurityPage() {
           email,
           phone_number: phoneNumber || null,
           profile_image: profileImage || null,
+          shift,
           unit_id: showUnitSelect ? unitId : null,
         });
         setMessage(data.message || `${roleTitle.slice(0, -1)} invited successfully.`);
@@ -151,6 +179,7 @@ export default function AdminSecurityPage() {
           phone_number: phoneNumber || null,
           password,
           profile_image: profileImage || null,
+          shift,
           unit_id: showUnitSelect ? unitId : null,
         });
         setMessage(`${roleTitle.slice(0, -1)} created successfully.`);
@@ -169,6 +198,7 @@ export default function AdminSecurityPage() {
     setEditPhoneNumber(user.phone_number || '');
     setEditPassword('');
     setEditProfileImage(user.profile_image || '');
+    setEditShift(user.shift || 'rotating');
   };
 
   const cancelEdit = () => {
@@ -178,6 +208,7 @@ export default function AdminSecurityPage() {
     setEditPhoneNumber('');
     setEditPassword('');
     setEditProfileImage('');
+    setEditShift('rotating');
   };
 
   const onUpdate = async (event: FormEvent<HTMLFormElement>) => {
@@ -192,6 +223,7 @@ export default function AdminSecurityPage() {
         phone_number: editPhoneNumber || null,
         password: editPassword || null,
         profile_image: editProfileImage || null,
+        shift: editShift,
       });
       setMessage(`${roleTitle.slice(0, -1)} updated successfully.`);
       cancelEdit();
@@ -205,6 +237,12 @@ export default function AdminSecurityPage() {
     setError('');
     setMessage('');
     try {
+      if (!deletingUserId) {
+        setError('No user selected to delete.');
+        setShowDeleteDialog(false);
+        return;
+      }
+      setDeletingId(deletingUserId);
       await apiClient.delete(`${endpoint}/${deletingUserId}`);
       setMessage(`${roleTitle.slice(0, -1)} deleted successfully.`);
       if (editingId === deletingUserId) {
@@ -212,10 +250,12 @@ export default function AdminSecurityPage() {
       }
       setShowDeleteDialog(false);
       setDeletingUserId('');
+      setDeletingId('');
       await loadUsers();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Delete failed');
       setShowDeleteDialog(false);
+      setDeletingId('');
     }
   };
 
@@ -223,6 +263,34 @@ export default function AdminSecurityPage() {
     setDeletingUserId(userId);
     setShowDeleteDialog(true);
   };
+
+  useEffect(() => {
+    if (!openActionMenuId) return;
+
+    const closeMenu = () => {
+      setOpenActionMenuId(null);
+      setActionMenuAnchor(null);
+    };
+
+    const onPointerDown = (event: MouseEvent) => {
+      const target = event.target as Node;
+      const menuElement = document.getElementById('security-action-menu');
+
+      if (actionMenuAnchor?.contains(target)) return;
+      if (menuElement?.contains(target)) return;
+      closeMenu();
+    };
+
+    window.addEventListener('resize', closeMenu);
+    window.addEventListener('scroll', closeMenu, true);
+    document.addEventListener('mousedown', onPointerDown);
+
+    return () => {
+      window.removeEventListener('resize', closeMenu);
+      window.removeEventListener('scroll', closeMenu, true);
+      document.removeEventListener('mousedown', onPointerDown);
+    };
+  }, [actionMenuAnchor, openActionMenuId]);
 
   return (
     <main>
@@ -313,6 +381,21 @@ export default function AdminSecurityPage() {
                 />
               </div>
 
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Shift</label>
+                <select
+                  className="mt-2 w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-[#0F5B35]/15"
+                  value={shift}
+                  onChange={(event) => setShift(event.target.value)}
+                >
+                  {shiftOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               {createMode === 'direct' && (
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Password</label>
@@ -365,7 +448,7 @@ export default function AdminSecurityPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200/30">
-                  {users.map((user, index) => (
+                  {users.map((user) => (
                     <tr key={user.id} className="hover:bg-[#F6F2E8]">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
@@ -375,6 +458,9 @@ export default function AdminSecurityPage() {
                           <div>
                             <p className="font-semibold text-[#173326]">{user.full_name}</p>
                             <p className="text-xs text-[#6A7264]">{user.phone_number || 'Not provided'}</p>
+                            <p className="text-xs text-[#6A7264]">
+                              {user.badge_number ? `Badge #${user.badge_number}` : 'Badge not assigned'}
+                            </p>
                           </div>
                         </div>
                       </td>
@@ -383,7 +469,7 @@ export default function AdminSecurityPage() {
                           <svg viewBox="0 0 24 24" className="h-4 w-4 text-[#657469]" fill="none">
                             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" stroke="currentColor" strokeWidth="2" />
                           </svg>
-                          Main Gate
+                          {user.assigned_building_name || 'Unassigned'}
                         </div>
                       </td>
                       <td className="px-6 py-4 text-[#6A7264]">
@@ -392,7 +478,7 @@ export default function AdminSecurityPage() {
                             <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
                             <path d="M12 6v6l4 2" stroke="currentColor" strokeWidth="2" />
                           </svg>
-                          06:00 - 14:00
+                          {formatShiftLabel(user.shift)}
                         </div>
                       </td>
                       <td className="px-6 py-4">
@@ -411,21 +497,80 @@ export default function AdminSecurityPage() {
                         )}
                       </td>
                       <td className="px-6 py-4">
-                        <div className="flex gap-3">
-                          <button
-                            type="button"
-                            onClick={() => startEdit(user)}
-                            className="text-[#0F5B35] hover:text-[#0B4B2C] font-semibold text-sm"
-                          >
-                            Assign
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => onDeleteClick(user.id)}
-                            className="text-rose-600 hover:text-rose-700 font-semibold text-sm"
-                          >
-                            Remove
-                          </button>
+                        <div className="flex w-full items-center justify-center">
+                          <div className="relative flex items-center justify-center">
+                            <button
+                              type="button"
+                              onClick={(event) => {
+                                setActionMenuAnchor(event.currentTarget as HTMLElement);
+                                setOpenActionMenuId((prev) => (prev === user.id ? null : user.id));
+                              }}
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-[#66716A] transition hover:border-slate-300 hover:text-[#1D3027]"
+                              aria-label={`Open actions menu for ${user.full_name}`}
+                            >
+                              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor" aria-hidden="true">
+                                <circle cx="12" cy="5" r="1.8" />
+                                <circle cx="12" cy="12" r="1.8" />
+                                <circle cx="12" cy="19" r="1.8" />
+                              </svg>
+                            </button>
+
+                            {openActionMenuId === user.id && actionMenuAnchor && typeof document !== 'undefined' &&
+                              createPortal(
+                                (() => {
+                                  const rect = actionMenuAnchor.getBoundingClientRect();
+                                  const menuWidth = 150;
+                                  const gap = 8;
+                                  const spaceBelow = window.innerHeight - rect.bottom;
+                                  const spaceAbove = rect.top;
+                                  const openAbove = spaceBelow < 120 && spaceAbove > spaceBelow;
+                                  const top = openAbove ? rect.top - gap : rect.bottom + gap;
+                                  const left = Math.min(
+                                    Math.max(rect.right - menuWidth, 12),
+                                    window.innerWidth - menuWidth - 12,
+                                  );
+
+                                  return (
+                                    <div
+                                      id="security-action-menu"
+                                      style={{
+                                        top,
+                                        left,
+                                        width: menuWidth,
+                                        position: 'fixed',
+                                        transform: openAbove ? 'translateY(-100%)' : 'none',
+                                      }}
+                                      className="z-50 overflow-hidden rounded-2xl border border-slate-200 bg-white text-left shadow-xl"
+                                    >
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          startEdit(user);
+                                          setOpenActionMenuId(null);
+                                          setActionMenuAnchor(null);
+                                        }}
+                                        className="w-full px-4 py-3 text-left text-[15px] text-[#495853] transition hover:bg-slate-50 hover:text-[#20332A]"
+                                      >
+                                        Assign
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          onDeleteClick(user.id);
+                                          setOpenActionMenuId(null);
+                                          setActionMenuAnchor(null);
+                                        }}
+                                        disabled={deletingId === user.id}
+                                        className="w-full px-4 py-3 text-left text-[15px] text-[#CC4343] transition hover:bg-slate-50 hover:text-[#A63434] disabled:cursor-not-allowed disabled:opacity-60"
+                                      >
+                                        {deletingId === user.id ? 'Deleting...' : 'Remove'}
+                                      </button>
+                                    </div>
+                                  );
+                                })(),
+                                document.body,
+                              )}
+                          </div>
                         </div>
                       </td>
                     </tr>
@@ -470,6 +615,21 @@ export default function AdminSecurityPage() {
                   value={editPhoneNumber}
                   onChange={(event) => setEditPhoneNumber(event.target.value)}
                 />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Shift</label>
+                <select
+                  className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none focus:ring-2 focus:ring-slate-900/10"
+                  value={editShift}
+                  onChange={(event) => setEditShift(event.target.value)}
+                >
+                  {shiftOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>
