@@ -24,6 +24,9 @@ interface DashboardStats {
 type SecurityUser = {
   full_name?: string;
   email?: string;
+  shift?: string | null;
+  assigned_building_name?: string | null;
+  badge_number?: string | null;
 };
 
 type SecurityVisitor = {
@@ -120,6 +123,27 @@ function formatTimeLabel(value: string) {
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return value;
   return parsed.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+}
+
+function formatShiftWindow(shift?: string | null) {
+  const normalizedShift = shift?.trim().toLowerCase().replace(/[\s_-]+/g, ' ');
+
+  switch (normalizedShift) {
+    case 'morning':
+    case 'morning shift':
+      return '06:00 - 14:00';
+    case 'evening':
+    case 'evening shift':
+      return '14:00 - 22:00';
+    case 'night':
+    case 'night shift':
+      return '22:00 - 06:00';
+    case 'rotating':
+    case 'rotating shift':
+      return 'Rotating Shift';
+    default:
+      return 'Shift to be assigned';
+  }
 }
 
 export default function SecurityDashboardPage() {
@@ -238,6 +262,8 @@ export default function SecurityDashboardPage() {
   }, [accessLogs, incidents, patrolRounds, visitors]);
 
   const displayName = user?.full_name || 'Security Guard';
+  const displayBuilding = user?.assigned_building_name || 'Main Gate';
+  const displayShiftWindow = formatShiftWindow(user?.shift);
   const currentDate = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
   const currentTime = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
@@ -248,9 +274,11 @@ export default function SecurityDashboardPage() {
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="space-y-2">
             <h1 className={`${cormorant.className} text-4xl font-semibold tracking-tight text-[#173326] lg:text-[4.75rem]`}>
-              Main Gate, 06:00 - 14:00
+              {displayBuilding}, {displayShiftWindow}
             </h1>
-            <p className="text-[15px] text-[#637062]">{currentDate} - {displayName} on duty at {currentTime}.</p>
+            <p className="text-[15px] text-[#637062]">
+              {currentDate} - {displayName} on duty at {currentTime}.{user?.badge_number ? ` Badge #${user.badge_number}.` : ''}
+            </p>
           </div>
           <div className="inline-flex items-center gap-2 rounded-full bg-[#DCEBD7] px-4 py-2 text-sm font-semibold text-[#3A8B58]">
             <span className="h-2.5 w-2.5 rounded-full bg-[#7BC48A]" />
