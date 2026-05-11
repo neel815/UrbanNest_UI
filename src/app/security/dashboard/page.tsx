@@ -29,6 +29,9 @@ type SecurityUser = {
   full_name?: string;
   email?: string;
   shift?: string | null;
+  shift_start_time?: string | null;
+  shift_end_time?: string | null;
+  assigned_gate?: string | null;
   assigned_building_name?: string | null;
   badge_number?: string | null;
 };
@@ -121,7 +124,13 @@ function formatTimeLabel(value: string) {
   return parsed.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 }
 
-function formatShiftWindow(shift?: string | null) {
+function formatShiftWindow(shift?: string | null, startTime?: string | null, endTime?: string | null) {
+  // If specific times are provided, use those
+  if (startTime && endTime) {
+    return `${startTime} - ${endTime}`;
+  }
+
+  // Fall back to shift-based defaults
   const normalizedShift = shift?.trim().toLowerCase().replace(/[\s_-]+/g, ' ');
 
   switch (normalizedShift) {
@@ -258,8 +267,8 @@ export default function SecurityDashboardPage() {
   }, [accessLogs, incidents, patrolRounds, visitors]);
 
   const displayName = user?.full_name || 'Security Guard';
-  const displayBuilding = user?.assigned_building_name || 'Main Gate';
-  const displayShiftWindow = formatShiftWindow(user?.shift);
+  const displayBuilding = user?.assigned_gate || user?.assigned_building_name || 'Main Gate';
+  const displayShiftWindow = formatShiftWindow(user?.shift, user?.shift_start_time, user?.shift_end_time);
   const currentDate = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
   const currentTime = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 

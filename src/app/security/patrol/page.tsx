@@ -1,156 +1,167 @@
 ﻿'use client';
 
 import { Cormorant_Garamond } from 'next/font/google';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
-import { apiClient } from '@/utils/api';
-import { API_ENDPOINTS } from '@/utils/constants';
-import MapFoldIcon from '@/assets/icons/map-fold.svg';
 import CalendarIcon from '@/assets/icons/calendar.svg';
+import MapFoldIcon from '@/assets/icons/map-fold.svg';
+import { apiClient, getApiErrorMessage } from '@/utils/api';
+import { API_ENDPOINTS } from '@/utils/constants';
 
 const cormorant = Cormorant_Garamond({
   subsets: ['latin'],
   weight: ['500', '600', '700'],
 });
 
-interface PatrolRound {
-  id: string;
-  guardName: string;
-  startTime: string;
-  endTime?: string;
-  status: 'in_progress' | 'completed' | 'scheduled';
-  route: string;
-  checkpoints: PatrolCheckpoint[];
-  incidents: number;
-  notes?: string;
-}
-
-interface PatrolCheckpoint {
-  id: number;
-  name: string;
-  location: string;
-  checkedAt?: string;
-  status: 'pending' | 'checked' | 'missed';
-  notes?: string;
-}
-
-interface PatrolRoute {
+type PatrolRouteCheckpoint = {
   id: string;
   name: string;
-  description: string;
-  estimatedDuration: number;
-  checkpoints: string[];
-  priority: 'high' | 'medium' | 'low';
-  isActive: boolean;
-}
+  order_index: number;
+};
+
+type PatrolRoute = {
+  id: string;
+  name: string;
+  description: string | null;
+  building_id: string;
+  is_active: boolean;
+  checkpoints: PatrolRouteCheckpoint[];
+  created_at: string;
+  updated_at: string;
+};
+
+type PatrolRoundCheckpoint = {
+  id: string;
+  checkpoint_id: string;
+  checkpoint_name: string;
+  order_index: number;
+  is_visited: boolean;
+  visited_at: string | null;
+  notes: string | null;
+};
+
+type PatrolRound = {
+  id: string;
+  guard_id: string;
+  route_id: string;
+  route_name: string;
+  status: 'in_progress' | 'completed' | 'abandoned';
+  started_at: string;
+  completed_at: string | null;
+  notes: string | null;
+  checkpoints: PatrolRoundCheckpoint[];
+  total_checkpoints: number;
+  visited_checkpoints: number;
+  created_at: string;
+  updated_at: string;
+};
+
+type TabKind = 'active' | 'history';
 
 export default function SecurityPatrolPage() {
-  const [patrolRounds, setPatrolRounds] = useState<PatrolRound[]>([]);
+  const [activeTab, setActiveTab] = useState<TabKind>('active');
   const [patrolRoutes, setPatrolRoutes] = useState<PatrolRoute[]>([]);
+  const [patrolRounds, setPatrolRounds] = useState<PatrolRound[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState<'rounds' | 'routes' | 'schedule'>('rounds');
-  const [showStartForm, setShowStartForm] = useState(false);
-  const [selectedRoute, setSelectedRoute] = useState<string>('');
+  const [message, setMessage] = useState('');
+  const [pendingAction, setPendingAction] = useState('');
+
+  const loadData = async () => {
+    try {
+      const [routesData, roundsData] = await Promise.all([
+        apiClient.get(API_ENDPOINTS.patrol.securityRoutes),
+        apiClient.get(API_ENDPOINTS.patrol.securityRounds),
+      ]);
+      setPatrolRoutes(routesData);
+      setPatrolRounds(roundsData);
+    } catch (err) {
+      setError(getApiErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [roundsData, routesData] = await Promise.all([
-          apiClient.get(API_ENDPOINTS.security.patrolRounds),
-          apiClient.get(API_ENDPOINTS.security.patrolRoutes)
-        ]);
-        setPatrolRounds(roundsData);
-        setPatrolRoutes(routesData);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadData();
   }, []);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'in_progress':
-        return 'from-blue-600 to-indigo-600';
-      case 'completed':
-        return 'from-emerald-500 to-teal-500';
-      case 'scheduled':
-        return 'from-amber-500 to-orange-500';
-      case 'active':
-        return 'from-emerald-500 to-teal-500';
-      case 'inactive':
-        return 'from-slate-500 to-slate-600';
-      default:
-        return 'from-slate-500 to-slate-600';
+  const activeRound = useMemo(
+    () => patrolRounds.find((round) => round.status === 'in_progress') ?? null,
+    [patrolRounds],
+  );
+
+  const historyRounds = useMemo(
+    () => patrolRounds.filter((round) => round.status !== 'in_progress'),
+    [patrolRounds],
+  );
+
+  const visitedCount = activeRound?.checkpoints.filter((checkpoint) => checkpoint.is_visited).length ?? 0;
+  const progressPercent = activeRound && activeRound.total_checkpoints > 0
+    ? Math.round((visitedCount / activeRound.total_checkpoints) * 100)
+    : 0;
+
+  const formatDateTime = (value: string | null) => {
+    if (!value) return 'Not set';
+    return new Date(value).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+  };
+
+  const formatDuration = (startedAt: string, completedAt: string | null) => {
+    const start = new Date(startedAt).getTime();
+    const end = completedAt ? new Date(completedAt).getTime() : Date.now();
+    const minutes = Math.max(Math.round((end - start) / 60000), 0);
+    if (minutes < 60) return `${minutes} mins`;
+    return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
+  };
+
+  const refreshAfterAction = async (successMessage: string) => {
+    setMessage(successMessage);
+    await loadData();
+  };
+
+  const startRound = async (routeId: string) => {
+    setPendingAction(`start:${routeId}`);
+    setError('');
+    setMessage('');
+    try {
+      await apiClient.post(API_ENDPOINTS.patrol.securityStartRound, { route_id: routeId });
+      await refreshAfterAction('Round started.');
+    } catch (err) {
+      setError(getApiErrorMessage(err));
+    } finally {
+      setPendingAction('');
     }
   };
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high':
-        return 'from-rose-500 to-pink-500';
-      case 'medium':
-        return 'from-amber-500 to-orange-500';
-      case 'low':
-        return 'from-emerald-500 to-teal-500';
-      default:
-        return 'from-slate-500 to-slate-600';
+  const markVisited = async (roundId: string, checkpointId: string) => {
+    setPendingAction(`visit:${roundId}:${checkpointId}`);
+    setError('');
+    setMessage('');
+    try {
+      await apiClient.post(API_ENDPOINTS.patrol.securityVisitCheckpoint(roundId, checkpointId), {});
+      await refreshAfterAction('Checkpoint marked as visited.');
+    } catch (err) {
+      setError(getApiErrorMessage(err));
+    } finally {
+      setPendingAction('');
     }
   };
 
-  const startPatrolRound = (routeId: string) => {
-    const submitPatrol = async () => {
-      try {
-        const newRound = await apiClient.post(API_ENDPOINTS.security.patrolRounds, { routeId });
-        setPatrolRounds([newRound, ...patrolRounds]);
-        setShowStartForm(false);
-        setSelectedRoute('');
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to start patrol');
-      }
-    };
-
-    submitPatrol();
+  const completeRound = async (roundId: string) => {
+    setPendingAction(`complete:${roundId}`);
+    setError('');
+    setMessage('');
+    try {
+      await apiClient.patch(API_ENDPOINTS.patrol.securityCompleteRound(roundId), {});
+      await refreshAfterAction('Round completed!');
+    } catch (err) {
+      setError(getApiErrorMessage(err));
+    } finally {
+      setPendingAction('');
+    }
   };
 
-  const completePatrolRound = (roundId: string) => {
-    const finishPatrol = async () => {
-      try {
-        const updatedRound = await apiClient.request(API_ENDPOINTS.security.completePatrolRound(roundId), {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        });
-        setPatrolRounds(patrolRounds.map(round => 
-          round.id === roundId ? updatedRound : round
-        ));
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to complete patrol');
-      }
-    };
-
-    finishPatrol();
-  };
-
-  const checkCheckpoint = (roundId: string, checkpointId: number, notes?: string) => {
-    const submitCheckpoint = async () => {
-      try {
-        const updatedRound = await apiClient.post(API_ENDPOINTS.security.checkCheckpoint(roundId, checkpointId), { notes });
-        setPatrolRounds(patrolRounds.map(round => 
-          round.id === roundId ? updatedRound : round
-        ));
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to update checkpoint');
-      }
-    };
-
-    submitCheckpoint();
-  };
+  const hasAllCheckpointsVisited = activeRound ? activeRound.checkpoints.every((checkpoint) => checkpoint.is_visited) : false;
 
   return (
     <main className="space-y-8">
@@ -158,16 +169,16 @@ export default function SecurityPatrolPage() {
         <div className="flex flex-col gap-4">
           <p className="text-xs font-semibold uppercase tracking-[0.42em] text-[#76806F]">Patrol Operations</p>
           <div className="flex flex-wrap items-end justify-between gap-3">
-            <h1 className={`${cormorant.className} text-4xl font-semibold leading-none tracking-tight text-[#173326] lg:text-[4.5rem] lg:leading-[0.9]`}>Security Patrol</h1>
-            <button
-              onClick={() => setShowStartForm(!showStartForm)}
-              className="rounded-full bg-[#0F5B35] px-5 py-3 text-sm font-semibold text-[#F7F4E8] shadow-[0_12px_28px_rgba(15,91,53,0.18)] transition hover:-translate-y-0.5 hover:bg-[#0B4B2C]"
-            >
-              Start New Patrol
-            </button>
+            <h1 className={`${cormorant.className} text-4xl font-semibold leading-none tracking-tight text-[#173326] lg:text-[4.5rem] lg:leading-[0.9]`}>
+              Patrol Rounds
+            </h1>
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#D9D1BC] bg-[#FBF8EF] px-3 py-1.5 text-sm font-semibold text-[#173326] shadow-[0_8px_24px_rgba(23,51,38,0.04)]">
+              <span className="h-2 w-2 rounded-full bg-[#0F5B35]" />
+              Security Shift Active
+            </div>
           </div>
           <p className="max-w-2xl text-[15px] leading-7 text-[#637062]">
-            Manage security patrol rounds, monitor checkpoint completion, and track incident reporting.
+            Start rounds from active routes, mark checkpoints as visited, and review patrol history.
           </p>
         </div>
 
@@ -177,84 +188,35 @@ export default function SecurityPatrolPage() {
           </div>
         )}
 
-        {/* Start Patrol Form */}
-        {showStartForm && (
-          <div className="group relative overflow-hidden rounded-[28px] border border-[#E4DDCB] bg-[#FBF8EF] p-6 shadow-[0_10px_30px_rgba(23,51,38,0.06)] backdrop-blur">
-            <div className="absolute inset-x-0 top-0 h-1.5 bg-[#0F5B35]" />
-            <h2 className={`${cormorant.className} mb-4 text-3xl font-semibold tracking-tight text-[#173326]`}>Start New Patrol Round</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.25em] text-[#76806F]">
-                  Select Patrol Route *
-                </label>
-                <select
-                  value={selectedRoute}
-                  onChange={(e) => setSelectedRoute(e.target.value)}
-                  className="w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-[#0F5B35]/10"
-                >
-                  <option value="">Choose a route...</option>
-                  {patrolRoutes.filter(route => route.isActive).map(route => (
-                    <option key={route.id} value={route.id}>
-                      {route.name} ({route.estimatedDuration} min)
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => startPatrolRound(selectedRoute)}
-                  disabled={selectedRoute === ''}
-                  className="rounded-full bg-[#0F5B35] px-5 py-3 text-sm font-semibold text-[#F7F4E8] shadow-[0_12px_28px_rgba(15,91,53,0.18)] transition hover:-translate-y-0.5 hover:bg-[#0B4B2C] disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  Start Patrol
-                </button>
-                <button
-                  onClick={() => {
-                    setShowStartForm(false);
-                    setSelectedRoute('');
-                  }}
-                  className="rounded-full border border-[#D9D1BC] bg-white px-5 py-3 text-sm font-semibold text-[#173326] shadow-[0_8px_24px_rgba(23,51,38,0.05)] transition hover:-translate-y-0.5 hover:bg-[#FBF8EF]"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-            <div className="pointer-events-none absolute -right-16 -top-16 h-32 w-32 rounded-full bg-[#0F5B35]/5 blur-2xl transition group-hover:bg-[#0F5B35]/10" />
+        {message && (
+          <div className="rounded-3xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+            {message}
           </div>
         )}
 
-        {/* Tab Navigation */}
         <div className="group relative overflow-hidden rounded-[28px] border border-[#E4DDCB] bg-[#FBF8EF] p-2 shadow-[0_10px_30px_rgba(23,51,38,0.06)] backdrop-blur">
           <div className="flex gap-2">
             <button
-              onClick={() => setActiveTab('rounds')}
+              type="button"
+              onClick={() => setActiveTab('active')}
               className={`flex-1 rounded-xl px-4 py-2 text-sm font-medium transition-all ${
-                activeTab === 'rounds'
+                activeTab === 'active'
                   ? 'bg-[#0F5B35] text-[#F7F4E8]'
                   : 'text-[#637062] hover:bg-[#F4F0E4]'
               }`}
             >
-              Active Rounds
+              Active Round
             </button>
             <button
-              onClick={() => setActiveTab('routes')}
+              type="button"
+              onClick={() => setActiveTab('history')}
               className={`flex-1 rounded-xl px-4 py-2 text-sm font-medium transition-all ${
-                activeTab === 'routes'
-                  ? 'bg-[#0F5B35] text-[#F7F4E4]'
+                activeTab === 'history'
+                  ? 'bg-[#0F5B35] text-[#F7F4E8]'
                   : 'text-[#637062] hover:bg-[#F4F0E4]'
               }`}
             >
-              Patrol Routes
-            </button>
-            <button
-              onClick={() => setActiveTab('schedule')}
-              className={`flex-1 rounded-xl px-4 py-2 text-sm font-medium transition-all ${
-                activeTab === 'schedule'
-                  ? 'bg-[#0F5B35] text-[#F7F4E4]'
-                  : 'text-[#637062] hover:bg-[#F4F0E4]'
-              }`}
-            >
-              Schedule
+              History
             </button>
           </div>
           <div className="pointer-events-none absolute -right-16 -top-16 h-32 w-32 rounded-full bg-[#0F5B35]/5 blur-2xl transition group-hover:bg-[#0F5B35]/10" />
@@ -262,8 +224,8 @@ export default function SecurityPatrolPage() {
 
         {loading ? (
           <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            {[1, 2, 3].map((item) => (
+              <div key={item} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                 <div className="flex items-start gap-4">
                   <div className="h-10 w-10 animate-pulse rounded-xl bg-slate-200" />
                   <div className="flex-1 space-y-3">
@@ -275,155 +237,219 @@ export default function SecurityPatrolPage() {
               </div>
             ))}
           </div>
-        ) : activeTab === 'rounds' && patrolRounds.length > 0 ? (
-          <div className="space-y-4">
-            {patrolRounds.map((round) => (
-              <div
-                key={round.id}
-                className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white/70 p-6 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md"
-              >
-                <div className="absolute inset-x-0 top-0 h-1.5 bg-[#0F5B35]" />
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
+        ) : activeTab === 'active' ? (
+          activeRound ? (
+            <div className="space-y-4 rounded-[28px] border border-[#E4DDCB] bg-[#FBF8EF] p-6 shadow-[0_10px_30px_rgba(23,51,38,0.06)]">
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <h2 className="text-2xl font-semibold text-[#173326]">{activeRound.route_name}</h2>
+                    <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
+                      In Progress
+                    </span>
+                  </div>
+                  <p className="mt-2 text-sm text-[#596154]">
+                    Started at {formatDateTime(activeRound.started_at)}
+                  </p>
+                  {activeRound.notes && (
+                    <p className="mt-2 max-w-2xl text-sm text-[#596154]">{activeRound.notes}</p>
+                  )}
+                </div>
+                <div className="min-w-[220px] rounded-2xl border border-[#E6E0CF] bg-white px-4 py-3">
+                  <div className="flex items-center justify-between text-sm font-medium text-[#596154]">
+                    <span>{visitedCount} of {activeRound.total_checkpoints} visited</span>
+                    <span>{progressPercent}%</span>
+                  </div>
+                  <div className="mt-3 h-2 rounded-full bg-[#E6E0CF]">
+                    <div
+                      className="h-2 rounded-full bg-[#0F5B35] transition-all"
+                      style={{ width: `${progressPercent}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {activeRound.checkpoints.map((checkpoint) => (
+                  <div
+                    key={checkpoint.id}
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#E6E0CF] bg-white px-4 py-3"
+                  >
                     <div className="flex items-center gap-3">
-                      <h3 className="text-lg font-semibold text-slate-900">{round.route}</h3>
-                      <span
-                        className={`rounded-full px-2 py-1 text-xs font-medium border bg-white/80 backdrop-blur`}
-                      >
-                        {round.status?.replace('_', ' ').toUpperCase() || 'IN_PROGRESS'}
-                      </span>
-                    </div>
-                    <div className="mt-2 space-y-1">
-                      <p className="text-slate-600">
-                        <span className="font-medium">Guard:</span> {round.guardName}
-                      </p>
-                      <p className="text-slate-600">
-                        <span className="font-medium">Start Time:</span> {new Date(round.startTime).toLocaleString()}
-                      </p>
-                      {round.endTime && (
-                        <p className="text-slate-600">
-                          <span className="font-medium">End Time:</span> {new Date(round.endTime).toLocaleString()}
-                        </p>
-                      )}
-                      <p className="text-slate-600">
-                        <span className="font-medium">Checkpoints:</span> {round.checkpoints.filter(cp => cp.status === 'checked').length}/{round.checkpoints.length}
-                      </p>
-                      {round.incidents > 0 && (
-                        <p className="text-slate-600">
-                          <span className="font-medium">Incidents:</span> {round.incidents}
-                        </p>
-                      )}
-                      {round.notes && (
-                        <p className="text-slate-600">
-                          <span className="font-medium">Notes:</span> {round.notes}
-                        </p>
-                      )}
-                    </div>
-                    
-                    {/* Checkpoints */}
-                    <div className="mt-4 space-y-2">
-                      <p className="text-sm font-medium text-slate-700">Checkpoints:</p>
-                      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                        {round.checkpoints.map((checkpoint) => (
-                          <div
-                            key={checkpoint.id}
-                            className="flex items-center justify-between rounded-lg border border-slate-200 bg-white p-2"
-                          >
-                            <div className="flex items-center gap-2">
-                              <div className={`h-2 w-2 rounded-full ${
-                                checkpoint.status === 'checked' ? 'bg-emerald-500' :
-                                checkpoint.status === 'missed' ? 'bg-rose-500' : 'bg-amber-500'
-                              }`} />
-                              <span className="text-sm text-slate-700">{checkpoint.name}</span>
-                            </div>
-                            {round.status === 'in_progress' && checkpoint.status === 'pending' && (
-                              <button
-                                onClick={() => checkCheckpoint(round.id, checkpoint.id)}
-                                className="rounded-full bg-emerald-600 px-2 py-1 text-xs font-semibold text-white hover:bg-emerald-700 transition"
-                              >
-                                Check
-                              </button>
-                            )}
-                          </div>
-                        ))}
+                      <div className="grid h-10 w-10 place-items-center rounded-full bg-[#0F5B35] text-sm font-semibold text-[#F7F4E8]">
+                        {checkpoint.order_index}
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-[#173326]">{checkpoint.checkpoint_name}</p>
+                        {checkpoint.is_visited ? (
+                          <p className="text-xs text-emerald-700">
+                            Visited {formatDateTime(checkpoint.visited_at)}
+                          </p>
+                        ) : (
+                          <p className="text-xs text-[#596154]">Pending visit</p>
+                        )}
                       </div>
                     </div>
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    {round.status === 'in_progress' && (
+
+                    {!checkpoint.is_visited ? (
                       <button
-                        onClick={() => completePatrolRound(round.id)}
-                        className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 transition"
+                        type="button"
+                        onClick={() => markVisited(activeRound.id, checkpoint.checkpoint_id)}
+                        disabled={pendingAction === `visit:${activeRound.id}:${checkpoint.checkpoint_id}`}
+                        className="rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
                       >
-                        Complete Round
+                        {pendingAction === `visit:${activeRound.id}:${checkpoint.checkpoint_id}` ? 'Saving...' : 'Mark Visited'}
                       </button>
+                    ) : (
+                      <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+                        Visited
+                      </span>
                     )}
                   </div>
-                </div>
-                <div className="pointer-events-none absolute -right-16 -top-16 h-32 w-32 rounded-full bg-slate-900/5 blur-2xl transition group-hover:bg-slate-900/10" />
+                ))}
               </div>
-            ))}
-          </div>
-        ) : activeTab === 'routes' && patrolRoutes.length > 0 ? (
-          <div className="space-y-4">
-            {patrolRoutes.map((route) => (
-              <div
-                key={route.id}
-                className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white/70 p-6 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md"
-              >
-                <div className="absolute inset-x-0 top-0 h-1.5 bg-[#0F5B35]" />
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3">
-                      <h3 className="text-lg font-semibold text-slate-900">{route.name}</h3>
-                      <span
-                        className={`rounded-full px-2 py-1 text-xs font-medium border bg-white/80 backdrop-blur`}
-                      >
-                        {route.priority?.toUpperCase() || 'MEDIUM'}
-                      </span>
-                      <span
-                        className={`rounded-full px-2 py-1 text-xs font-medium border bg-white/80 backdrop-blur`}
-                      >
-                        {route.isActive ? 'ACTIVE' : 'INACTIVE'}
-                      </span>
-                    </div>
-                    <div className="mt-2 space-y-1">
-                      <p className="text-slate-600">{route.description}</p>
-                      <p className="text-slate-600">
-                        <span className="font-medium">Duration:</span> {route.estimatedDuration} minutes
-                      </p>
-                      <p className="text-slate-600">
-                        <span className="font-medium">Checkpoints:</span> {route.checkpoints.join(', ')}
+
+              <div className="flex justify-end border-t border-[#E6E0CF] pt-4">
+                <button
+                  type="button"
+                  onClick={() => completeRound(activeRound.id)}
+                  disabled={!hasAllCheckpointsVisited || pendingAction === `complete:${activeRound.id}`}
+                  className="rounded-full bg-emerald-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {pendingAction === `complete:${activeRound.id}` ? 'Completing...' : 'Complete Round'}
+                </button>
+              </div>
+            </div>
+          ) : patrolRoutes.length > 0 ? (
+            <div className="grid gap-4 lg:grid-cols-2">
+              {patrolRoutes.map((route) => (
+                <article
+                  key={route.id}
+                  className="group relative overflow-hidden rounded-[28px] border border-[#E4DDCB] bg-[#FBF8EF] p-6 shadow-[0_10px_30px_rgba(23,51,38,0.06)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(23,51,38,0.1)]"
+                >
+                  <div className="absolute inset-x-0 top-0 h-1.5 bg-[#0F5B35]" />
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <div className="flex flex-wrap items-center gap-3">
+                        <h2 className="text-2xl font-semibold text-[#173326]">{route.name}</h2>
+                        <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+                          {route.checkpoints.length} checkpoints
+                        </span>
+                      </div>
+                      <p className="mt-2 text-sm leading-6 text-[#596154]">
+                        {route.description || 'No description provided.'}
                       </p>
                     </div>
                   </div>
-                </div>
-                <div className="pointer-events-none absolute -right-16 -top-16 h-32 w-32 rounded-full bg-slate-900/5 blur-2xl transition group-hover:bg-slate-900/10" />
-              </div>
-            ))}
-          </div>
-        ) : activeTab === 'schedule' ? (
-          <div className="rounded-2xl border border-slate-200 bg-white/70 p-12 text-center shadow-sm backdrop-blur">
-            <div className="grid h-16 w-16 place-items-center rounded-2xl bg-slate-100 mx-auto mb-4">
-              <CalendarIcon className="h-8 w-8 text-slate-400" fill="none" aria-hidden="true" />
+
+                  <div className="mt-5 space-y-2">
+                    <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#76806F]">Checkpoint Preview</p>
+                    <ul className="space-y-2">
+                      {route.checkpoints.slice(0, 4).map((checkpoint) => (
+                        <li key={checkpoint.id} className="flex items-center gap-3 rounded-2xl border border-[#E6E0CF] bg-white px-4 py-3">
+                          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#0F5B35] text-sm font-semibold text-[#F7F4E8]">
+                            {checkpoint.order_index}
+                          </span>
+                          <span className="text-sm font-medium text-[#173326]">{checkpoint.name}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="mt-5 flex items-center justify-between gap-4 border-t border-[#E6E0CF] pt-4">
+                    <p className="text-sm text-[#596154]">
+                      {route.checkpoints.length} total checkpoints
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => startRound(route.id)}
+                      disabled={pendingAction === `start:${route.id}`}
+                      className="rounded-full bg-[#0F5B35] px-5 py-3 text-sm font-semibold text-[#F7F4E8] shadow-[0_12px_28px_rgba(15,91,53,0.18)] transition hover:-translate-y-0.5 hover:bg-[#0B4B2C] disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {pendingAction === `start:${route.id}` ? 'Starting...' : 'Start Round'}
+                    </button>
+                  </div>
+
+                  <div className="pointer-events-none absolute -right-16 -top-16 h-32 w-32 rounded-full bg-[#0F5B35]/5 blur-2xl transition group-hover:bg-[#0F5B35]/10" />
+                </article>
+              ))}
             </div>
-            <p className="text-slate-600 font-medium">Patrol Schedule Coming Soon</p>
-            <p className="mt-2 text-sm text-slate-500">Advanced scheduling features will be available in the next update.</p>
+          ) : (
+            <div className="rounded-2xl border border-slate-200 bg-white/70 p-12 text-center shadow-sm backdrop-blur">
+              <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-2xl bg-slate-100">
+                <MapFoldIcon className="h-8 w-8 text-slate-400" fill="none" aria-hidden="true" />
+              </div>
+              <p className="text-slate-600 font-medium">No active patrol round</p>
+              <p className="mt-2 text-sm text-slate-500">
+                Create or pick an active route to begin a new patrol.
+              </p>
+            </div>
+          )
+        ) : historyRounds.length > 0 ? (
+          <div className="space-y-4">
+            {historyRounds.map((round) => (
+              <article
+                key={round.id}
+                className="group relative overflow-hidden rounded-[28px] border border-[#E4DDCB] bg-[#FBF8EF] p-6 shadow-[0_10px_30px_rgba(23,51,38,0.06)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(23,51,38,0.1)]"
+              >
+                <div className="absolute inset-x-0 top-0 h-1.5 bg-[#0F5B35]" />
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <h2 className="text-2xl font-semibold text-[#173326]">{round.route_name}</h2>
+                      <span
+                        className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                          round.status === 'completed'
+                            ? 'bg-emerald-100 text-emerald-700'
+                            : 'bg-slate-100 text-slate-700'
+                        }`}
+                      >
+                        {round.status === 'completed' ? 'Completed' : 'Abandoned'}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-sm text-[#596154]">
+                      Started {formatDateTime(round.started_at)}
+                    </p>
+                    <p className="text-sm text-[#596154]">
+                      Completed {formatDateTime(round.completed_at)}
+                    </p>
+                    <p className="text-sm text-[#596154]">
+                      Duration: {formatDuration(round.started_at, round.completed_at)}
+                    </p>
+                  </div>
+                  <div className="rounded-2xl border border-[#E6E0CF] bg-white px-4 py-3 text-sm text-[#596154]">
+                    <p className="font-semibold text-[#173326]">
+                      {round.visited_checkpoints}/{round.total_checkpoints} checkpoints visited
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-5 flex flex-wrap gap-2">
+                  {round.checkpoints.map((checkpoint) => (
+                    <span
+                      key={checkpoint.id}
+                      className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                        checkpoint.is_visited
+                          ? 'bg-emerald-100 text-emerald-700'
+                          : 'bg-slate-100 text-slate-700'
+                      }`}
+                    >
+                      {checkpoint.order_index}. {checkpoint.checkpoint_name}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="pointer-events-none absolute -right-16 -top-16 h-32 w-32 rounded-full bg-slate-900/5 blur-2xl transition group-hover:bg-slate-900/10" />
+              </article>
+            ))}
           </div>
         ) : (
           <div className="rounded-2xl border border-slate-200 bg-white/70 p-12 text-center shadow-sm backdrop-blur">
-            <div className="grid h-16 w-16 place-items-center rounded-2xl bg-slate-100 mx-auto mb-4">
-              <MapFoldIcon className="h-8 w-8 text-slate-400" fill="none" aria-hidden="true" />
+            <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-2xl bg-slate-100">
+              <CalendarIcon className="h-8 w-8 text-slate-400" fill="none" aria-hidden="true" />
             </div>
-            <p className="text-slate-600 font-medium">
-              {activeTab === 'rounds' ? 'No active patrol rounds' : 'No patrol routes configured'}
-            </p>
-            <p className="mt-2 text-sm text-slate-500">
-              {activeTab === 'rounds' 
-                ? 'Start a new patrol round to begin monitoring security checkpoints.' 
-                : 'Configure patrol routes to define security monitoring paths.'
-              }
-            </p>
+            <p className="text-slate-600 font-medium">No patrol rounds completed yet</p>
+            <p className="mt-2 text-sm text-slate-500">Patrol history will appear here.</p>
           </div>
         )}
       </div>

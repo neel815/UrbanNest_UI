@@ -1,154 +1,100 @@
 ﻿'use client';
 
 import { Cormorant_Garamond } from 'next/font/google';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
-import { apiClient } from '@/utils/api';
+import ClockSmallIcon from '@/assets/icons/clock-small.svg';
+import MapFoldIcon from '@/assets/icons/map-fold.svg';
+import { apiClient, getApiErrorMessage } from '@/utils/api';
 import { API_ENDPOINTS } from '@/utils/constants';
-import DocumentIcon from '@/assets/icons/document.svg';
-import ReportIcon from '@/assets/icons/report.svg';
 
 const cormorant = Cormorant_Garamond({
   subsets: ['latin'],
   weight: ['500', '600', '700'],
 });
 
-interface SecurityLog {
+type EntryLog = {
   id: string;
-  timestamp: string;
-  type: 'access' | 'visitor' | 'incident' | 'patrol' | 'system' | 'alert';
-  category: string;
-  description: string;
-  severity: 'info' | 'warning' | 'error' | 'critical';
-  source: string;
-  details?: Record<string, any>;
-  userId?: string;
-  ipAddress?: string;
-}
+  visitor_name: string;
+  resident_name: string;
+  unit_number: string | null;
+  status: 'checked_in' | 'checked_out' | 'denied';
+  check_in_time: string | null;
+  check_out_time: string | null;
+  logged_at: string;
+  approved_by_name: string | null;
+  purpose: string | null;
+};
 
-interface SecurityReport {
-  id: string;
-  title: string;
-  type: 'daily' | 'weekly' | 'monthly' | 'custom';
-  generatedAt: string;
-  generatedBy: string;
-  period: {
-    start: string;
-    end: string;
-  };
-  summary: {
-    totalIncidents: number;
-    totalVisitors: number;
-    totalPatrols: number;
-    totalAlerts: number;
-  };
-  fileUrl?: string;
-}
+type StatusFilter = 'all' | EntryLog['status'];
+type DateFilter = 'today' | 'week' | 'all';
 
 export default function SecurityLogsPage() {
-  const [logs, setLogs] = useState<SecurityLog[]>([]);
-  const [reports, setReports] = useState<SecurityReport[]>([]);
+  const [logs, setLogs] = useState<EntryLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState<'logs' | 'reports'>('logs');
-  const [filters, setFilters] = useState({
-    type: 'all' as SecurityLog['type'] | 'all',
-    severity: 'all' as SecurityLog['severity'] | 'all',
-    dateRange: 'today' as 'today' | 'week' | 'month' | 'all'
+  const [filters, setFilters] = useState<{ status: StatusFilter; dateRange: DateFilter }>({
+    status: 'all',
+    dateRange: 'today',
   });
+
+  const loadLogs = async () => {
+    setLoading(true);
+    try {
+      const data = await apiClient.get(API_ENDPOINTS.logs.securityLogs);
+      setLogs(data);
+    } catch (err) {
+      setError(getApiErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [logsData, reportsData] = await Promise.all([
-          apiClient.get(API_ENDPOINTS.security.logs),
-          apiClient.get(API_ENDPOINTS.security.reports)
-        ]);
-        setLogs(logsData);
-        setReports(reportsData);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
+    loadLogs();
+  }, [filters.status, filters.dateRange]);
 
-    loadData();
-  }, []);
-
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case 'access':
-        return 'from-blue-600 to-indigo-600';
-      case 'visitor':
-        return 'from-emerald-500 to-teal-500';
-      case 'incident':
-        return 'from-rose-500 to-pink-500';
-      case 'patrol':
-        return 'from-violet-600 to-fuchsia-600';
-      case 'system':
-        return 'from-slate-500 to-slate-600';
-      case 'alert':
-        return 'from-amber-500 to-orange-500';
-      default:
-        return 'from-slate-500 to-slate-600';
-    }
-  };
-
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case 'critical':
-        return 'from-red-600 to-rose-600';
-      case 'error':
-        return 'from-rose-500 to-pink-500';
-      case 'warning':
-        return 'from-amber-500 to-orange-500';
-      case 'info':
-        return 'from-blue-600 to-indigo-600';
-      default:
-        return 'from-slate-500 to-slate-600';
-    }
-  };
-
-  const generateReport = (type: 'daily' | 'weekly' | 'monthly') => {
-    const submitReport = async () => {
-      try {
-        const newReport = await apiClient.post(API_ENDPOINTS.security.reports, { type });
-        setReports([newReport, ...reports]);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to generate report');
-      }
-    };
-
-    submitReport();
-  };
-
-  const downloadReport = (reportId: string) => {
-    const report = reports.find(r => r.id === reportId);
-    if (report?.fileUrl) {
-      window.open(report.fileUrl, '_blank');
-    }
-  };
-
-  const filteredLogs = logs.filter(log => {
-    if (filters.type !== 'all' && log.type !== filters.type) return false;
-    if (filters.severity !== 'all' && log.severity !== filters.severity) return false;
-    
-    const logDate = new Date(log.timestamp);
+  const filteredLogs = useMemo(() => {
     const now = new Date();
-    
-    if (filters.dateRange === 'today') {
-      return logDate.toDateString() === now.toDateString();
-    } else if (filters.dateRange === 'week') {
-      const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      return logDate >= weekAgo;
-    } else if (filters.dateRange === 'month') {
-      const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-      return logDate >= monthAgo;
-    }
-    
-    return true;
-  });
+    return logs.filter((log) => {
+      if (filters.status !== 'all' && log.status !== filters.status) return false;
+
+      const referenceTime = new Date(log.logged_at);
+      if (filters.dateRange === 'today') {
+        return referenceTime.toDateString() === now.toDateString();
+      }
+      if (filters.dateRange === 'week') {
+        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        return referenceTime >= weekAgo;
+      }
+      return true;
+    });
+  }, [filters.dateRange, filters.status, logs]);
+
+  const formatTime = (value: string) =>
+    new Date(value).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+
+  const formatDate = (value: string) =>
+    new Date(value).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+
+  const formatDuration = (checkIn: string | null, checkOut: string | null) => {
+    if (!checkIn || !checkOut) return null;
+    const minutes = Math.max(Math.round((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / 60000), 0);
+    if (minutes < 60) return `stayed ${minutes} mins`;
+    return `stayed ${Math.floor(minutes / 60)}h ${minutes % 60}m`;
+  };
+
+  const statusLabel: Record<EntryLog['status'], string> = {
+    checked_in: 'Checked In',
+    checked_out: 'Checked Out',
+    denied: 'Denied',
+  };
+
+  const statusStyle: Record<EntryLog['status'], string> = {
+    checked_in: 'bg-emerald-100 text-emerald-700',
+    checked_out: 'bg-slate-100 text-slate-700',
+    denied: 'bg-rose-100 text-rose-700',
+  };
 
   return (
     <main className="space-y-8">
@@ -156,14 +102,16 @@ export default function SecurityLogsPage() {
         <div className="flex flex-col gap-4">
           <p className="text-xs font-semibold uppercase tracking-[0.42em] text-[#76806F]">Security Logs</p>
           <div className="flex flex-wrap items-end justify-between gap-3">
-            <h1 className={`${cormorant.className} text-4xl font-semibold leading-none tracking-tight text-[#173326] lg:text-[4.5rem] lg:leading-[0.9]`}>Logs & Reports</h1>
+            <h1 className={`${cormorant.className} text-4xl font-semibold leading-none tracking-tight text-[#173326] lg:text-[4.5rem] lg:leading-[0.9]`}>
+              Entry Logs
+            </h1>
             <div className="inline-flex items-center gap-2 rounded-full border border-[#D9D1BC] bg-[#FBF8EF] px-3 py-1.5 text-sm font-semibold text-[#173326] shadow-[0_8px_24px_rgba(23,51,38,0.04)]">
               <span className="h-2 w-2 rounded-full bg-[#0F5B35]" />
-              System Active
+              Building Activity
             </div>
           </div>
           <p className="max-w-2xl text-[15px] leading-7 text-[#637062]">
-            Review security logs, monitor system events, and generate comprehensive reports for analysis.
+            All visitor activity for your building, filtered by status and date.
           </p>
         </div>
 
@@ -173,290 +121,110 @@ export default function SecurityLogsPage() {
           </div>
         )}
 
-        {/* Tab Navigation */}
-        <div className="group relative overflow-hidden rounded-[28px] border border-[#E4DDCB] bg-[#FBF8EF] p-2 shadow-[0_10px_30px_rgba(23,51,38,0.06)] backdrop-blur">
-          <div className="flex gap-2">
-            <button
-              onClick={() => setActiveTab('logs')}
-              className={`flex-1 rounded-xl px-4 py-2 text-sm font-medium transition-all ${
-                activeTab === 'logs'
-                  ? 'bg-[#0F5B35] text-[#F7F4E8]'
-                  : 'text-[#637062] hover:bg-[#F4F0E4]'
-              }`}
-            >
-              Security Logs
-            </button>
-            <button
-              onClick={() => setActiveTab('reports')}
-              className={`flex-1 rounded-xl px-4 py-2 text-sm font-medium transition-all ${
-                activeTab === 'reports'
-                  ? 'bg-[#0F5B35] text-[#F7F4E8]'
-                  : 'text-[#637062] hover:bg-[#F4F0E4]'
-              }`}
-            >
-              Reports
-            </button>
+        <div className="group relative overflow-hidden rounded-[28px] border border-[#E4DDCB] bg-[#FBF8EF] p-4 shadow-[0_10px_30px_rgba(23,51,38,0.06)] backdrop-blur">
+          <div className="flex flex-wrap gap-4">
+            <div>
+              <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.25em] text-[#76806F]">Filter by status</label>
+              <select
+                value={filters.status}
+                onChange={(event) => setFilters((current) => ({ ...current, status: event.target.value as StatusFilter }))}
+                className="rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-[#0F5B35]/10"
+              >
+                <option value="all">All</option>
+                <option value="checked_in">Checked In</option>
+                <option value="checked_out">Checked Out</option>
+                <option value="denied">Denied</option>
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.25em] text-[#76806F]">Date filter</label>
+              <select
+                value={filters.dateRange}
+                onChange={(event) => setFilters((current) => ({ ...current, dateRange: event.target.value as DateFilter }))}
+                className="rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-[#0F5B35]/10"
+              >
+                <option value="today">Today</option>
+                <option value="week">This Week</option>
+                <option value="all">All Time</option>
+              </select>
+            </div>
           </div>
-          <div className="pointer-events-none absolute -right-16 -top-16 h-32 w-32 rounded-full bg-[#0F5B35]/5 blur-2xl transition group-hover:bg-[#0F5B35]/10" />
+          <div className="pointer-events-none absolute -right-16 -top-16 h-32 w-32 rounded-full bg-slate-900/5 blur-2xl transition group-hover:bg-slate-900/10" />
         </div>
 
-        {activeTab === 'logs' && (
-          <>
-            {/* Filters */}
-            <div className="group relative overflow-hidden rounded-[28px] border border-[#E4DDCB] bg-[#FBF8EF] p-4 shadow-[0_10px_30px_rgba(23,51,38,0.06)] backdrop-blur">
-              <div className="flex flex-wrap gap-4">
-                <div>
-                  <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.25em] text-[#76806F]">Type</label>
-                  <select
-                    value={filters.type}
-                    onChange={(e) => setFilters({ ...filters, type: e.target.value as any })}
-                    className="rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-[#0F5B35]/10"
-                  >
-                    <option value="all">All Types</option>
-                    <option value="access">Access</option>
-                    <option value="visitor">Visitor</option>
-                    <option value="incident">Incident</option>
-                    <option value="patrol">Patrol</option>
-                    <option value="system">System</option>
-                    <option value="alert">Alert</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.25em] text-[#76806F]">Severity</label>
-                  <select
-                    value={filters.severity}
-                    onChange={(e) => setFilters({ ...filters, severity: e.target.value as any })}
-                    className="rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-[#0F5B35]/10"
-                  >
-                    <option value="all">All Severities</option>
-                    <option value="info">Info</option>
-                    <option value="warning">Warning</option>
-                    <option value="error">Error</option>
-                    <option value="critical">Critical</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.25em] text-[#76806F]">Date Range</label>
-                  <select
-                    value={filters.dateRange}
-                    onChange={(e) => setFilters({ ...filters, dateRange: e.target.value as any })}
-                    className="rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-[#0F5B35]/10"
-                  >
-                    <option value="today">Today</option>
-                    <option value="week">This Week</option>
-                    <option value="month">This Month</option>
-                    <option value="all">All Time</option>
-                  </select>
+        {loading ? (
+          <div className="space-y-4">
+            {[1, 2, 3].map((item) => (
+              <div key={item} className="rounded-[28px] border border-[#E4DDCB] bg-[#FBF8EF] p-6 shadow-[0_10px_30px_rgba(23,51,38,0.06)]">
+                <div className="flex items-start gap-4">
+                  <div className="h-12 w-12 animate-pulse rounded-2xl bg-slate-200" />
+                  <div className="flex-1 space-y-3">
+                    <div className="h-6 w-3/4 animate-pulse rounded bg-slate-200" />
+                    <div className="h-4 w-full animate-pulse rounded bg-slate-200" />
+                    <div className="h-4 w-2/3 animate-pulse rounded bg-slate-200" />
+                  </div>
                 </div>
               </div>
-              <div className="pointer-events-none absolute -right-16 -top-16 h-32 w-32 rounded-full bg-slate-900/5 blur-2xl transition group-hover:bg-slate-900/10" />
+            ))}
+          </div>
+        ) : filteredLogs.length > 0 ? (
+          <div className="space-y-4">
+            {filteredLogs.map((log) => {
+              const duration = formatDuration(log.check_in_time, log.check_out_time);
+              const displayTime = log.logged_at;
+              return (
+                <article
+                  key={log.id}
+                  className="group relative overflow-hidden rounded-[28px] border border-[#E4DDCB] bg-[#FBF8EF] p-6 shadow-[0_10px_30px_rgba(23,51,38,0.06)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(23,51,38,0.08)]"
+                >
+                  <div className="absolute inset-x-0 top-0 h-1.5 bg-[#0F5B35]" />
+                  <div className="flex flex-wrap items-start gap-4">
+                    <div className="flex min-w-[120px] flex-col gap-1 rounded-2xl border border-[#E6E0CF] bg-white px-4 py-3 text-[#173326]">
+                      <div className="flex items-center gap-2 text-lg font-semibold">
+                        <ClockSmallIcon className="h-5 w-5 text-[#0F5B35]" fill="none" aria-hidden="true" />
+                        {formatTime(displayTime)}
+                      </div>
+                      <p className="text-sm text-[#596154]">{formatDate(displayTime)}</p>
+                    </div>
+
+                    <div className="flex-1">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <h2 className="text-xl font-semibold text-[#173326]">{log.visitor_name}</h2>
+                        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusStyle[log.status]}`}>
+                          {statusLabel[log.status]}
+                        </span>
+                      </div>
+                      <p className="mt-2 text-sm text-[#596154]">
+                        {log.purpose || 'Visitor activity recorded'}
+                      </p>
+                      <p className="mt-1 text-sm text-[#596154]">
+                        Visiting {log.resident_name}{log.unit_number ? `, Unit ${log.unit_number}` : ''}
+                      </p>
+                      {log.approved_by_name && (
+                        <p className="mt-1 text-xs text-[#76806F]">Approved by {log.approved_by_name}</p>
+                      )}
+                      {duration && (
+                        <p className="mt-3 text-sm font-medium text-[#173326]">{duration}</p>
+                      )}
+                    </div>
+
+                    <div className="min-w-[140px] rounded-2xl border border-[#E6E0CF] bg-white px-4 py-3 text-right">
+                      <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#76806F]">Status</p>
+                      <p className="mt-2 text-sm font-semibold text-[#173326]">{statusLabel[log.status]}</p>
+                    </div>
+                  </div>
+                  <div className="pointer-events-none absolute -right-16 -top-16 h-32 w-32 rounded-full bg-slate-900/5 blur-2xl transition group-hover:bg-slate-900/10" />
+                </article>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-slate-200 bg-[#F6F2E8] p-12 text-center shadow-sm backdrop-blur">
+            <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-2xl bg-slate-100">
+              <MapFoldIcon className="h-8 w-8 text-slate-400" fill="none" aria-hidden="true" />
             </div>
-
-            {loading ? (
-              <div className="space-y-4">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="rounded-[28px] border border-[#E4DDCB] bg-[#FBF8EF] p-6 shadow-[0_10px_30px_rgba(23,51,38,0.06)]">
-                    <div className="flex items-start gap-4">
-                      <div className="h-10 w-10 animate-pulse rounded-xl bg-slate-200" />
-                      <div className="flex-1 space-y-3">
-                        <div className="h-6 w-3/4 animate-pulse rounded bg-slate-200" />
-                        <div className="h-4 w-full animate-pulse rounded bg-slate-200" />
-                        <div className="h-4 w-2/3 animate-pulse rounded bg-slate-200" />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : filteredLogs.length > 0 ? (
-              <div className="space-y-4">
-                {filteredLogs.map((log) => (
-                  <div
-                    key={log.id}
-                    className="group relative overflow-hidden rounded-[28px] border border-[#E4DDCB] bg-[#FBF8EF] p-6 shadow-[0_10px_30px_rgba(23,51,38,0.06)] backdrop-blur transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(23,51,38,0.08)]"
-                  >
-                    <div className="absolute inset-x-0 top-0 h-1.5 bg-[#0F5B35]" />
-                    <div className="flex items-start gap-4">
-                      <div className={`grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br ${getTypeColor(log.type)} text-white shadow-sm`}>
-                        <DocumentIcon className="h-5 w-5" fill="none" aria-hidden="true" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3">
-                          <h3 className="text-lg font-semibold text-slate-900">{log.category}</h3>
-                          <span
-                            className={`rounded-full px-2 py-1 text-xs font-medium border bg-white/80 backdrop-blur`}
-                          >
-                            {log.type?.toUpperCase() || 'SYSTEM'}
-                          </span>
-                          <span
-                            className={`rounded-full px-2 py-1 text-xs font-medium border bg-white/80 backdrop-blur`}
-                          >
-                            {log.severity?.toUpperCase() || 'INFO'}
-                          </span>
-                        </div>
-                        <p className="mt-2 text-slate-600">{log.description}</p>
-                        <div className="mt-4 grid grid-cols-2 gap-4 text-sm text-slate-600">
-                          <div>
-                            <span className="font-medium">Time:</span> {new Date(log.timestamp).toLocaleString()}
-                          </div>
-                          <div>
-                            <span className="font-medium">Source:</span> {log.source}
-                          </div>
-                          {log.userId && (
-                            <div>
-                              <span className="font-medium">User:</span> {log.userId}
-                            </div>
-                          )}
-                          {log.ipAddress && (
-                            <div>
-                              <span className="font-medium">IP:</span> {log.ipAddress}
-                            </div>
-                          )}
-                        </div>
-                        {log.details && Object.keys(log.details).length > 0 && (
-                          <div className="mt-4 p-3 rounded-lg bg-slate-50 border border-slate-200">
-                            <p className="text-sm font-medium text-slate-700 mb-2">Additional Details:</p>
-                            <div className="space-y-1">
-                              {Object.entries(log.details).map(([key, value]) => (
-                                <p key={key} className="text-xs text-slate-600">
-                                  <span className="font-medium">{key}:</span> {JSON.stringify(value)}
-                                </p>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="pointer-events-none absolute -right-16 -top-16 h-32 w-32 rounded-full bg-slate-900/5 blur-2xl transition group-hover:bg-slate-900/10" />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="rounded-2xl border border-slate-200 bg-[#F6F2E8] p-12 text-center shadow-sm backdrop-blur">
-                <div className="grid h-16 w-16 place-items-center rounded-2xl bg-slate-100 mx-auto mb-4">
-                  <DocumentIcon className="h-8 w-8 text-slate-400" fill="none" aria-hidden="true" />
-                </div>
-                <p className="text-slate-600 font-medium">No logs found</p>
-                <p className="mt-2 text-sm text-slate-500">Try adjusting your filters or check back later for new entries.</p>
-              </div>
-            )}
-          </>
-        )}
-
-        {activeTab === 'reports' && (
-          <div className="space-y-6">
-            {/* Generate Report Actions */}
-              <div className="group relative overflow-hidden rounded-[28px] border border-[#E4DDCB] bg-[#FBF8EF] p-6 shadow-[0_10px_30px_rgba(23,51,38,0.06)] backdrop-blur">
-              <div className="absolute inset-x-0 top-0 h-1.5 bg-[#0F5B35]" />
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-slate-900">Generate Reports</p>
-                  <p className="text-xs text-slate-500">Create comprehensive security reports</p>
-                </div>
-                <div className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-600 text-white shadow-sm">
-                  <ReportIcon className="h-5 w-5" fill="none" aria-hidden="true" />
-                </div>
-              </div>
-              <div className="mt-6 flex gap-3">
-                <button onClick={() => generateReport('daily')} className="rounded-full bg-[#0F5B35] px-5 py-3 text-sm font-semibold text-[#F7F4E8] shadow-[0_12px_28px_rgba(15,91,53,0.18)] transition hover:-translate-y-0.5 hover:bg-[#0B4B2C]">
-                  Daily Report
-                </button>
-                <button onClick={() => generateReport('weekly')} className="rounded-full bg-[#0F5B35] px-5 py-3 text-sm font-semibold text-[#F7F4E8] shadow-[0_12px_28px_rgba(15,91,53,0.18)] transition hover:-translate-y-0.5 hover:bg-[#0B4B2C]">
-                  Weekly Report
-                </button>
-                <button onClick={() => generateReport('monthly')} className="rounded-full bg-[#0F5B35] px-5 py-3 text-sm font-semibold text-[#F7F4E8] shadow-[0_12px_28px_rgba(15,91,53,0.18)] transition hover:-translate-y-0.5 hover:bg-[#0B4B2C]">
-                  Monthly Report
-                </button>
-              </div>
-              <div className="pointer-events-none absolute -right-16 -top-16 h-32 w-32 rounded-full bg-slate-900/5 blur-2xl transition group-hover:bg-slate-900/10" />
-            </div>
-
-            {loading ? (
-              <div className="space-y-4">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                    <div className="flex items-start gap-4">
-                      <div className="h-10 w-10 animate-pulse rounded-xl bg-slate-200" />
-                      <div className="flex-1 space-y-3">
-                        <div className="h-6 w-3/4 animate-pulse rounded bg-slate-200" />
-                        <div className="h-4 w-full animate-pulse rounded bg-slate-200" />
-                        <div className="h-4 w-2/3 animate-pulse rounded bg-slate-200" />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : reports.length > 0 ? (
-              <div className="space-y-4">
-                {reports.map((report) => (
-                  <div
-                    key={report.id}
-                    className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white/70 p-6 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md"
-                  >
-                    <div className="absolute inset-x-0 top-0 h-1.5 bg-[#0F5B35]" />
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3">
-                          <h3 className="text-lg font-semibold text-slate-900">{report.title}</h3>
-                          <span
-                            className={`rounded-full px-2 py-1 text-xs font-medium border bg-white/80 backdrop-blur`}
-                          >
-                            {report.type?.toUpperCase() || 'DAILY'}
-                          </span>
-                        </div>
-                        <div className="mt-2 space-y-1">
-                          <p className="text-slate-600">
-                            <span className="font-medium">Generated:</span> {new Date(report.generatedAt).toLocaleString()}
-                          </p>
-                          <p className="text-slate-600">
-                            <span className="font-medium">Generated by:</span> {report.generatedBy}
-                          </p>
-                          <p className="text-slate-600">
-                            <span className="font-medium">Period:</span> {new Date(report.period.start).toLocaleDateString()} - {new Date(report.period.end).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <div className="mt-4 grid grid-cols-4 gap-4">
-                          <div className="text-center">
-                            <p className="text-2xl font-bold text-slate-900">{report.summary.totalIncidents}</p>
-                            <p className="text-xs text-slate-500">Incidents</p>
-                          </div>
-                          <div className="text-center">
-                            <p className="text-2xl font-bold text-slate-900">{report.summary.totalVisitors}</p>
-                            <p className="text-xs text-slate-500">Visitors</p>
-                          </div>
-                          <div className="text-center">
-                            <p className="text-2xl font-bold text-slate-900">{report.summary.totalPatrols}</p>
-                            <p className="text-xs text-slate-500">Patrols</p>
-                          </div>
-                          <div className="text-center">
-                            <p className="text-2xl font-bold text-slate-900">{report.summary.totalAlerts}</p>
-                            <p className="text-xs text-slate-500">Alerts</p>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex flex-col gap-2">
-                        {report.fileUrl && (
-                          <button
-                            onClick={() => downloadReport(report.id)}
-                            className="rounded-full bg-[#0F5B35] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#0B4B2C]"
-                          >
-                            Download
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                    <div className="pointer-events-none absolute -right-16 -top-16 h-32 w-32 rounded-full bg-slate-900/5 blur-2xl transition group-hover:bg-slate-900/10" />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="rounded-2xl border border-slate-200 bg-white/70 p-12 text-center shadow-sm backdrop-blur">
-                <div className="grid h-16 w-16 place-items-center rounded-2xl bg-slate-100 mx-auto mb-4">
-                  <ReportIcon className="h-8 w-8 text-slate-400" fill="none" aria-hidden="true" />
-                </div>
-                <p className="text-slate-600 font-medium">No reports generated</p>
-                <p className="mt-2 text-sm text-slate-500">Generate your first security report to get started.</p>
-              </div>
-            )}
+            <p className="text-slate-600 font-medium">No entry logs yet</p>
+            <p className="mt-2 text-sm text-slate-500">Visitor activity will appear here.</p>
           </div>
         )}
       </div>

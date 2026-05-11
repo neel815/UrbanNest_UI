@@ -26,6 +26,8 @@ export const API_ENDPOINTS = {
     security: '/api/admin/security',
     securityStats: '/api/admin/security/stats',
     inviteSecurity: '/api/admin/security/invite',
+    patrolRoutes: '/api/admin/patrol-routes',
+    deletePatrolRoute: (id: string) => `/api/admin/patrol-routes/${id}`,
     announcements: '/api/admin/announcements',
     deleteAnnouncement: (id: string) => `/api/admin/announcements/${id}`,
     maintenance: '/api/admin/maintenance',
@@ -42,6 +44,17 @@ export const API_ENDPOINTS = {
     paymentsMarkPaid: (id: string) => `/api/admin/payments/${id}/mark-paid`,
     paymentsWaive: (id: string) => `/api/admin/payments/${id}/waive`,
   },
+  patrol: {
+    adminRoutesList: '/api/admin/patrol-routes',
+    adminRoutesCreate: '/api/admin/patrol-routes',
+    adminRoutesDelete: (id: string) => `/api/admin/patrol-routes/${id}`,
+    securityRoutes: '/api/security/patrol-routes',
+    securityRounds: '/api/security/patrol-rounds',
+    securityStartRound: '/api/security/patrol-rounds',
+    securityVisitCheckpoint: (roundId: string, checkpointId: string) =>
+      `/api/security/patrol-rounds/${roundId}/checkpoints/${checkpointId}`,
+    securityCompleteRound: (id: string) => `/api/security/patrol-rounds/${id}/complete`,
+  },
   resident: {
     profile: '/api/resident/profile',
     residentProfileUpdate: '/api/resident/profile',
@@ -53,6 +66,9 @@ export const API_ENDPOINTS = {
     payments: '/api/resident/payments',
     events: '/api/resident/events',
     forumPosts: '/api/resident/forum-posts',
+  },
+  logs: {
+    securityLogs: '/api/security/logs',
   },
   security: {
     dashboardStats: '/api/security/dashboard-stats',

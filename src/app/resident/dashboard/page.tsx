@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import Link from 'next/link';
 import { Cormorant_Garamond } from 'next/font/google';
@@ -128,28 +128,15 @@ function getInitials(name?: string | null) {
 }
 
 function QuickActionIcon({ name }: { name: 'visitor' | 'complaint' | 'dues' | 'news' }) {
-  const stroke = '#0F5B35';
-
   switch (name) {
     case 'visitor':
-      return (
-        <UsersGroupIcon className="h-5 w-5" fill="none" aria-hidden="true" />
-      );
-
+      return <UsersGroupIcon className="h-5 w-5" fill="none" aria-hidden="true" />;
     case 'complaint':
-      return (
-        <SettingsGearIcon className="h-5 w-5" fill="none" aria-hidden="true" />
-      );
-
+      return <SettingsGearIcon className="h-5 w-5" fill="none" aria-hidden="true" />;
     case 'dues':
-      return (
-        <ReceiptIcon className="h-5 w-5" fill="none" aria-hidden="true" />
-      );
-
+      return <ReceiptIcon className="h-5 w-5" fill="none" aria-hidden="true" />;
     default:
-      return (
-        <BellIcon className="h-5 w-5" fill="none" aria-hidden="true" />
-      );
+      return <BellIcon className="h-5 w-5" fill="none" aria-hidden="true" />;
   }
 }
 
@@ -205,7 +192,7 @@ export default function ResidentDashboardPage() {
   const todayItems: TodayItem[] = [
     ...visitors.slice(0, 2).map((visitor) => ({
       time: formatDateLabel(visitor.check_in_time || visitor.expected_date),
-      title: visitor.purpose ? `${visitor.visitor_name} · ${visitor.purpose}` : visitor.visitor_name,
+      title: visitor.purpose ? `${visitor.visitor_name} - ${visitor.purpose}` : visitor.visitor_name,
       level: visitor.status === 'checked_in' ? ('success' as const) : ('info' as const),
     })),
     ...maintenance.slice(0, 1).map((request) => ({
@@ -225,19 +212,21 @@ export default function ResidentDashboardPage() {
   const displayName = profile?.full_name?.split(' ')?.[0];
   const locationLine = [profile?.unit_number, profile?.building_name || profile?.society_name]
     .filter(Boolean)
-    .join(' · ');
+    .join(' - ');
   const currentTime = new Intl.DateTimeFormat('en-US', {
     hour: 'numeric',
     minute: '2-digit',
   }).format(new Date());
   const currentDateLabel = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
-  const welcomeMetaLine = [currentTime, locationLine, currentDateLabel].filter(Boolean).join(' · ');
+  const welcomeMetaLine = [currentTime, locationLine, currentDateLabel].filter(Boolean).join(' - ');
   const hasUpcomingEvent = Boolean(upcomingEvent);
-  const eventDateLabel = upcomingEvent?.event_date ? new Date(upcomingEvent.event_date).toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-  }) : '';
+  const eventDateLabel = upcomingEvent?.event_date
+    ? new Date(upcomingEvent.event_date).toLocaleDateString('en-US', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+      })
+    : '';
   const heroTitle = upcomingEvent?.title || '';
   const heroDescription = upcomingEvent?.description || '';
   const duesAmount = duePayment ? duePayment.amount : stats?.total_due ?? 0;
@@ -267,16 +256,17 @@ export default function ResidentDashboardPage() {
                 {heroTitle}
               </h2>
               <p className="mt-3 max-w-2xl text-[15px] leading-7 text-[#DDE9DF]">
-                {eventDateLabel}{heroDescription ? ` · ${heroDescription}` : ''}
-                {upcomingEvent?.location ? ` · ${upcomingEvent.location}` : ''}
+                {eventDateLabel}
+                {heroDescription ? ` - ${heroDescription}` : ''}
+                {upcomingEvent?.location ? ` - ${upcomingEvent.location}` : ''}
               </p>
             </div>
 
             <Link
-              href="/resident/profile"
+              href="/resident/announcements?tab=events"
               className="inline-flex items-center justify-center gap-3 rounded-full bg-white/10 px-5 py-3 text-sm font-semibold text-[#F7F4E8] ring-1 ring-white/10 transition hover:bg-white/16"
             >
-              View community
+              View event
               <span aria-hidden="true">→</span>
             </Link>
           </div>
@@ -317,7 +307,7 @@ export default function ResidentDashboardPage() {
               <h2 className={`${cormorant.className} text-3xl font-semibold text-[#173326]`}>Today</h2>
               <p className="text-sm text-[#6A7264]">A quick pulse of what has happened so far</p>
             </div>
-            <span className="text-[#7D8577]">↗</span>
+            <span className="text-[#7D8577]">→</span>
           </div>
 
           <div className="divide-y divide-[#E8E1CF]">

@@ -21,6 +21,9 @@ type ManagedUser = {
   must_reset_password?: boolean;
   is_active?: boolean;
   shift?: string | null;
+  shift_start_time?: string | null;
+  shift_end_time?: string | null;
+  assigned_gate?: string | null;
   assigned_building_name?: string | null;
   badge_number?: string | null;
 };
@@ -66,6 +69,9 @@ export default function AdminSecurityPage() {
   const [password, setPassword] = useState('');
   const [profileImage, setProfileImage] = useState('');
   const [shift, setShift] = useState('rotating');
+  const [shiftStartTime, setShiftStartTime] = useState('');
+  const [shiftEndTime, setShiftEndTime] = useState('');
+  const [assignedGate, setAssignedGate] = useState('');
   const [unitId, setUnitId] = useState('');
   const [units, setUnits] = useState<ManagedUnit[]>([]);
 
@@ -76,6 +82,9 @@ export default function AdminSecurityPage() {
   const [editPassword, setEditPassword] = useState('');
   const [editProfileImage, setEditProfileImage] = useState('');
   const [editShift, setEditShift] = useState('rotating');
+  const [editShiftStartTime, setEditShiftStartTime] = useState('');
+  const [editShiftEndTime, setEditShiftEndTime] = useState('');
+  const [editAssignedGate, setEditAssignedGate] = useState('');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deletingUserId, setDeletingUserId] = useState<string>('');
   const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
@@ -147,6 +156,9 @@ export default function AdminSecurityPage() {
     setPassword('');
     setProfileImage('');
     setShift('rotating');
+    setShiftStartTime('');
+    setShiftEndTime('');
+    setAssignedGate('');
     setUnitId('');
     setShowCreateForm(false);
   };
@@ -169,6 +181,9 @@ export default function AdminSecurityPage() {
           phone_number: phoneNumber || null,
           profile_image: profileImage || null,
           shift,
+          shift_start_time: shiftStartTime || null,
+          shift_end_time: shiftEndTime || null,
+          assigned_gate: assignedGate || null,
           unit_id: showUnitSelect ? unitId : null,
         });
         setMessage(data.message || `${roleTitle.slice(0, -1)} invited successfully.`);
@@ -183,6 +198,9 @@ export default function AdminSecurityPage() {
           password,
           profile_image: profileImage || null,
           shift,
+          shift_start_time: shiftStartTime || null,
+          shift_end_time: shiftEndTime || null,
+          assigned_gate: assignedGate || null,
           unit_id: showUnitSelect ? unitId : null,
         });
         setMessage(`${roleTitle.slice(0, -1)} created successfully.`);
@@ -202,6 +220,9 @@ export default function AdminSecurityPage() {
     setEditPassword('');
     setEditProfileImage(user.profile_image || '');
     setEditShift(user.shift || 'rotating');
+    setEditShiftStartTime(user.shift_start_time || '');
+    setEditShiftEndTime(user.shift_end_time || '');
+    setEditAssignedGate(user.assigned_gate || '');
   };
 
   const cancelEdit = () => {
@@ -212,6 +233,9 @@ export default function AdminSecurityPage() {
     setEditPassword('');
     setEditProfileImage('');
     setEditShift('rotating');
+    setEditShiftStartTime('');
+    setEditShiftEndTime('');
+    setEditAssignedGate('');
   };
 
   const onUpdate = async (event: FormEvent<HTMLFormElement>) => {
@@ -227,6 +251,9 @@ export default function AdminSecurityPage() {
         password: editPassword || null,
         profile_image: editProfileImage || null,
         shift: editShift,
+        shift_start_time: editShiftStartTime || null,
+        shift_end_time: editShiftEndTime || null,
+        assigned_gate: editAssignedGate || null,
       });
       setMessage(`${roleTitle.slice(0, -1)} updated successfully.`);
       cancelEdit();
@@ -397,6 +424,39 @@ export default function AdminSecurityPage() {
                     </option>
                   ))}
                 </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Shift Start Time</label>
+                <input
+                  type="time"
+                  className="mt-2 w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-[#0F5B35]/15"
+                  value={shiftStartTime}
+                  onChange={(event) => setShiftStartTime(event.target.value)}
+                  placeholder="e.g. 06:00"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Shift End Time</label>
+                <input
+                  type="time"
+                  className="mt-2 w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-[#0F5B35]/15"
+                  value={shiftEndTime}
+                  onChange={(event) => setShiftEndTime(event.target.value)}
+                  placeholder="e.g. 14:00"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Assigned Gate/Location</label>
+                <input
+                  type="text"
+                  className="mt-2 w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-[#0F5B35]/15"
+                  value={assignedGate}
+                  onChange={(event) => setAssignedGate(event.target.value)}
+                  placeholder="e.g. Main Gate, East Gate"
+                />
               </div>
 
               {createMode === 'direct' && (
@@ -624,6 +684,37 @@ export default function AdminSecurityPage() {
                     </option>
                   ))}
                 </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Shift Start Time</label>
+                <input
+                  type="time"
+                  className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none focus:ring-2 focus:ring-slate-900/10"
+                  value={editShiftStartTime}
+                  onChange={(event) => setEditShiftStartTime(event.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Shift End Time</label>
+                <input
+                  type="time"
+                  className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none focus:ring-2 focus:ring-slate-900/10"
+                  value={editShiftEndTime}
+                  onChange={(event) => setEditShiftEndTime(event.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Assigned Gate/Location</label>
+                <input
+                  type="text"
+                  className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none focus:ring-2 focus:ring-slate-900/10"
+                  value={editAssignedGate}
+                  onChange={(event) => setEditAssignedGate(event.target.value)}
+                  placeholder="e.g. Main Gate, East Gate"
+                />
               </div>
 
               <div>
