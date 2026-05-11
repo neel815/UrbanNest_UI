@@ -74,6 +74,7 @@ export const API_ENDPOINTS = {
     dashboardStats: '/api/security/dashboard-stats',
     announcements: '/api/security/announcements',
     visitors: '/api/security/visitors',
+    hosts: '/api/security/hosts',
     visitorApprove: (id: string) => `/api/security/visitors/${id}/approve`,
     visitorDeny: (id: string) => `/api/security/visitors/${id}/deny`,
     visitorCheckin: (id: string) => `/api/security/visitors/${id}/checkin`,

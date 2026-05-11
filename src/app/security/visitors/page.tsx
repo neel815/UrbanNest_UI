@@ -1,11 +1,12 @@
 ﻿'use client';
 
 import { Cormorant_Garamond } from 'next/font/google';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { apiClient } from '@/utils/api';
 import { API_ENDPOINTS } from '@/utils/constants';
 import UserIcon from '@/assets/icons/user.svg';
+import { getApiErrorMessage } from '@/utils/api';
 
 const cormorant = Cormorant_Garamond({
   subsets: ['latin'],
@@ -42,6 +43,10 @@ export default function SecurityVisitorsPage() {
     hostName: '',
     hostUnit: '',
   });
+  const [hostOptions, setHostOptions] = useState<{ id: string; full_name: string; unit_number?: string | null }[]>([]);
+  const [hostSuggestions, setHostSuggestions] = useState<{ id: string; full_name: string; unit_number?: string | null }[]>([]);
+  const [showHostSuggestions, setShowHostSuggestions] = useState(false);
+  const hostPickerRef = useRef<HTMLDivElement | null>(null);
 
   const loadVisitors = async () => {
     try {
@@ -56,6 +61,45 @@ export default function SecurityVisitorsPage() {
 
   useEffect(() => {
     void loadVisitors();
+
+    const loadHosts = async () => {
+      try {
+        const residents = await apiClient.get(API_ENDPOINTS.security.hosts);
+        setHostOptions(residents || []);
+      } catch (err) {
+        console.error('Failed to load security hosts:', err);
+        setHostOptions([]);
+        const msg = getApiErrorMessage(err);
+        setError(`Could not load host list: ${msg}`);
+      }
+    };
+
+    void loadHosts();
+  }, []);
+
+  useEffect(() => {
+    const query = formData.hostName.trim().toLowerCase();
+    if (query.length < 2) {
+      setHostSuggestions([]);
+      return;
+    }
+
+    setHostSuggestions(
+      hostOptions
+        .filter((host) => host.full_name.toLowerCase().includes(query))
+        .slice(0, 6),
+    );
+  }, [formData.hostName, hostOptions]);
+
+  useEffect(() => {
+    const onDocumentClick = (event: MouseEvent) => {
+      if (!hostPickerRef.current) return;
+      if (event.target instanceof Node && hostPickerRef.current.contains(event.target)) return;
+      setShowHostSuggestions(false);
+    };
+
+    document.addEventListener('click', onDocumentClick);
+    return () => document.removeEventListener('click', onDocumentClick);
   }, []);
 
   const getStatusColor = (status: string) => {
@@ -243,7 +287,7 @@ export default function SecurityVisitorsPage() {
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div>
+                <div className="relative" ref={hostPickerRef}>
                   <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.25em] text-[#76806F]">
                     Host Name *
                   </label>
@@ -251,10 +295,44 @@ export default function SecurityVisitorsPage() {
                     type="text"
                     required
                     value={formData.hostName}
-                    onChange={(e) => setFormData({ ...formData, hostName: e.target.value })}
+                    onChange={(e) => {
+                      setFormData({ ...formData, hostName: e.target.value });
+                      setShowHostSuggestions(true);
+                    }}
+                    onFocus={() => setShowHostSuggestions(hostSuggestions.length > 0)}
                     className="w-full rounded-xl border border-[#D8D0BC] bg-[#F6F2E8] px-3 py-2.5 text-sm text-[#173326] shadow-sm outline-none focus:ring-2 focus:ring-[#0F5B35]/10"
                     placeholder="Resident name"
+                    autoComplete="off"
                   />
+                  {hostOptions.length === 0 && (
+                    <p className="mt-1 text-xs text-rose-600">No host suggestions available. Ensure your security profile is assigned to a building.</p>
+                  )}
+                  {showHostSuggestions && hostSuggestions.length > 0 && (
+                    <div className="absolute left-0 right-0 z-50 mt-1 overflow-hidden rounded-2xl border border-[#D8D0BC] bg-white shadow-lg">
+                      <ul>
+                        {hostSuggestions.map((host) => (
+                          <li key={host.id}>
+                            <button
+                              type="button"
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => {
+                                setFormData({
+                                  ...formData,
+                                  hostName: host.full_name,
+                                  hostUnit: host.unit_number ?? formData.hostUnit,
+                                });
+                                setShowHostSuggestions(false);
+                              }}
+                              className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left text-sm text-[#173326] hover:bg-[#F6F2E8]"
+                            >
+                              <span>{host.full_name}</span>
+                              {host.unit_number && <span className="text-xs text-[#7A7F70]">{host.unit_number}</span>}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.25em] text-[#76806F]">

@@ -97,7 +97,7 @@ export default function ResidentLayout({ children }: { children: React.ReactNode
 
           <div className="mt-8">
             <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[#8A8F81]">Overview</p>
-            <nav className="mt-4 flex flex-col gap-3">
+            <nav className="mt-3 flex flex-col gap-1.5">
               {nav.map((item) => {
                 const active = pathname === item.href || pathname?.startsWith(`${item.href}/`);
                 return (
@@ -105,7 +105,7 @@ export default function ResidentLayout({ children }: { children: React.ReactNode
                     key={item.href}
                     href={item.href}
                     className={[
-                      'flex items-center gap-4 rounded-2xl px-4 py-4 text-[15px] font-semibold transition',
+                      'flex items-center gap-3 rounded-2xl px-4 py-2 text-[15px] font-semibold transition',
                       active
                         ? 'bg-[#0F5B35] text-[#F7F4E8] shadow-[0_12px_28px_rgba(15,91,53,0.18)]'
                         : 'text-[#596154] hover:bg-[#FBF8EF] hover:text-[#173326] hover:shadow-[0_8px_20px_rgba(23,51,38,0.06)]',
