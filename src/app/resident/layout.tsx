@@ -8,7 +8,6 @@ import { useMemo } from 'react';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import BellIcon from '@/assets/icons/bell.svg';
 import HomeMarkIcon from '@/assets/icons/home-mark.svg';
-import ReceiptIcon from '@/assets/icons/receipt.svg';
 import HomeIcon from '@/assets/icons/home.svg';
 import UserProfileIcon from '@/assets/icons/user-profile.svg';
 import ShieldAlertIcon from '@/assets/icons/shield-alert.svg';
@@ -41,9 +40,7 @@ function SidebarIcon({ name, active }: { name: NavItem['icon']; active?: boolean
         <BellIcon className="h-5 w-5" fill="none" aria-hidden="true" style={{ color: stroke }} />
       );
     case 'dues':
-      return (
-        <ReceiptIcon className="h-5 w-5" fill="none" aria-hidden="true" style={{ color: stroke }} />
-      );
+      return <Image src="/assets/admin/money.svg" alt="" width={20} height={20} aria-hidden="true" className={active ? 'brightness-0 invert' : ''} unoptimized />;
     default:
       return (
         <UserProfileIcon className="h-5 w-5" fill="none" aria-hidden="true" style={{ color: stroke }} />
