@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useMemo } from 'react';
+import TopSearchBar from '@/components/TopSearchBar';
 
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import BriefcaseIcon from '@/assets/icons/briefcase.svg';
@@ -165,14 +166,7 @@ export default function SecurityLayout({ children }: { children: React.ReactNode
         <div className="flex min-w-0 flex-1 flex-col">
           <header className="sticky top-0 z-20 border-b border-[#E6E0CF] bg-[#F8F4E7]/90 backdrop-blur">
             <div className="flex items-center gap-4 px-5 py-4 lg:px-8">
-              <div className="flex min-w-0 flex-1 items-center gap-3 rounded-full border border-[#E6E0CF] bg-[#FBF8EF] px-4 py-3 shadow-[0_8px_24px_rgba(23,51,38,0.04)]">
-                <Image src="/assets/system-admin/search.svg" alt="" width={18} height={18} aria-hidden="true" unoptimized />
-                <input
-                  className="min-w-0 flex-1 bg-transparent text-sm text-[#173326] outline-none placeholder:text-[#9AA092]"
-                  placeholder="Search residents, units, guards..."
-                  aria-label="Search residents, units, guards"
-                />
-              </div>
+              <TopSearchBar />
 
               <button
                 type="button"
