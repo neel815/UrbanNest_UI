@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import TopSearchBar from '@/components/TopSearchBar';
+import NotificationBell from '@/components/NotificationBell';
 import { useMemo } from 'react';
 
 import { useAuthGuard } from '@/hooks/useAuthGuard';
@@ -170,15 +171,7 @@ export default function ResidentLayout({ children }: { children: React.ReactNode
           <header className="sticky top-0 z-20 border-b border-[#E6E0CF] bg-[#F8F4E7]/90 backdrop-blur">
             <div className="flex items-center gap-4 px-5 py-4 lg:px-8">
               <TopSearchBar />
-
-              <button
-                type="button"
-                className="relative grid h-12 w-12 shrink-0 place-items-center rounded-full border border-[#E6E0CF] bg-[#FBF8EF] shadow-[0_8px_24px_rgba(23,51,38,0.04)]"
-                aria-label="Notifications"
-              >
-                <Image src="/assets/system-admin/bell.svg" alt="" width={22} height={22} aria-hidden="true" unoptimized />
-                <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-[#E3A84D] ring-2 ring-[#FBF8EF]" />
-              </button>
+              <NotificationBell />
             </div>
           </header>
 

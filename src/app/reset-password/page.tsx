@@ -2,7 +2,7 @@
 
 import { FormEvent, Suspense, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { apiClient } from '@/utils/api';
+import { apiClient, getApiErrorMessage } from '@/utils/api';
 import { API_ENDPOINTS } from '@/utils/constants';
 
 export default function ResetPasswordPage() {
@@ -35,7 +35,7 @@ function ResetPasswordContent() {
       setMessage('Password set. Redirecting to login...');
       setTimeout(() => router.push('/login'), 1200);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Reset failed');
+      setError(getApiErrorMessage(err) || 'Reset failed');
     }
   };
 

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import HomeIcon from '@/assets/icons/home.svg';
 import { API_ENDPOINTS } from '@/utils/constants';
-import { apiClient } from '@/utils/api';
+import { apiClient, getApiErrorMessage } from '@/utils/api';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -35,8 +35,7 @@ export default function LoginPage() {
       localStorage.setItem('access_token', response.access_token);
       router.replace(getRolePath(response.role));
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Login failed';
-      setError(message);
+      setError(getApiErrorMessage(err) || 'Login failed');
     } finally {
       setLoading(false);
     }

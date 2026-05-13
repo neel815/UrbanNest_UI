@@ -45,7 +45,7 @@ export default function SettingsPage() {
       });
       setMessage('Settings updated');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Update failed');
+      setError(getApiErrorMessage(err) || 'Update failed');
     }
   };
 

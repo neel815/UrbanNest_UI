@@ -1,5 +1,10 @@
 export const API_ENDPOINTS = {
   health: '/api/health',
+  notifications: {
+    list: '/api/notifications',
+    markRead: (id: string) => `/api/notifications/${id}/read`,
+    markAllRead: '/api/notifications/read-all',
+  },
   auth: {
     login: '/api/auth/login',
     register: '/api/auth/register',
@@ -16,7 +21,7 @@ export const API_ENDPOINTS = {
     settingsMe: '/api/system-admin/settings/me',
     admins: '/api/system-admin/admins',
     inviteAdmin: '/api/system-admin/admins/invite',
-      deleteAdmin: (adminId: string) => `/api/system-admin/admins/${adminId}`,
+    deleteAdmin: (adminId: string) => `/api/system-admin/admins/${adminId}`,
   },
   admin: {
     dashboardStats: '/api/admin/dashboard/stats',
