@@ -175,10 +175,10 @@ export default function SecurityDashboardPage() {
 
         setUser(profile);
         setStats(statsData);
-        setVisitors(visitorData);
-        setIncidents(incidentData);
-        setPatrolRounds(patrolData);
-        setAccessLogs(accessLogData);
+        setVisitors(Array.isArray(visitorData) ? visitorData : []);
+        setIncidents(Array.isArray(incidentData) ? incidentData : []);
+        setPatrolRounds(Array.isArray(patrolData) ? patrolData : []);
+        setAccessLogs(Array.isArray(accessLogData) ? accessLogData : []);
       } catch (err) {
         setError(getApiErrorMessage(err));
       } finally {
@@ -232,9 +232,14 @@ export default function SecurityDashboardPage() {
     { href: '/security/logs', title: 'Entry log', subtitle: 'See the live gate log', icon: 'log' },
   ];
 
+  const safeVisitors = Array.isArray(visitors) ? visitors : [];
+  const safeIncidents = Array.isArray(incidents) ? incidents : [];
+  const safePatrolRounds = Array.isArray(patrolRounds) ? patrolRounds : [];
+  const safeAccessLogs = Array.isArray(accessLogs) ? accessLogs : [];
+
   const activity: ActivityItem[] = useMemo(() => {
     return [
-      ...visitors.slice(0, 2).map((visitor): ActivityItem => ({
+      ...safeVisitors.slice(0, 2).map((visitor): ActivityItem => ({
         time: visitor.timeIn || visitor.date,
         title: visitor.name,
         subtitle: `${visitor.hostUnit} · ${visitor.purpose || 'Visitor'}`,
@@ -245,26 +250,26 @@ export default function SecurityDashboardPage() {
             ? 'pending'
             : 'approved',
       })),
-      ...incidents.slice(0, 1).map((incident): ActivityItem => ({
+      ...safeIncidents.slice(0, 1).map((incident): ActivityItem => ({
         time: incident.reportedAt,
         title: incident.title,
         subtitle: `${incident.type} · ${incident.location}`,
         status: incident.status === 'resolved' || incident.status === 'closed' ? 'approved' : 'alert',
       })),
-      ...patrolRounds.slice(0, 1).map((round): ActivityItem => ({
+      ...safePatrolRounds.slice(0, 1).map((round): ActivityItem => ({
         time: round.startTime,
         title: round.route,
         subtitle: `${round.guardName} · ${round.status.replace('_', ' ')}`,
         status: round.status === 'completed' ? 'approved' : 'pending',
       })),
-      ...accessLogs.slice(0, 1).map((log): ActivityItem => ({
+      ...safeAccessLogs.slice(0, 1).map((log): ActivityItem => ({
         time: log.timestamp,
         title: `${log.personName} · ${log.accessPoint}`,
         subtitle: `${log.accessType} · ${log.method}`,
         status: log.status === 'granted' ? 'approved' : log.status === 'alert' ? 'alert' : 'pending',
       })),
     ].slice(0, 4);
-  }, [accessLogs, incidents, patrolRounds, visitors]);
+  }, [safeAccessLogs, safeIncidents, safePatrolRounds, safeVisitors]);
 
   const displayName = user?.full_name || 'Security Guard';
   const displayBuilding = user?.assigned_gate || user?.assigned_building_name || 'Main Gate';

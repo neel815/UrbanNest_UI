@@ -48,8 +48,8 @@ export default function SecurityAccessControlPage() {
           apiClient.get(API_ENDPOINTS.security.accessPoints),
           apiClient.get(API_ENDPOINTS.security.accessLogs)
         ]);
-        setAccessPoints(pointsData);
-        setAccessLogs(logsData);
+        setAccessPoints(Array.isArray(pointsData) ? pointsData : []);
+        setAccessLogs(Array.isArray(logsData) ? logsData : []);
       } catch (err) {
         setError(getApiErrorMessage(err));
       } finally {
@@ -221,7 +221,7 @@ export default function SecurityAccessControlPage() {
                       <p className="text-[#637062]">
                         <span className="font-medium">Access Count Today:</span> {point.accessCount}
                       </p>
-                      {point.restrictions.length > 0 && (
+                      {Array.isArray(point.restrictions) && point.restrictions.length > 0 && (
                           <p className="text-[#637062]">
                           <span className="font-medium">Restrictions:</span> {point.restrictions.join(', ')}
                         </p>

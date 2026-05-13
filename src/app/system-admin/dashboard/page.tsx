@@ -97,8 +97,8 @@ export default function DashboardPage() {
         ]);
 
         setStats(statsData);
-        setActivity(activityData);
-        setSocieties(societiesData);
+        setActivity(Array.isArray(activityData) ? activityData : []);
+        setSocieties(Array.isArray(societiesData) ? societiesData : []);
       } catch (err) {
         setError(getApiErrorMessage(err));
       } finally {
@@ -110,6 +110,9 @@ export default function DashboardPage() {
   }, []);
 
   const displayName = user?.full_name?.split(' ')?.[0] || 'Priya';
+  const safeActivity = Array.isArray(activity) ? activity : [];
+  const safeSocieties = Array.isArray(societies) ? societies : [];
+
   const cards = [
     {
       title: 'Total Admins',
@@ -219,7 +222,7 @@ export default function DashboardPage() {
           </div>
 
           <div className="divide-y divide-[#E8E1CF]">
-            {(activity.length > 0 ? activity : fallbackActivity).map((item) => (
+            {(safeActivity.length > 0 ? safeActivity : fallbackActivity).map((item) => (
               <div key={`${item.title}-${item.timestamp}`} className="flex items-center gap-4 px-6 py-5">
                 <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#E4EDE6] text-sm font-semibold text-[#0F5B35]">
                   {item.initials}
@@ -254,7 +257,7 @@ export default function DashboardPage() {
           </div>
 
           <div className="space-y-6 px-6 py-6">
-            {(societies.length > 0 ? societies : fallbackSocieties).map((item) => (
+            {(safeSocieties.length > 0 ? safeSocieties : fallbackSocieties).map((item) => (
               <div key={item.name}>
                 <div className="flex items-start gap-3">
                   <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#E4EDE6] text-[#0F5B35]">

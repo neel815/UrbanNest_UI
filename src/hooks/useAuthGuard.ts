@@ -8,6 +8,14 @@ import { API_ENDPOINTS } from '@/utils/constants';
 
 type AllowedRole = 'system_admin' | 'admin' | 'resident' | 'security';
 
+function getRoleHomePath(role?: string) {
+  if (role === 'system_admin') return '/system-admin/dashboard';
+  if (role === 'admin') return '/admin/dashboard';
+  if (role === 'resident') return '/resident/dashboard';
+  if (role === 'security') return '/security/dashboard';
+  return '/dashboard';
+}
+
 export function useAuthGuard(role: AllowedRole) {
   const router = useRouter();
   const [checking, setChecking] = useState(true);
@@ -27,7 +35,8 @@ export function useAuthGuard(role: AllowedRole) {
         const me: any = await apiClient.get(API_ENDPOINTS.auth.me);
         setUser(me);
         if (me.role !== role) {
-          router.replace('/dashboard');
+          setChecking(false);
+          router.replace(getRoleHomePath(me.role));
           return;
         }
         setChecking(false);
