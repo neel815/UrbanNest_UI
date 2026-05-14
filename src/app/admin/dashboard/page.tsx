@@ -99,9 +99,9 @@ export default function AdminDashboardPage() {
         ]);
 
         setStats(statsData);
-        setResidents(residentsData);
-        setSecurity(securityData);
-        setAnnouncements(announcementsData);
+        setResidents(Array.isArray(residentsData) ? residentsData : []);
+        setSecurity(Array.isArray(securityData) ? securityData : []);
+        setAnnouncements(Array.isArray(announcementsData) ? announcementsData : []);
       } catch (err) {
         setError(getApiErrorMessage(err));
       } finally {

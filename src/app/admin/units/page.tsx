@@ -159,7 +159,7 @@ export default function AdminUnitsPage() {
 
   const loadUnits = async () => {
     const data = await apiClient.get(adminUnitApi.list);
-    setUnits(data);
+    setUnits(Array.isArray(data) ? data : []);
   };
 
   const loadBuildingInfo = async () => {

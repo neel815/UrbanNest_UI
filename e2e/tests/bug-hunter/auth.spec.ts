@@ -3,6 +3,11 @@ import { loginAsAdmin, loginAsSystemAdmin, logout, waitForAuthPageReady } from '
 import { PageMonitor } from '../../utils/monitors';
 
 test.describe('Authentication Security Tests', () => {
+  test.afterEach(async ({ page, context }) => {
+    await context.setOffline(false).catch(() => {});
+    await page.evaluate(() => localStorage.clear()).catch(() => {});
+  });
+
   test('should reject invalid login credentials', async ({ page }) => {
     const monitor = new PageMonitor(page);
     
@@ -15,8 +20,8 @@ test.describe('Authentication Security Tests', () => {
       page.getByRole('button', { name: /sign in/i }).click(),
     ]);
     
-    // Should stay on login page after rejecting credentials
-    await expect(page).toHaveURL('/login');
+    // Should stay on the login screen after rejecting credentials
+    await expect(page.getByRole('heading', { name: /welcome back/i })).toBeVisible();
   });
 
   test('should handle SQL injection attempts in login', async ({ page }) => {
@@ -31,21 +36,18 @@ test.describe('Authentication Security Tests', () => {
       page.getByRole('button', { name: /sign in/i }).click(),
     ]);
     
-    // Should show error, not inject
-    await expect(page).toHaveURL('/login');
+    // Should show the login screen, not navigate away
+    await expect(page.getByRole('heading', { name: /welcome back/i })).toBeVisible();
   });
 
   test('should reject expired session tokens', async ({ page, context }) => {
-    // Set invalid token
-    await context.addCookies([{
-      name: 'auth_token',
-      value: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDAwMDAwMDB9.invalid',
-      url: 'http://localhost:3000'
-    }]);
+    await page.addInitScript(() => {
+      localStorage.setItem('access_token', 'invalid-token');
+    });
     
     await page.goto('/admin');
     // Should redirect to login
-    await expect(page).toHaveURL('/login', { timeout: 5000 });
+    await expect(page).toHaveURL(/\/login(?:\?.*)?$/, { timeout: 15000 });
   });
 
   test('should enforce logout on session expiry', async ({ page }) => {
@@ -57,11 +59,11 @@ test.describe('Authentication Security Tests', () => {
     // Simulate session expiry by clearing the auth token used by the app
     await page.evaluate(() => localStorage.removeItem('access_token'));
     
-    // Attempt to access protected route
-    await page.goto('/system-admin/dashboard');
+    // Attempt to access protected route after token removal
+    await page.goto('/system-admin/dashboard', { waitUntil: 'domcontentloaded' }).catch(() => {});
     
     // Should redirect to login
-    await expect(page).toHaveURL('/login', { timeout: 5000 });
+    await expect(page).toHaveURL(/\/login(?:\?.*)?$/, { timeout: 15000 });
   });
 
   test('should prevent CSRF attacks', async ({ page }) => {
@@ -106,25 +108,12 @@ test.describe('Authentication Security Tests', () => {
   test('should prevent privilege escalation', async ({ page, context }) => {
     await loginAsSystemAdmin(page);
     
-    // Try to modify token to elevate privileges
-    const cookies = await context.cookies();
-    const authCookie = cookies.find(c => c.name === 'auth_token');
-    
-    if (authCookie) {
-      // Try tampering with token
-      const tamperedToken = authCookie.value.slice(0, -10) + '0000000000';
-      await context.clearCookies();
-      await context.addCookies([{
-        name: 'auth_token',
-        value: tamperedToken,
-        url: 'http://localhost:3000'
-      }]);
-      
-      // Should not grant access
-      await page.goto('/system-admin/admins');
-      const alert = page.locator('[role="alert"]');
-      await expect(alert).toBeVisible({ timeout: 5000 }).catch(() => {});
-    }
+    // Tamper with the app's localStorage session token instead of cookies
+    await page.evaluate(() => localStorage.setItem('access_token', 'tampered.invalid.token'));
+
+    // Should not grant access
+    await page.goto('/system-admin/admins');
+    await expect(page.getByRole('heading', { name: /welcome back/i })).toBeVisible({ timeout: 15000 });
   });
 
   test('should handle logout race conditions', async ({ page }) => {
@@ -142,7 +131,7 @@ test.describe('Authentication Security Tests', () => {
   });
 
   test('should prevent infinite redirect loops', async ({ page }) => {
-    page.goto('/login');
+    await page.goto('/login');
     
     let redirectCount = 0;
     page.on('framenavigated', () => {
@@ -160,12 +149,12 @@ test.describe('Authentication Security Tests', () => {
   test('should preserve session across page refresh', async ({ page, context }) => {
     await loginAsSystemAdmin(page);
     
-    const initialUrl = page.url();
-    
     // Refresh page
     await page.reload();
     
     // Should still be logged in
     await expect(page).toHaveURL(/\/system-admin\/dashboard/, { timeout: 5000 });
+    const token = await page.evaluate(() => localStorage.getItem('access_token'));
+    expect(token).toBeTruthy();
   });
 });

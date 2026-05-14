@@ -92,7 +92,7 @@ export default function AdminPaymentsPage() {
   const loadResidents = async () => {
     try {
       const data = await apiClient.get(API_ENDPOINTS.admin.residents);
-      setResidents(data);
+      setResidents(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error('Failed to load residents:', err);
     }

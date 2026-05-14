@@ -59,7 +59,7 @@ export default function MaintenancePage() {
   const loadRequests = async () => {
     try {
       const data = await apiClient.get(API_ENDPOINTS.resident.maintenance);
-      setRequests(data);
+      setRequests(Array.isArray(data) ? data : []);
     } catch (err) {
       setError(getApiErrorMessage(err));
     } finally {

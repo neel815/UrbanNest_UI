@@ -115,13 +115,14 @@ export default function AdminSecurityPage() {
   const loadUnits = async () => {
     if (!showUnitSelect || !unitsEndpoint) return;
     const data = await apiClient.get(unitsEndpoint);
-    setUnits(data);
+    setUnits(Array.isArray(data) ? data : []);
   };
 
   const loadUsers = async () => {
     const data = await apiClient.get(endpoint);
-    setUsers(data);
-    setTotalGuards(data.length);
+    const safeUsers = Array.isArray(data) ? data : [];
+    setUsers(safeUsers);
+    setTotalGuards(safeUsers.length);
   };
 
   const loadStats = async () => {

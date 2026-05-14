@@ -110,12 +110,12 @@ export default function AdminResidentsPage() {
 
   const loadUnits = useCallback(async () => {
     const data = await apiClient.get(unitsEndpoint);
-    setUnits(data);
+    setUnits(Array.isArray(data) ? data : []);
   }, [unitsEndpoint]);
 
   const loadUsers = useCallback(async () => {
     const data = await apiClient.get(endpoint);
-    setUsers(data);
+    setUsers(Array.isArray(data) ? data : []);
   }, [endpoint]);
 
   const loadResidentDetail = useCallback(async (residentId: string) => {
