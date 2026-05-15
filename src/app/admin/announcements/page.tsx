@@ -49,6 +49,7 @@ export default function AdminAnnouncementsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [modalError, setModalError] = useState('');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deletingId, setDeletingId] = useState<string>('');
   const [deletingType, setDeletingType] = useState<'announcement' | 'event'>('announcement');
@@ -125,6 +126,7 @@ export default function AdminAnnouncementsPage() {
   };
 
   const openCreateModal = (kind: 'announcement' | 'event') => {
+    setModalError('');
     setModalKind(kind);
   };
 
@@ -161,7 +163,8 @@ export default function AdminAnnouncementsPage() {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setSaving(true);
-    setError('');
+    // clear appropriate error state
+    if (modalKind) setModalError(''); else setError('');
 
     try {
       if (modalKind === 'announcement') {
@@ -170,7 +173,8 @@ export default function AdminAnnouncementsPage() {
         await submitEvent();
       }
     } catch (err) {
-      setError(getApiErrorMessage(err));
+      const msg = getApiErrorMessage(err);
+      if (modalKind) setModalError(msg); else setError(msg);
     } finally {
       setSaving(false);
     }
@@ -251,7 +255,7 @@ export default function AdminAnnouncementsPage() {
         </button>
       </div>
 
-      {error && (
+      {error && !modalKind && (
         <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
           {error}
         </div>
@@ -404,6 +408,11 @@ export default function AdminAnnouncementsPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+                {modalError && (
+                  <div className="mt-1 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
+                    {modalError}
+                  </div>
+                )}
               {modalKind === 'announcement' ? (
                 <>
                   <div>

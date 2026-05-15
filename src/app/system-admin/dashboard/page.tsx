@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Cormorant_Garamond } from 'next/font/google';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, type FormEvent } from 'react';
 
 import { useSystemAdminUser } from '@/context/system-admin-user-context';
 import { apiClient, getApiErrorMessage } from '@/utils/api';
@@ -84,6 +84,8 @@ export default function DashboardPage() {
   const [activity, setActivity] = useState<ActivityItem[]>([]);
   const [societies, setSocieties] = useState<SocietyItem[]>([]);
   const [error, setError] = useState('');
+  const [exportError, setExportError] = useState('');
+  const [exporting, setExporting] = useState(false);
   const [loading, setLoading] = useState(true);
   const { user } = useSystemAdminUser();
 
@@ -112,6 +114,89 @@ export default function DashboardPage() {
   const displayName = user?.full_name?.split(' ')?.[0] || 'Priya';
   const safeActivity = Array.isArray(activity) ? activity : [];
   const safeSocieties = Array.isArray(societies) ? societies : [];
+  const exportSnapshot = JSON.stringify({
+    displayName,
+    exportedAt: new Date().toISOString(),
+    stats: stats ?? {
+      total_users: 0,
+      total_admins: 0,
+      total_residents: 0,
+      total_security: 0,
+      residents_joined_last_30_days: 0,
+    },
+    activity: safeActivity.length > 0 ? safeActivity : fallbackActivity,
+    societies: safeSocieties.length > 0 ? safeSocieties : fallbackSocieties,
+  });
+  const formRef = useRef<HTMLFormElement | null>(null);
+
+  const handleExportReport = async (e?: FormEvent<HTMLFormElement>) => {
+    e?.preventDefault();
+    setExportError('');
+    setExporting(true);
+
+    // handler invoked
+
+    try {
+      const formData = new FormData();
+      formData.append('payload', exportSnapshot);
+
+      const token = apiClient.getAuthToken();
+
+      const resp = await fetch('/api/system-admin/dashboard/export', {
+        method: 'POST',
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        body: formData,
+      });
+
+      if (!resp.ok) {
+        // Attempt to parse error JSON
+        let errText = await resp.text();
+        try {
+          const parsed = JSON.parse(errText);
+          errText = getApiErrorMessage(parsed);
+        } catch {}
+        setExportError(errText || `Export failed with status ${resp.status}`);
+        setExporting(false);
+        return;
+      }
+
+      const contentType = resp.headers.get('content-type') || '';
+      if (contentType.includes('application/pdf')) {
+        const blob = await resp.blob();
+        const disposition = resp.headers.get('content-disposition') || '';
+        let fileName = 'export.pdf';
+        const match = disposition.match(/filename="?([^";]+)"?/i);
+        if (match && match[1]) fileName = match[1];
+
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.setTimeout(() => window.URL.revokeObjectURL(url), 5000);
+        setExporting(false);
+        return;
+      }
+
+      // If not PDF, open fallback in new tab (original form submit)
+      if (formRef.current) {
+        try {
+          formRef.current.target = '_blank';
+          formRef.current.submit();
+        } catch (err) {
+          setExportError(getApiErrorMessage(err));
+        }
+      }
+    } catch (err) {
+      setExportError(getApiErrorMessage(err));
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  // debugClientExport removed
 
   const cards = [
     {
@@ -155,12 +240,21 @@ export default function DashboardPage() {
           <p className="max-w-2xl text-[16px] leading-7 text-[#637062]">
             A calm, complete view of every society, guard, and resident running on UrbanNest.
           </p>
+
+          
         </div>
 
         <div className="flex items-center gap-3">
-          <button className="rounded-full border border-[#D9D1BC] bg-white px-5 py-3 text-sm font-semibold text-[#173326] shadow-[0_8px_24px_rgba(23,51,38,0.05)]">
-            Export report
-          </button>
+          <form ref={formRef} action="/api/system-admin/dashboard/export" method="post" onSubmit={handleExportReport}>
+            <input type="hidden" name="payload" value={exportSnapshot} />
+            <button
+              type="submit"
+              disabled={exporting}
+              className="rounded-full border border-[#D9D1BC] bg-white px-5 py-3 text-sm font-semibold text-[#173326] shadow-[0_8px_24px_rgba(23,51,38,0.05)] transition hover:bg-[#F7F3E8] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {exporting ? 'Exporting...' : 'Export report'}
+            </button>
+          </form>
           <Link 
             href="/system-admin/admins"
             className="rounded-full bg-[#0F5B35] px-5 py-3 text-sm font-semibold text-[#F7F4E8] shadow-[0_12px_28px_rgba(15,91,53,0.18)] transition hover:-translate-y-0.5 hover:bg-[#0B4B2C]"
@@ -173,6 +267,12 @@ export default function DashboardPage() {
       {error && (
         <div className="rounded-3xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
           {error}
+        </div>
+      )}
+
+      {exportError && (
+        <div className="rounded-3xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
+          {exportError}
         </div>
       )}
 

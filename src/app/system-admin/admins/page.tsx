@@ -371,12 +371,9 @@ export default function AdminListPage() {
                             </div>
                             <div className="min-w-0">
                               <div className="flex items-center gap-2">
-                                <p className="truncate text-[16px] font-semibold leading-tight text-[#122B20]">{admin.full_name}</p>
-                                {admin.must_reset_password && (
-                                  <span className="inline-flex shrink-0 items-center rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-800">
-                                    Pending
-                                  </span>
-                                )}
+                              <p className="truncate text-[16px] font-semibold leading-tight text-[#122B20]">
+                                {admin.full_name}
+                              </p>
                               </div>
                               <p className="truncate text-[13px] text-[#53605A]">{admin.email}</p>
                             </div>

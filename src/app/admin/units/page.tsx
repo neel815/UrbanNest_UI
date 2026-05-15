@@ -50,6 +50,7 @@ function UnitModal({
   onClose,
   submitLabel,
   buildingType,
+  error,
 }: {
   title: string;
   form: UnitFormState;
@@ -58,6 +59,7 @@ function UnitModal({
   onClose: () => void;
   submitLabel: string;
   buildingType: string | null;
+  error: string;
 }) {
   const isApartmentTower = buildingType === 'apartment_tower';
 
@@ -79,7 +81,14 @@ function UnitModal({
           </button>
         </div>
 
-        <form onSubmit={onSubmit} className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
+       <>
+        {error && (
+          <div className="mt-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
+            {error}
+          </div>
+        )}
+
+       <form onSubmit={onSubmit} className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-[#7D8577]">Unit / Plot / House Number</label>
             <input
@@ -139,6 +148,7 @@ function UnitModal({
             </button>
           </div>
         </form>
+        </>
       </div>
     </div>
   );
@@ -156,6 +166,7 @@ export default function AdminUnitsPage() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deletingUnitId, setDeletingUnitId] = useState<string>('');
   const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
+  const [modalError, setModalError] = useState('');
 
   const loadUnits = async () => {
     const data = await apiClient.get(adminUnitApi.list);
@@ -177,7 +188,9 @@ export default function AdminUnitsPage() {
         await loadBuildingInfo();
         await loadUnits();
       } catch (err) {
-        setError(getApiErrorMessage(err));
+        console.log(err);
+        console.log(getApiErrorMessage(err));
+        setModalError(getApiErrorMessage(err));
       } finally {
         setLoading(false);
       }
@@ -187,14 +200,14 @@ export default function AdminUnitsPage() {
   }, []);
 
   const openCreateModal = () => {
-    setError('');
+    setModalError('');
     setMessage('');
     setForm(emptyForm);
     setShowCreateModal(true);
   };
 
   const openEditModal = (unit: UnitRow) => {
-    setError('');
+    setModalError('');
     setMessage('');
     setEditingUnit(unit);
     setForm({
@@ -209,11 +222,12 @@ export default function AdminUnitsPage() {
     setShowCreateModal(false);
     setEditingUnit(null);
     setForm(emptyForm);
+    setModalError('');
   };
 
   const submitCreate = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setError('');
+    setModalError('');
     setMessage('');
     try {
       const isApartmentTower = buildingType === 'apartment_tower';
@@ -227,14 +241,14 @@ export default function AdminUnitsPage() {
       closeModal();
       await loadUnits();
     } catch (err) {
-      setError(getApiErrorMessage(err));
+      setModalError(getApiErrorMessage(err));
     }
   };
 
   const submitEdit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!editingUnit) return;
-    setError('');
+    setModalError('');
     setMessage('');
     try {
       const isApartmentTower = buildingType === 'apartment_tower';
@@ -248,7 +262,7 @@ export default function AdminUnitsPage() {
       closeModal();
       await loadUnits();
     } catch (err) {
-      setError(getApiErrorMessage(err));
+      setModalError(getApiErrorMessage(err));
     }
   };
 
@@ -258,7 +272,7 @@ export default function AdminUnitsPage() {
   };
 
   const handleDeleteConfirm = async () => {
-    setError('');
+    setModalError('');
     setMessage('');
     try {
       await apiClient.delete(adminUnitApi.delete(deletingUnitId));
@@ -267,7 +281,7 @@ export default function AdminUnitsPage() {
       setDeletingUnitId('');
       await loadUnits();
     } catch (err) {
-      setError(getApiErrorMessage(err));
+      setModalError(getApiErrorMessage(err));
       setShowDeleteDialog(false);
     }
   };
@@ -292,7 +306,11 @@ export default function AdminUnitsPage() {
         </button>
       </section>
 
-      {error && <div className="rounded-3xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">{error}</div>}
+      {error && !showCreateModal && !editingUnit && (
+  <div className="rounded-3xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
+    {error}
+  </div>
+)}
       {message && <div className="rounded-3xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">{message}</div>}
 
       <section className="grid gap-4 lg:grid-cols-3">
@@ -396,6 +414,7 @@ export default function AdminUnitsPage() {
           onClose={closeModal}
           submitLabel="Create Unit"
           buildingType={buildingType}
+          error={modalError}
         />
       )}
 
@@ -408,6 +427,7 @@ export default function AdminUnitsPage() {
           onClose={closeModal}
           submitLabel="Save Changes"
           buildingType={buildingType}
+          error={modalError}
         />
       )}
 

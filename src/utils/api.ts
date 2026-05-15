@@ -37,19 +37,24 @@ export const apiClient = {
       if (!response.ok) {
         const message = getApiErrorMessage(data);
         if (response.status === 401) {
-          // Clear invalid token and redirect to login for client-side sessions
-          if (typeof window !== 'undefined') {
-            localStorage.removeItem('access_token');
-            try {
-              window.location.href = '/login';
-              // stop further execution — the browser will navigate away
-              return;
-            } catch (e) {
-              // If redirect fails, still throw so callers can handle it
-              throw new Error('Authentication required. Please log in again.');
+          // If skipAuth is true (e.g., login endpoint), don't perform an automatic redirect.
+          if (!skipAuth) {
+            // Clear invalid token and redirect to login for client-side sessions
+            if (typeof window !== 'undefined') {
+              localStorage.removeItem('access_token');
+              try {
+                window.location.href = '/login';
+                // stop further execution — the browser will navigate away
+                return;
+              } catch (e) {
+                // If redirect fails, still throw so callers can handle it
+                throw new Error('Authentication required. Please log in again.');
+              }
             }
+            throw new Error('Authentication required. Please log in again.');
           }
-          throw new Error('Authentication required. Please log in again.');
+          // For skipAuth requests, surface the API's message instead of redirecting
+          throw new Error(message || 'Authentication required. Please log in again.');
         } else if (response.status === 404) {
           throw new Error(message || 'Endpoint not found. Please check the API configuration.');
         } else if (response.status >= 500) {

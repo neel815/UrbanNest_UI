@@ -40,6 +40,7 @@ export default function AdminPaymentsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [modalError, setModalError] = useState('');
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
   const [showMarkPaidModal, setShowMarkPaidModal] = useState(false);
   const [showRaiseBulkModal, setShowRaiseBulkModal] = useState(false);
@@ -225,11 +226,11 @@ export default function AdminPaymentsPage() {
 
   const handleRaiseBulkDue = async () => {
     if (!bulkForm.type || !bulkForm.amount || !bulkForm.due_date) {
-      setError('Please fill in all required fields');
+      setModalError('Please fill in all required fields');
       return;
     }
     setSubmitting(true);
-    setError('');
+    setModalError('');
     try {
       await apiClient.post(API_ENDPOINTS.admin.paymentsBulk, {
         type: bulkForm.type,
@@ -239,10 +240,11 @@ export default function AdminPaymentsPage() {
       });
       setSuccess(`Due raised for all residents`);
       setShowRaiseBulkModal(false);
+      setModalError('');
       setBulkForm({ type: 'maintenance_fee', amount: '', due_date: '', description: '' });
       await loadPayments();
     } catch (err) {
-      setError(getApiErrorMessage(err));
+      setModalError(getApiErrorMessage(err));
     } finally {
       setSubmitting(false);
     }
@@ -250,11 +252,11 @@ export default function AdminPaymentsPage() {
 
   const handleRaiseIndividualDue = async () => {
     if (!individualForm.resident_id || !individualForm.type || !individualForm.amount || !individualForm.due_date) {
-      setError('Please fill in all required fields');
+      setModalError('Please fill in all required fields');
       return;
     }
     setSubmitting(true);
-    setError('');
+    setModalError('');
     try {
       await apiClient.post(API_ENDPOINTS.admin.paymentsIndividual, {
         resident_id: individualForm.resident_id,
@@ -265,10 +267,11 @@ export default function AdminPaymentsPage() {
       });
       setSuccess('Due raised successfully');
       setShowRaiseIndividualModal(false);
+      setModalError('');
       setIndividualForm({ resident_id: '', type: 'maintenance_fee', amount: '', due_date: '', description: '' });
       await loadPayments();
     } catch (err) {
-      setError(getApiErrorMessage(err));
+      setModalError(getApiErrorMessage(err));
     } finally {
       setSubmitting(false);
     }
@@ -300,13 +303,19 @@ export default function AdminPaymentsPage() {
         </div>
         <div className="flex flex-col gap-3 sm:flex-row">
           <button
-            onClick={() => setShowRaiseBulkModal(true)}
+            onClick={() => {
+              setModalError('');
+              setShowRaiseBulkModal(true);
+            }}
             className="rounded-full bg-[#0F5B35] px-6 py-3 text-sm font-semibold text-white shadow-[0_10px_26px_rgba(15,91,53,0.16)] transition hover:-translate-y-0.5"
           >
             Raise Bulk Due
           </button>
           <button
-            onClick={() => setShowRaiseIndividualModal(true)}
+            onClick={() => {
+              setModalError('');
+              setShowRaiseIndividualModal(true);
+            }}
             className="rounded-full border-2 border-[#0F5B35] bg-transparent px-6 py-3 text-sm font-semibold text-[#0F5B35] transition hover:bg-[#0F5B35]/5"
           >
             Raise Individual Due
@@ -315,7 +324,7 @@ export default function AdminPaymentsPage() {
       </div>
 
       {/* Error & Success Messages */}
-      {error && (
+      {error && !showRaiseBulkModal && !showRaiseIndividualModal && (
         <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</div>
       )}
       {success && (
@@ -498,6 +507,11 @@ export default function AdminPaymentsPage() {
             </p>
 
             <div className="mt-6 space-y-4">
+              {modalError && (
+                <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
+                  {modalError}
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-semibold text-[#173326]">Due Type *</label>
                 <select
@@ -550,7 +564,10 @@ export default function AdminPaymentsPage() {
 
             <div className="mt-8 flex gap-3">
               <button
-                onClick={() => setShowRaiseBulkModal(false)}
+                onClick={() => {
+                  setShowRaiseBulkModal(false);
+                  setModalError('');
+                }}
                 disabled={submitting}
                 className="flex-1 rounded-lg border-2 border-[#0F5B35] bg-transparent px-4 py-3 text-sm font-semibold text-[#0F5B35] transition hover:bg-[#0F5B35]/5 disabled:opacity-50"
               >
@@ -575,6 +592,11 @@ export default function AdminPaymentsPage() {
             <h2 className="text-2xl font-semibold text-[#173326]">Raise Due for Resident</h2>
 
             <div className="mt-6 space-y-4">
+              {modalError && (
+                <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
+                  {modalError}
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-semibold text-[#173326]">Select Resident *</label>
                 <select
@@ -643,7 +665,10 @@ export default function AdminPaymentsPage() {
 
             <div className="mt-8 flex gap-3">
               <button
-                onClick={() => setShowRaiseIndividualModal(false)}
+                onClick={() => {
+                  setShowRaiseIndividualModal(false);
+                  setModalError('');
+                }}
                 disabled={submitting}
                 className="flex-1 rounded-lg border-2 border-[#0F5B35] bg-transparent px-4 py-3 text-sm font-semibold text-[#0F5B35] transition hover:bg-[#0F5B35]/5 disabled:opacity-50"
               >

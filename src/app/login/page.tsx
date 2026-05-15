@@ -31,7 +31,16 @@ export default function LoginPage() {
       const response = await apiClient.post(API_ENDPOINTS.auth.login, {
         email,
         password,
-      });
+      }, true);
+
+      // Guard against unexpected / malformed responses from apiClient
+      if (!response || !response.access_token) {
+        // Prefer a friendly message when credentials are invalid or response is malformed
+        setError('Invalid Credentials');
+        setLoading(false);
+        return;
+      }
+
       localStorage.setItem('access_token', response.access_token);
       router.replace(getRolePath(response.role));
     } catch (err) {
